@@ -5,6 +5,7 @@ os:
   - linux
   - osx
 language: bash
+sudo: required
 install:
   - source travis.sh
   - neopo install
