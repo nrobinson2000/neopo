@@ -4,7 +4,7 @@
 
 ## A lightweight solution for local Particle development built with Python
 
-![Neopo screenshot](screenshot.png)
+![Neopo screenshot](neopo-screenshot.png)
 
 ## Installation
 The reccomended way to install neopo is to clone this repository and add the directory to your PATH:
