@@ -7,9 +7,12 @@ import io
 import gzip
 import tarfile
 import platform
+import stat
+import os
 
 DEPS = 'particle/toolchains'
 http = urllib3.PoolManager()
+
 
 def getExtensionURL():
     payload = '{"assetTypes":null,"filters":[{"criteria":[{"filterType":7,"value":"particle.particle-vscode-core"}],"direction":2,"pageSize":100,"pageNumber":1,"sortBy":0,"sortOrder":0,"pagingToken":null}],"flags":103}'
@@ -22,12 +25,14 @@ def getExtensionURL():
     return latest
 
 
-def getManifest():
-    url = getExtensionURL()
+def getExtension(url):
     response = http.request('GET', url)
-    with zipfile.ZipFile(io.BytesIO(response.data), 'r') as vsix:
-        content = vsix.read('extension/src/compiler/manifest.json')
-        return content
+    return zipfile.ZipFile(io.BytesIO(response.data), 'r')
+
+
+def getFile(file, path):
+    content = file.read(path)
+    return content
 
 
 def downloadDep(dep):
@@ -45,7 +50,21 @@ def downloadDep(dep):
 
 
 def getDeps():
-    manifest = getManifest()
+    osPlatform = platform.system().lower()
+    osArch = 'amd64' if platform.machine() == 'x86_64' else 'arm'
+
+    url = getExtensionURL()
+    extension = getExtension(url)
+
+    manifest = getFile(extension, 'extension/src/compiler/manifest.json')
+    particle = getFile(extension, 'extension/src/cli/bin/' +
+                       osPlatform + '/' + osArch + '/particle')
+
+    with open(DEPS + '/particle', 'wb') as file:
+        file.write(particle)
+        st = os.stat(file.name)
+        os.chmod(file.name, st.st_mode | stat.S_IEXEC)
+
     data = json.loads(manifest)
     return data
 
@@ -66,7 +85,10 @@ def install():
     downloadDep(debuggers)
 
 
-# make -sf /home/nrobinson/.particle/toolchains/buildscripts/1.9.2/Makefile 
-# PARTICLE_CLI_PATH=$(which particle)
-# DEVICE_OS_PATH="/home/nrobinson/.particle/toolchains/deviceOS/1.5.2"
-# PLATFORM=argon APPDIR=$(pwd) flash-user
+def build():
+    pass
+
+    # make -sf /home/nrobinson/.particle/toolchains/buildscripts/1.9.2/Makefile
+    # PARTICLE_CLI_PATH=$(which particle)
+    # DEVICE_OS_PATH="/home/nrobinson/.particle/toolchains/deviceOS/1.5.2"
+    # PLATFORM=argon APPDIR=$(pwd) flash-user
