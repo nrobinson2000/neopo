@@ -9,6 +9,7 @@ import tarfile
 import platform
 import stat
 import os
+import pathlib
 
 DEPS = 'particle/toolchains'
 http = urllib3.PoolManager()
@@ -55,6 +56,8 @@ def getDeps():
 
     url = getExtensionURL()
     extension = getExtension(url)
+
+    pathlib.Path(DEPS).mkdir(parents=True, exist_ok=True)
 
     manifest = getFile(extension, 'extension/src/compiler/manifest.json')
     particle = getFile(extension, 'extension/src/cli/bin/' +
