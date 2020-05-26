@@ -99,7 +99,7 @@ def getDeps():
 
     writeExecutable(particle, DEPS + '/particle')
 
-    data = json.loads(manifest)
+    data = json.loads(manifest.decode('utf-8'))
     return data
 
 # Write the settings to a JSON file
