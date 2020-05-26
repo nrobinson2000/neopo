@@ -6,8 +6,9 @@
 
 ![Neopo screenshot](neopo-screenshot.png)
 
+
 ## Installation
-The reccomended way to install neopo is to clone this repository and add the directory to your PATH:
+The recommended way to install neopo is to clone this repository and add the directory to your PATH:
 
 ```bash
 $ git clone https://github.com/nrobinson2000/neopo
