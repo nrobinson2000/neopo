@@ -3,7 +3,6 @@
 # neopo: A replacement for po-util
 # Copyright (c) 2020 - Nathan Robinson
 
-import urllib3
 import json
 import zipfile
 import io
@@ -16,29 +15,39 @@ import pathlib
 import sys
 import subprocess
 import shutil
+import urllib.request
 
 # Global Variables
 DEPS = os.environ['HOME'] + '/.particle/toolchains'
-http = urllib3.PoolManager()
 
 
 # Find the Workbench extension URL from the Visual Studio Marketplace 
 def getExtensionURL():
     print("Finding Workbench extension URL...")
+
     payload = '{"assetTypes":null,"filters":[{"criteria":[{"filterType":7,"value":"particle.particle-vscode-core"}],"direction":2,"pageSize":100,"pageNumber":1,"sortBy":0,"sortOrder":0,"pagingToken":null}],"flags":103}'
-    response = http.request('POST', 'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery',
-                            body=payload.encode('utf-8'),
-                            headers={'accept': 'application/json;api-version=6.0-preview.1;excludeUrls=true',
-                                     'content-type': 'application/json'})
-    data = json.loads(response.data.decode('utf-8'))
+
+    request = urllib.request.Request('https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery', method='POST', headers={
+        'content-type': 'application/json',
+        'accept': 'application/json;api-version=6.0-preview.1;excludeUrls=true'
+    }, data=payload.encode('utf-8'))
+
+    with urllib.request.urlopen(request) as response:
+        content = response.read()
+    
+    data = json.loads(content.decode('utf-8'))
     latest = data['results'][0]['extensions'][0]['versions'][0]['files'][-1]['source']
+
     return latest
 
 # Download the the Workbench extension from the URL
 def getExtension(url):
     print("Downloading Workbench extension...")
-    response = http.request('GET', url)
-    return zipfile.ZipFile(io.BytesIO(response.data), 'r')
+
+    with urllib.request.urlopen(url) as response:
+        content = response.read()
+
+    return zipfile.ZipFile(io.BytesIO(content), 'r')
 
 # Load a file from a ZIP
 def getFile(file, path):
@@ -56,8 +65,12 @@ def downloadDep(dep):
     path = name + '/' + version
     path = DEPS + '/' + path
     url = dep['url']
-    response = http.request('GET', url)
-    data = gzip.decompress(response.data)
+
+    with urllib.request.urlopen(url) as response:
+        content = response.read()
+
+    data = gzip.decompress(content)
+
     with tarfile.TarFile(None, 'r', io.BytesIO(data)) as file:
         file.extractall(path)
 
