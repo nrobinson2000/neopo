@@ -12,3 +12,4 @@ install:
 script:
   - neopo create test
   - neopo build test
+  - neopo clean test
