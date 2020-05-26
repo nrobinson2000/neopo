@@ -17,6 +17,9 @@ import subprocess
 import shutil
 import urllib.request
 
+if platform.system().lower() not in ['darwin', 'linux']:
+    exit('OS is not supported! Use Linux or macOS.')
+
 # Global Variables
 DEPS = os.environ['HOME'] + '/.particle/toolchains'
 
