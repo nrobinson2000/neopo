@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+# neopo: A replacement for po-util
+# Copyright (c) 2020 - Nathan Robinson
+
 import urllib3
 import json
 import zipfile
@@ -14,11 +17,12 @@ import sys
 import subprocess
 import shutil
 
+# Global Variables
 DEPS = os.environ['HOME'] + '/.particle/toolchains'
-
 http = urllib3.PoolManager()
 
 
+# Find the Workbench extension URL from the Visual Studio Marketplace 
 def getExtensionURL():
     print("Finding Workbench extension URL...")
     payload = '{"assetTypes":null,"filters":[{"criteria":[{"filterType":7,"value":"particle.particle-vscode-core"}],"direction":2,"pageSize":100,"pageNumber":1,"sortBy":0,"sortOrder":0,"pagingToken":null}],"flags":103}'
@@ -30,18 +34,18 @@ def getExtensionURL():
     latest = data['results'][0]['extensions'][0]['versions'][0]['files'][-1]['source']
     return latest
 
-
+# Download the the Workbench extension from the URL
 def getExtension(url):
     print("Downloading Workbench extension...")
     response = http.request('GET', url)
     return zipfile.ZipFile(io.BytesIO(response.data), 'r')
 
-
+# Load a file from a ZIP
 def getFile(file, path):
     content = file.read(path)
     return content
 
-
+# Download a dependency specified by the JSON
 def downloadDep(dep):
     writeManifest(dep)
     name = dep['name']
@@ -59,19 +63,19 @@ def downloadDep(dep):
 
     return response
 
-
+# Write JSON data to a file
 def writeFile(content, path):
     with open(path, 'w') as file:
         file.write(content)
 
-
+# Write an executable dependency to a file
 def writeExecutable(content, path):
     with open(path, 'wb') as file:
         file.write(content)
         st = os.stat(file.name)
         os.chmod(file.name, st.st_mode | stat.S_IEXEC)
 
-
+# Download extension manifest and simple dependencies
 def getDeps():
     osPlatform = platform.system().lower()
     osArch = 'amd64' if platform.machine() == 'x86_64' else 'arm'
@@ -98,7 +102,7 @@ def getDeps():
     data = json.loads(manifest)
     return data
 
-
+# Write the settings to a JSON file
 def writeManifest(dep):
     with open(DEPS + '/manifest.json', 'r+') as file:
         try:
@@ -111,17 +115,17 @@ def writeManifest(dep):
         json.dump(manifest, file, indent=4)
         file.truncate()
 
-
+# Create the settings file
 def createManifest():
     with open(DEPS + '/manifest.json', 'w') as file:
         pass
 
-
+# Load settings from the JSON file
 def loadManifest():
     with open(DEPS + '/manifest.json', 'r') as file:
         return json.loads(file.read())
 
-
+# Download list of dependencies and install them
 def install():
     print("Installing neopo...")
     osPlatform = platform.system().lower()
@@ -139,8 +143,8 @@ def install():
     downloadDep(scripts)
     downloadDep(debuggers)
 
-
-def initProject(path, name):
+# Create a Particle project and copy in Workbench settings
+def create(path, name):
     tempEnv = os.environ.copy()
     tempEnv['PATH'] += ':' + DEPS
 
@@ -153,8 +157,14 @@ def initProject(path, name):
                     '/' + name + '/.vscode/launch.json')
     shutil.copyfile(DEPS + '/vscode/settings.json', path +
                     '/' + name + '/.vscode/settings.json')
+    
 
+    manifest = loadManifest()
+    device = 'argon'
+    configure(path + '/' + name, device, manifest['deviceOS'])
 
+# Modify Workbench settings in a project (platform, firmwareVersion)
+# TODO: Input verification, install specified firmware if required
 def configure(projectPath, platform, firmwareVersion):
     with open(projectPath + '/.vscode/settings.json', 'r+') as settings:
         data = json.loads(settings.read())
@@ -167,19 +177,40 @@ def configure(projectPath, platform, firmwareVersion):
     print("\tparticle.targetPlatform: " + platform)
     print("\tparticle.firmwareVersion: " + firmwareVersion)
 
-
+# Load Workbench settings from a project
 def getSettings(projectPath):
     with open(projectPath + '/.vscode/settings.json', 'r+') as settings:
         return json.loads(settings.read())
 
+# Print help information directly from Makefile
+def build_help():
+    manifest = loadManifest()
+    compilerVersion = manifest['gcc-arm']
+    scriptVersion = manifest['buildscripts']
+    toolsVersion = manifest['buildtools']
+    firmwareVersion = manifest['deviceOS']
 
+    tempEnv = os.environ.copy()
+    tempEnv['PATH'] += ':' + DEPS + '/gcc-arm/' + compilerVersion + '/bin'
+    tempEnv['PATH'] += ':' + DEPS + '/buildtools/' + toolsVersion
+
+    process = ['make', '-sf', DEPS + '/buildscripts/' + scriptVersion + '/Makefile',
+               'PARTICLE_CLI_PATH=' + DEPS + '/particle', 'DEVICE_OS_PATH=' +
+               DEPS + '/deviceOS/' + firmwareVersion, 'help'
+               ]
+
+    subprocess.run(process, env=tempEnv)
+
+# Use the Makefile to build the specified target
 def build(projectPath, command):
     manifest = loadManifest()
     compilerVersion = manifest['gcc-arm']
     scriptVersion = manifest['buildscripts']
+    toolsVersion = manifest['buildtools']
 
     tempEnv = os.environ.copy()
     tempEnv['PATH'] += ':' + DEPS + '/gcc-arm/' + compilerVersion + '/bin'
+    tempEnv['PATH'] += ':' + DEPS + '/buildtools/' + toolsVersion
 
     settings = getSettings(projectPath)
     platform = settings['particle.targetPlatform']
@@ -191,24 +222,114 @@ def build(projectPath, command):
                'PLATFORM=' + platform, 'APPDIR=' + projectPath, command
                ]
 
-    print(process)
+    #print(process)
 
     subprocess.run(process, env=tempEnv)
 
-def main():
-    print("hello")
-    pass
+# Print help information about the program
+def print_help():
+    print("""Usage: neopo [OPTIONS] PROJECT
 
+Options:
+    General Options:
+        help
+        install
+        create <project>
+
+    Build Options:
+        compile, build <project>
+        flash <project>
+        flash-all <project>
+        clean <project>
+
+    Special Options:
+        run <target> <project>
+        configure <platform> <version> <project>
+        """)
+
+# Parse the project path from the specified index and run a Makefile target
+def buildCommand(command, index):
+    try:
+        project = os.environ['PWD'] + '/' + sys.argv[index]
+    except IndexError:
+        project = os.environ['PWD']
+
+    try:
+        build(project, command)
+    except FileNotFoundError:
+        print("Invalid project!")
+
+# Evaluate command-line arguments and call neccesary functions
+def main():
+    # print(sys.argv)
+
+    if len(sys.argv) == 1 or sys.argv[1] == 'help':
+        print_help()
+        return
+
+    if sys.argv[1] == 'install':
+        install()
+        return
+
+    if sys.argv[1] == 'create':
+        try:
+            projectPath = sys.argv[2]
+        except IndexError:
+            print("You must supply a path for the project!")
+            return
+
+        projectPath = os.path.abspath(projectPath)
+        name = os.path.basename(projectPath)
+        path = os.path.dirname(projectPath)
+        create(path, name)
+        return
+
+    if sys.argv[1] == 'compile' or sys.argv[1] == 'build':
+        buildCommand('compile-user', 2)
+        return
+
+    if sys.argv[1] == 'flash':
+        buildCommand('flash-user', 2)
+        return
+
+    if sys.argv[1] == 'flash-all':
+        buildCommand('flash-all', 2)
+        return
+
+    if sys.argv[1] == 'clean':
+        buildCommand('clean-user', 2)
+        return
+
+    if sys.argv[1] == 'run':
+        try:
+            command = sys.argv[2]
+        except IndexError:
+            build_help()
+            print("You must supply a Makefile target!")
+            return
+
+        buildCommand(command, 3)
+        return
+
+    if sys.argv[1] == 'configure':
+        try:
+            platform = sys.argv[2]
+            version = sys.argv[3]
+        except IndexError:
+            print("You must supply platform and deviceOS version!")
+            return
+        
+        try:
+            projectPath = sys.argv[4]
+        except IndexError:
+            projectPath = os.environ['PWD']
+        
+        configure(projectPath, platform, version)
+        return
+
+    print("Invalid command!")
+    print_help()
 
 
 if __name__ == "__main__":
     main()
-
-# neopo help
-# neopo install
-# neopo configure <platform> <version>
-
-# neopo compile <project>
-# neopo flash <project>
-
-# neopo run <command> <project>

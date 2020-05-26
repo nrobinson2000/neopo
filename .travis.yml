@@ -1,0 +1,14 @@
+# neopo: A replacement for po-util
+# Copyright (c) 2020 - Nathan Robinson
+
+os:
+  - linux
+  - osx
+language: bash
+sudo: required
+install:
+  - source travis.sh
+  - neopo install
+script:
+  - neopo create test
+  - neopo build test
