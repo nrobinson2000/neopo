@@ -4,7 +4,7 @@
 
 ## A lightweight solution for local Particle development built with Python
 
-![Neopo screenshot](neopo-screenshot.png)
+![Neopo screenshot](docs/neopo-screenshot.png)
 
 
 ## Installation
