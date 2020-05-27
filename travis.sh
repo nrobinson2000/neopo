@@ -1,4 +1,4 @@
-export PATH="$PATH:$PWD"
+export PATH="$PATH:$PWD/bin"
 
 if [ "$(uname -s)" == "Linux" ]; then
     sudo apt update
