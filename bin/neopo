@@ -6,7 +6,6 @@
 import json
 import zipfile
 import io
-import gzip
 import tarfile
 import platform
 import stat
@@ -101,6 +100,7 @@ def getDeps():
     writeFile(launch, DEPS + '/vscode/launch.json')
     writeFile(settings, DEPS + '/vscode/settings.json')
     writeExecutable(particle, DEPS + '/particle')
+    createManifest()
 
     data = json.loads(manifest.decode('utf-8'))
     return data
@@ -120,14 +120,18 @@ def writeManifest(dep):
 
 # Create the settings file
 def createManifest():
-    with open(DEPS + '/manifest.json', 'w') as file:
-        pass
+    if not os.path.isfile(DEPS + '/manifest.json'):
+        with open(DEPS + '/manifest.json', 'w') as file:
+            pass
 
 # Load settings from the JSON file
-def loadManifest():
+def loadManifest(tupleOrDict):
     with open(DEPS + '/manifest.json', 'r') as file:
         data = json.load(file)
-        return (data['gcc-arm'], data['buildscripts'], data['buildtools'], data['deviceOS'])
+        if tupleOrDict:
+            return (data['gcc-arm'], data['buildscripts'], data['buildtools'], data['deviceOS'])
+        else:
+            return {'gcc-arm': data['gcc-arm'], 'buildscripts': data['buildscripts'], 'buildtools': data['buildtools'], 'deviceOS': data['deviceOS'], 'openocd': data['openocd']}
 
 def writeJSONcache(data, key):
     with open(DEPS + '/' + key + '.json', 'w') as file:
@@ -137,24 +141,23 @@ def writeJSONcache(data, key):
 # Download list of dependencies and install them
 def install():
     print("Installing neopo...")
-    data = getDeps()
-    
     dependencies = ['compilers', 'tools', 'scripts', 'debuggers']
     caches = ['firmware', 'platforms', 'toolchains']
 
+    data = getDeps()
     depJSON = []
     depJSON.append(data['firmware'][0])
+
     for dep in dependencies:
         depJSON.append(data[dep][platform.system().lower()]['x64'][0])
 
     for key in caches:
         writeJSONcache(data, key)
 
-    createManifest()
-
     for dep in depJSON:
         downloadDep(dep, True)
 
+# Delete the neopo script from the system
 def uninstall():
     execpath = sys.argv[0]
     answer = input('Are you sure you want to uninstall neopo at ' + execpath + '? Type YES to continue (anything else to abort): ')
@@ -170,7 +173,7 @@ def uninstall():
 # Create a Particle project and copy in Workbench settings
 def create(path, name):
     tempEnv = os.environ.copy()
-    tempEnv['PATH'] += ':' + DEPS
+    addToPath(tempEnv, None)
 
     returncode = subprocess.run(['particle', 'project', 'create', path, '--name', name], env=tempEnv).returncode
     if returncode:
@@ -181,7 +184,7 @@ def create(path, name):
     shutil.copyfile(DEPS + '/vscode/settings.json', path + '/' + name + '/.vscode/settings.json')
     
     platform = 'argon'
-    version = loadManifest()[-1]
+    version = loadManifest(True)[-1]
     configure(path + '/' + name, platform, version)
 
 def getFirmwareData(version):
@@ -237,12 +240,10 @@ def checkFirmwareVersion(platform, version):
     
     path = DEPS + '/deviceOS/' + version
     if os.path.isdir(path):
-        # Version already installed
         return True
         
     downloadDep(firmware, False)
     return True
-
 
 # Modify Workbench settings in a project (platform, firmwareVersion)
 def configure(projectPath, platform, firmwareVersion):
@@ -287,7 +288,7 @@ def addToPath(tempEnv, args):
 
 # Use the Makefile to build the specified target
 def build(projectPath, command, helpFlag):
-    compilerVersion, scriptVersion, toolsVersion, firmwareVersion = loadManifest()
+    compilerVersion, scriptVersion, toolsVersion, firmwareVersion = loadManifest(True)
     tempEnv = os.environ.copy()
     addToPath(tempEnv, ('/gcc-arm/', compilerVersion, '/bin'))
     addToPath(tempEnv, ('/buildtools/', toolsVersion))
@@ -336,7 +337,6 @@ def buildCommand(command, index):
         project = os.environ['PWD'] + '/' + sys.argv[index]
     except IndexError:
         project = os.environ['PWD']
-
     try:
         build(project, command, False)
     except FileNotFoundError:
@@ -362,7 +362,6 @@ def versions():
 
             if len(version) < 8:
                 version += '\t'
-            
             print('  ' + version + '\t' +  '[ ' + devicesStr + ' ]')
 
         print()
@@ -401,9 +400,7 @@ def create_command():
         return
 
     projectPath = os.path.abspath(projectPath)
-    name = os.path.basename(projectPath)
-    path = os.path.dirname(projectPath)
-    create(path, name)
+    create(os.path.dirname(projectPath), os.path.basename(projectPath))
 
 def flash_command():
     buildCommand('flash-user', 2)
@@ -417,14 +414,52 @@ def flash_all_command():
 def clean_command():
     buildCommand('clean-user', 2)
 
+def downloadFirmware(version):
+    firmware = getFirmwareData(version)
+    if firmware:
+        downloadDep(firmware, False)
+    else:
+        print("Could not download deviceOS version " + version + "!")
+    
+def update():
+    print('Updating dependencies...')
+    dependencies = ['compilers', 'tools', 'scripts', 'debuggers']
+    caches = ['firmware', 'platforms', 'toolchains']
+
+    manifest = loadManifest(False)
+    data = getDeps()
+    depJSON = []
+    depJSON.append(data['firmware'][0])
+
+    for dep in dependencies:
+        depJSON.append(data[dep][platform.system().lower()]['x64'][0])
+
+    for key in caches:
+        writeJSONcache(data, key)
+
+    for dep in depJSON:
+        new = int(dep['version'].split('-')[0].replace('.', ''))
+        old = int(manifest[dep['name']].split('-')[0].replace('.', ''))
+        if new > old:
+            downloadDep(dep, True)
+
+    print('Dependencies are up to date!')
+
+def get_command():
+    try:
+        version = sys.argv[2]
+        downloadFirmware(version)
+    except IndexError:
+        print("You must specify a deviceOS version!")
+
 # Evaluate command-line arguments and call necessary functions
 def main():
     commands = {'help': print_help, 'install': install, 'uninstall': uninstall, 'versions': versions, 'create': create_command,
     'compile': compile_command, 'build': compile_command, 'flash': flash_command, 'flash-all': flash_all_command, 'clean': clean_command,
-    'run': run_command, 'configure': configure_command, 'config': configure_command}
+    'run': run_command, 'configure': configure_command, 'config': configure_command, 'update': update, 'get': get_command}
 
     if len(sys.argv) == 1:
-        print_help
+        print_help()
         return
     
     if sys.argv[1] in commands:
