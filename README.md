@@ -3,7 +3,7 @@
 # neopo
 ## A lightweight solution for local Particle development.
 
-![Neopo Screenshot](docs/neopo-screenshot.png)
+![Neopo Screenshot](neopo-screenshot.png)
 
 ## Features
 
