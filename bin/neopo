@@ -68,15 +68,22 @@ def downloadDep(dep):
     path = DEPS + '/' + path
     url = dep['url']
 
+    pathlib.Path(path).mkdir(parents=True, exist_ok=True)
+
     with urllib.request.urlopen(url) as response:
         content = response.read()
 
-    data = gzip.decompress(content)
+    fileName = path + '/temp.tar.gz' 
+    gzFile = open(fileName, 'wb')
+    gzFile.write(content)
+    gzFile.close()
+    response.close()
 
-    with tarfile.TarFile(None, 'r', io.BytesIO(data)) as file:
+    with tarfile.open(fileName, 'r:gz') as file:
         file.extractall(path)
 
-    return response
+    os.remove(fileName)
+
 
 # Write JSON data to a file
 def writeFile(content, path):
@@ -151,6 +158,21 @@ def install():
     scripts = data['scripts'][osPlatform]['x64'][0]
     debuggers = data['debuggers'][osPlatform]['x64'][0]
 
+    firmwareList = data['firmware']
+    firmwareFile = open(DEPS + '/firmware.json', 'w')
+    json.dump(firmwareList, firmwareFile, indent=4)
+    firmwareFile.close()
+
+    platformMap = data['platforms']
+    platformFile = open(DEPS + '/platforms.json', 'w')
+    json.dump(platformMap, platformFile, indent=4)
+    platformFile.close()
+
+    toolchains = data['toolchains']
+    toolchainsFile = open(DEPS + '/toolchains.json', 'w')
+    json.dump(toolchains, toolchainsFile, indent=4)
+    toolchainsFile.close()
+
     createManifest()
     downloadDep(firmware)
     downloadDep(compilers)
@@ -161,11 +183,10 @@ def install():
 def uninstall():
     execpath = sys.argv[0]
 
-    a = input('Are you sure you want to uninstall neopo at ' + execpath + '? Type YES to continue (anything else to abort): ')
+    answer = input('Are you sure you want to uninstall neopo at ' + execpath + '? Type YES to continue (anything else to abort): ')
 
-    if a != 'YES':
+    if answer != 'YES':
         print('Aborted.')
-
         return
 
     os.remove(execpath)
@@ -194,9 +215,84 @@ def create(path, name):
     device = 'argon'
     configure(path + '/' + name, device, manifest['deviceOS'])
 
+
+def getFirmwareData(data, version):
+    for entry in data:
+            if entry['version'] == version:
+                return entry
+    return False
+
+def deviceToPlatformID(device):
+    platformFile = open(DEPS + '/platforms.json', 'r')
+    platforms = json.load(platformFile)
+    platformFile.close()
+    
+    for platform in platforms:
+        if platform['name'] == device:
+            return platform['id']
+    
+    return False
+
+def platformToDevice(platformID):
+    platformFile = open(DEPS + '/platforms.json', 'r')
+    platforms = json.load(platformFile)
+    platformFile.close()
+
+    for platform in platforms:
+        if platform['id'] == platformID:
+            return platform['name']
+    
+    return False
+
+def getSupportedPlatforms(version):
+    toolchainsFile = open(DEPS + '/toolchains.json', 'r')
+    toolchains = json.load(toolchainsFile)
+    toolchainsFile.close()
+
+    for toolchain in toolchains:
+        if toolchain['firmware'] == 'deviceOS@' + version:
+            return toolchain['platforms']
+    return False
+
+
+def validateToolchain(platformID, version):
+    return platformID in getSupportedPlatforms(version)
+
+def checkFirmwareVersion(platform, version):
+    firmwareFile = open(DEPS + '/firmware.json', 'r')
+    data = json.load(firmwareFile)
+    firmware = getFirmwareData(data, version)
+    firmwareFile.close()
+
+    platformID = deviceToPlatformID(platform)
+    
+    if not platformID:
+        print('Invalid platform ' + platform + '!')
+        return False
+
+    if not firmware:
+        print('Invalid deviceOS version ' + version + '!')
+        return False
+
+    if not validateToolchain(platformID, version):
+        print('Platform ' + platform + ' is not supported in deviceOS version ' + version + '!')
+        return False
+    
+    path = DEPS + '/deviceOS/' + version
+    if os.path.isdir(path):
+        # Version already installed
+        return True
+        
+    downloadDep(firmware)
+
+
 # Modify Workbench settings in a project (platform, firmwareVersion)
 # TODO: Input verification, install specified firmware if required
 def configure(projectPath, platform, firmwareVersion):
+    
+    if not checkFirmwareVersion(platform, firmwareVersion):
+        exit(1)
+
     with open(projectPath + '/.vscode/settings.json', 'r+') as settings:
         data = json.loads(settings.read())
         data['particle.targetPlatform'] = platform
@@ -246,10 +342,17 @@ def build(projectPath, command):
     settings = getSettings(projectPath)
     platform = settings['particle.targetPlatform']
     firmwareVersion = settings['particle.firmwareVersion']
+   
+    deviceOSPath = DEPS + '/deviceOS/' + firmwareVersion
+    legacy = '/firmware-' + firmwareVersion
+
+    if os.path.isdir(deviceOSPath + legacy):
+        deviceOSPath += legacy
+
+    deviceOS = 'DEVICE_OS_PATH=' + deviceOSPath
 
     process = ['make', '-sf', DEPS + '/buildscripts/' + scriptVersion + '/Makefile',
-               'PARTICLE_CLI_PATH=' + DEPS + '/particle', 'DEVICE_OS_PATH=' +
-               DEPS + '/deviceOS/' + firmwareVersion,
+               'PARTICLE_CLI_PATH=' + DEPS + '/particle', deviceOS,
                'PLATFORM=' + platform, 'APPDIR=' + projectPath, command
                ]
 
@@ -266,6 +369,7 @@ Options:
         help
         install
         uninstall
+        versions
         create <project>
 
     Build Options:
@@ -290,6 +394,34 @@ def buildCommand(command, index):
     except FileNotFoundError:
         print("Invalid project!")
 
+# Print available versions and platforms
+def versions():
+    with open(DEPS + '/firmware.json', 'r') as firmwareFile:
+        data = json.load(firmwareFile)
+        print('Available deviceOS versions:')
+        print()
+        data.reverse()
+        for entry in data:
+            version = entry['version']
+            platforms = getSupportedPlatforms(version)
+            devices = []
+            for platform in platforms:
+                devices.append(platformToDevice(platform))
+            
+            devicesStr = devices[0]
+            for device in devices[1:]:
+                devicesStr += ', ' + device
+
+            if len(version) < 8:
+                version += '\t'
+            
+            print('  ' + version + '\t' +  '[ ' + devicesStr + ' ]')
+
+        print()
+        print('To configure a project use:') 
+        print('\tneopo configure <platform> <version> <project>')
+
+
 # Evaluate command-line arguments and call necessary functions
 def main():
     # print(sys.argv)
@@ -306,6 +438,10 @@ def main():
         uninstall()
         return
 
+    if sys.argv[1] == 'versions':
+        versions()
+        return
+
     if sys.argv[1] == 'create':
         try:
             projectPath = sys.argv[2]
@@ -318,7 +454,7 @@ def main():
         path = os.path.dirname(projectPath)
         create(path, name)
         return
-
+    
     if sys.argv[1] == 'compile' or sys.argv[1] == 'build':
         buildCommand('compile-user', 2)
         return
