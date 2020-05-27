@@ -1,8 +1,5 @@
 [![Build Status](https://travis-ci.org/nrobinson2000/neopo.svg?branch=master)](https://travis-ci.org/nrobinson2000/neopo)
 
-# neopo
-## A lightweight solution for local Particle development.
-
 ![Neopo Screenshot](neopo-screenshot.png)
 
 ## Features
