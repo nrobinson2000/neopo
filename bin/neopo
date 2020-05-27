@@ -23,7 +23,6 @@ if platform.system().lower() not in ['darwin', 'linux']:
 # Global Variables
 DEPS = os.environ['HOME'] + '/.particle/toolchains'
 
-
 # Find the Workbench extension URL from the Visual Studio Marketplace 
 def getExtensionURL():
     print("Finding Workbench extension URL...")
@@ -260,8 +259,7 @@ Options:
 
     Special Options:
         run <target> <project>
-        configure <platform> <version> <project>
-        """)
+        configure <platform> <version> <project>""")
 
 # Parse the project path from the specified index and run a Makefile target
 def buildCommand(command, index):
