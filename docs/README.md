@@ -60,6 +60,12 @@ $ neopo flash myProject
 $ neopo run clean-debug myProject
 ```
 
+## Uninstalling
+
+```bash
+$ neopo uninstall
+```
+
 ## To Do
 
 - [ ] Add `neopo update`.

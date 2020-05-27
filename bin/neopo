@@ -158,6 +158,22 @@ def install():
     downloadDep(scripts)
     downloadDep(debuggers)
 
+def uninstall():
+    execpath = sys.argv[0]
+
+    a = input('Are you sure you want to uninstall neopo at ' + execpath + '? Type YES to continue (anything else to abort): ')
+
+    if a != 'YES':
+        print('Aborted.')
+
+        return
+
+    os.remove(execpath)
+
+    print('Uninstalled neopo.')
+    print('Note: The .particle directory might still exist (remove it with `rm -rf ~/.particle`)')
+
+
 # Create a Particle project and copy in Workbench settings
 def create(path, name):
     tempEnv = os.environ.copy()
@@ -249,6 +265,7 @@ Options:
     General Options:
         help
         install
+        uninstall
         create <project>
 
     Build Options:
@@ -283,6 +300,10 @@ def main():
 
     if sys.argv[1] == 'install':
         install()
+        return
+
+    if sys.argv[1] == 'uninstall':
+        uninstall()
         return
 
     if sys.argv[1] == 'create':
