@@ -172,7 +172,7 @@ def create(path, name):
     tempEnv = os.environ.copy()
     tempEnv['PATH'] += ':' + DEPS
 
-    returncode = subprocess.run(['particle', 'project', 'create', path, '--name', name], env=tempEnv)
+    returncode = subprocess.run(['particle', 'project', 'create', path, '--name', name], env=tempEnv).returncode
     if returncode:
         exit(returncode)
 
