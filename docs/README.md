@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/nrobinson2000/neopo.svg?branch=master)](https://travis-ci.org/nrobinson2000/neopo)
 
-![Neopo Screenshot](docs/neopo-screenshot.png)
+![Neopo Screenshot](neopo-screenshot.png)
 
 ## Features
 
