@@ -275,7 +275,7 @@ def buildCommand(command, index):
     except FileNotFoundError:
         print("Invalid project!")
 
-# Evaluate command-line arguments and call neccesary functions
+# Evaluate command-line arguments and call necessary functions
 def main():
     # print(sys.argv)
 
