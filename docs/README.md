@@ -3,14 +3,14 @@
 # neopo
 ## A lightweight solution for local Particle development.
 
-![Neopo Screenshot](docs/neopo-screenshot.png)
+![Neopo Screenshot](neopo-screenshot.png)
 
 ## Features
 
 - Builds projects offline.
 - Supports Linux and macOS.
 - Compatible with Particle Workbench and Particle CLI.
-- Downloads nessicary Particle dependencies.
+- Downloads necessary Particle dependencies.
 - Just one small and fast Python executable.
 
 ## Installation
