@@ -62,3 +62,8 @@ $ neopo flash myProject
 ```bash
 $ neopo run clean-debug myProject
 ```
+
+## To Do
+
+- [ ] Add `neopo update`.
+- [ ] Add completion.

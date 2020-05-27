@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/nrobinson2000/neopo.svg?branch=master)](https://travis-ci.org/nrobinson2000/neopo)
 
-![Neopo Screenshot](neopo-screenshot.png)
+![Neopo Screenshot](docs/neopo-screenshot.png)
 
 ## Features
 
@@ -59,3 +59,8 @@ $ neopo flash myProject
 ```bash
 $ neopo run clean-debug myProject
 ```
+
+## To Do
+
+- [ ] Add `neopo update`.
+- [ ] Add completion.
