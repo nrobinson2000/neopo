@@ -57,8 +57,10 @@ def getFile(file, path):
     return content
 
 # Download a dependency specified by the JSON
-def downloadDep(dep):
-    writeManifest(dep)
+def downloadDep(dep, updateManifest):
+    if updateManifest:
+        writeManifest(dep)
+    
     name = dep['name']
     version = dep['version']
 
@@ -174,11 +176,12 @@ def install():
     toolchainsFile.close()
 
     createManifest()
-    downloadDep(firmware)
-    downloadDep(compilers)
-    downloadDep(tools)
-    downloadDep(scripts)
-    downloadDep(debuggers)
+    updateManifest = True
+    downloadDep(firmware, updateManifest)
+    downloadDep(compilers, updateManifest)
+    downloadDep(tools, updateManifest) 
+    downloadDep(scripts, updateManifest)
+    downloadDep(debuggers, updateManifest)
 
 def uninstall():
     execpath = sys.argv[0]
@@ -287,7 +290,7 @@ def checkFirmwareVersion(platform, version):
         # Version already installed
         return True
         
-    downloadDep(firmware)
+    downloadDep(firmware, False)
     return True
 
 
