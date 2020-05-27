@@ -283,8 +283,9 @@ def getFirmwarePath(version):
 
 def addToPath(tempEnv, args):
     tempEnv['PATH'] += ':' + DEPS
-    for arg in args:
-        tempEnv['PATH'] += arg
+    if args:
+        for arg in args:
+            tempEnv['PATH'] += arg
 
 # Use the Makefile to build the specified target
 def build(projectPath, command, helpFlag):
