@@ -26,7 +26,6 @@ DEPS = os.environ['HOME'] + '/.particle/toolchains'
 # Find the Workbench extension URL from the Visual Studio Marketplace 
 def getExtensionURL():
     print("Finding Workbench extension URL...")
-
     payload = '{"assetTypes":null,"filters":[{"criteria":[{"filterType":7,"value":"particle.particle-vscode-core"}],"direction":2,"pageSize":100,"pageNumber":1,"sortBy":0,"sortOrder":0,"pagingToken":null}],"flags":103}'
 
     request = urllib.request.Request('https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery', method='POST', headers={
@@ -38,17 +37,13 @@ def getExtensionURL():
         content = response.read()
     
     data = json.loads(content.decode('utf-8'))
-    latest = data['results'][0]['extensions'][0]['versions'][0]['files'][-1]['source']
-
-    return latest
+    return data['results'][0]['extensions'][0]['versions'][0]['files'][-1]['source']
 
 # Download the the Workbench extension from the URL
 def getExtension(url):
     print("Downloading Workbench extension...")
-
     with urllib.request.urlopen(url) as response:
         content = response.read()
-
     return zipfile.ZipFile(io.BytesIO(content), 'r')
 
 # Load a file from a ZIP
@@ -61,35 +56,27 @@ def downloadDep(dep, updateManifest):
     if updateManifest:
         writeManifest(dep)
     
-    name = dep['name']
-    version = dep['version']
-
+    name, version, url = (dep['name'], dep['version'], dep['url'])
     print("Downloading dependency " + name + " version " + version + "...")
 
-    path = name + '/' + version
-    path = DEPS + '/' + path
-    url = dep['url']
-
+    path = DEPS + '/' + name + '/' + version
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
     with urllib.request.urlopen(url) as response:
         content = response.read()
 
     fileName = path + '/temp.tar.gz' 
-    gzFile = open(fileName, 'wb')
-    gzFile.write(content)
-    gzFile.close()
-    response.close()
+    with open(fileName, 'wb') as gzFile:
+        gzFile.write(content)
 
     with tarfile.open(fileName, 'r:gz') as file:
         file.extractall(path)
 
     os.remove(fileName)
 
-
 # Write JSON data to a file
 def writeFile(content, path):
-    with open(path, 'w') as file:
+    with open(path, 'wb') as file:
         file.write(content)
 
 # Write an executable dependency to a file
@@ -104,23 +91,15 @@ def getDeps():
     osPlatform = platform.system().lower()
     osArch = 'amd64' if platform.machine() == 'x86_64' else 'arm'
 
-    url = getExtensionURL()
-    extension = getExtension(url)
-
+    extension = getExtension(getExtensionURL())
     pathlib.Path(DEPS + '/vscode/').mkdir(parents=True, exist_ok=True)
-
     manifest = getFile(extension, 'extension/src/compiler/manifest.json')
-    particle = getFile(extension, 'extension/src/cli/bin/' +
-                       osPlatform + '/' + osArch + '/particle')
-
-    launch = getFile(
-        extension, 'extension/src/cli/vscode/launch.json').decode('utf-8')
-    settings = getFile(
-        extension, 'extension/src/cli/vscode/settings.json').decode('utf-8')
+    particle = getFile(extension, 'extension/src/cli/bin/' + osPlatform + '/' + osArch + '/particle')
+    launch = getFile(extension, 'extension/src/cli/vscode/launch.json')
+    settings = getFile(extension, 'extension/src/cli/vscode/settings.json')
 
     writeFile(launch, DEPS + '/vscode/launch.json')
     writeFile(settings, DEPS + '/vscode/settings.json')
-
     writeExecutable(particle, DEPS + '/particle')
 
     data = json.loads(manifest.decode('utf-8'))
@@ -130,7 +109,7 @@ def getDeps():
 def writeManifest(dep):
     with open(DEPS + '/manifest.json', 'r+') as file:
         try:
-            manifest = json.loads(file.read())
+            manifest = json.load(file)
         except json.decoder.JSONDecodeError:
             manifest = {}
 
@@ -147,45 +126,37 @@ def createManifest():
 # Load settings from the JSON file
 def loadManifest():
     with open(DEPS + '/manifest.json', 'r') as file:
-        return json.loads(file.read())
+        data = json.load(file)
+        return (data['gcc-arm'], data['buildscripts'], data['buildtools'], data['deviceOS'])
+
+def writeJSONcache(data, key):
+    with open(DEPS + '/' + key + '.json', 'w') as file:
+        keyData = data[key]
+        json.dump(keyData, file, indent=4)
 
 # Download list of dependencies and install them
 def install():
     print("Installing neopo...")
-    osPlatform = platform.system().lower()
     data = getDeps()
-    firmware = data['firmware'][0]
-    compilers = data['compilers'][osPlatform]['x64'][0]
-    tools = data['tools'][osPlatform]['x64'][0]
-    scripts = data['scripts'][osPlatform]['x64'][0]
-    debuggers = data['debuggers'][osPlatform]['x64'][0]
+    
+    dependencies = ['compilers', 'tools', 'scripts', 'debuggers']
+    caches = ['firmware', 'platforms', 'toolchains']
 
-    firmwareList = data['firmware']
-    firmwareFile = open(DEPS + '/firmware.json', 'w')
-    json.dump(firmwareList, firmwareFile, indent=4)
-    firmwareFile.close()
+    depJSON = []
+    depJSON.append(data['firmware'][0])
+    for dep in dependencies:
+        depJSON.append(data[dep][platform.system().lower()]['x64'][0])
 
-    platformMap = data['platforms']
-    platformFile = open(DEPS + '/platforms.json', 'w')
-    json.dump(platformMap, platformFile, indent=4)
-    platformFile.close()
-
-    toolchains = data['toolchains']
-    toolchainsFile = open(DEPS + '/toolchains.json', 'w')
-    json.dump(toolchains, toolchainsFile, indent=4)
-    toolchainsFile.close()
+    for key in caches:
+        writeJSONcache(data, key)
 
     createManifest()
-    updateManifest = True
-    downloadDep(firmware, updateManifest)
-    downloadDep(compilers, updateManifest)
-    downloadDep(tools, updateManifest) 
-    downloadDep(scripts, updateManifest)
-    downloadDep(debuggers, updateManifest)
+
+    for dep in depJSON:
+        downloadDep(dep, True)
 
 def uninstall():
     execpath = sys.argv[0]
-
     answer = input('Are you sure you want to uninstall neopo at ' + execpath + '? Type YES to continue (anything else to abort): ')
 
     if answer != 'YES':
@@ -193,84 +164,63 @@ def uninstall():
         return
 
     os.remove(execpath)
-
     print('Uninstalled neopo.')
     print('Note: The .particle directory might still exist (remove it with `rm -rf ~/.particle`)')
-
 
 # Create a Particle project and copy in Workbench settings
 def create(path, name):
     tempEnv = os.environ.copy()
     tempEnv['PATH'] += ':' + DEPS
 
-    returncode = subprocess.run(['particle', 'project', 'create',
-                    path, '--name', name], env=tempEnv)
-
-    if not returncode:
+    returncode = subprocess.run(['particle', 'project', 'create', path, '--name', name], env=tempEnv)
+    if returncode:
         exit(returncode)
 
-    pathlib.Path(path + '/' + name +
-                 '/.vscode/').mkdir(parents=True, exist_ok=True)
-
-    shutil.copyfile(DEPS + '/vscode/launch.json', path +
-                    '/' + name + '/.vscode/launch.json')
-    shutil.copyfile(DEPS + '/vscode/settings.json', path +
-                    '/' + name + '/.vscode/settings.json')
+    pathlib.Path(path + '/' + name + '/.vscode/').mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(DEPS + '/vscode/launch.json', path + '/' + name + '/.vscode/launch.json')
+    shutil.copyfile(DEPS + '/vscode/settings.json', path + '/' + name + '/.vscode/settings.json')
     
+    platform = 'argon'
+    version = loadManifest()[-1]
+    configure(path + '/' + name, platform, version)
 
-    manifest = loadManifest()
-    device = 'argon'
-    configure(path + '/' + name, device, manifest['deviceOS'])
-
-
-def getFirmwareData(data, version):
-    for entry in data:
+def getFirmwareData(version):
+    with open(DEPS + '/firmware.json', 'r') as  firmwareFile:
+        data = json.load(firmwareFile)
+        for entry in data:
             if entry['version'] == version:
                 return entry
-    return False
+        return False
 
 def deviceToPlatformID(device):
-    platformFile = open(DEPS + '/platforms.json', 'r')
-    platforms = json.load(platformFile)
-    platformFile.close()
-    
-    for platform in platforms:
-        if platform['name'] == device:
-            return platform['id']
-    
-    return False
+    with open(DEPS + '/platforms.json', 'r') as platformFile:
+        platforms = json.load(platformFile)    
+        for platform in platforms:
+            if platform['name'] == device:
+                return platform['id']
+        return False
 
 def platformToDevice(platformID):
-    platformFile = open(DEPS + '/platforms.json', 'r')
-    platforms = json.load(platformFile)
-    platformFile.close()
-
-    for platform in platforms:
-        if platform['id'] == platformID:
-            return platform['name']
-    
-    return False
+    with open(DEPS + '/platforms.json', 'r') as platformFile:
+        platforms = json.load(platformFile)
+        for platform in platforms:
+            if platform['id'] == platformID:
+                return platform['name']
+        return False
 
 def getSupportedPlatforms(version):
-    toolchainsFile = open(DEPS + '/toolchains.json', 'r')
-    toolchains = json.load(toolchainsFile)
-    toolchainsFile.close()
-
-    for toolchain in toolchains:
-        if toolchain['firmware'] == 'deviceOS@' + version:
-            return toolchain['platforms']
-    return False
-
+    with open(DEPS + '/toolchains.json', 'r') as toolchainsFile:
+        toolchains = json.load(toolchainsFile)
+        for toolchain in toolchains:
+            if toolchain['firmware'] == 'deviceOS@' + version:
+                return toolchain['platforms']
+        return False
 
 def validateToolchain(platformID, version):
     return platformID in getSupportedPlatforms(version)
 
 def checkFirmwareVersion(platform, version):
-    firmwareFile = open(DEPS + '/firmware.json', 'r')
-    data = json.load(firmwareFile)
-    firmware = getFirmwareData(data, version)
-    firmwareFile.close()
-
+    firmware = getFirmwareData(version)
     platformID = deviceToPlatformID(platform)
     
     if not platformID:
@@ -295,19 +245,11 @@ def checkFirmwareVersion(platform, version):
 
 
 # Modify Workbench settings in a project (platform, firmwareVersion)
-# TODO: Input verification, install specified firmware if required
 def configure(projectPath, platform, firmwareVersion):
-    
     if not checkFirmwareVersion(platform, firmwareVersion):
         exit(1)
 
-    with open(projectPath + '/.vscode/settings.json', 'r+') as settings:
-        data = json.loads(settings.read())
-        data['particle.targetPlatform'] = platform
-        data['particle.firmwareVersion'] = firmwareVersion
-        settings.seek(0)
-        json.dump(data, settings, indent=4)
-        settings.truncate()
+    writeSettings(projectPath, platform, firmwareVersion)
     print("Configured project " + projectPath + ':')
     print("\tparticle.targetPlatform: " + platform)
     print("\tparticle.firmwareVersion: " + firmwareVersion)
@@ -315,60 +257,55 @@ def configure(projectPath, platform, firmwareVersion):
 # Load Workbench settings from a project
 def getSettings(projectPath):
     with open(projectPath + '/.vscode/settings.json', 'r+') as settings:
-        return json.loads(settings.read())
+        data = json.loads(settings.read())
+        return (data['particle.targetPlatform'], data['particle.firmwareVersion'])
+
+def writeSettings(projectPath, platform, version):
+    with open(projectPath + '/.vscode/settings.json', 'r+') as settings:
+        data = json.loads(settings.read())
+        data['particle.targetPlatform'] = platform
+        data['particle.firmwareVersion'] = version
+        settings.seek(0)
+        json.dump(data, settings, indent=4)
+        settings.truncate()
 
 # Print help information directly from Makefile
 def build_help():
-    manifest = loadManifest()
-    compilerVersion = manifest['gcc-arm']
-    scriptVersion = manifest['buildscripts']
-    toolsVersion = manifest['buildtools']
-    firmwareVersion = manifest['deviceOS']
+    build(None, None, True)
 
-    tempEnv = os.environ.copy()
-    tempEnv['PATH'] += ':' + DEPS + '/gcc-arm/' + compilerVersion + '/bin'
-    tempEnv['PATH'] += ':' + DEPS + '/buildtools/' + toolsVersion
+def getFirmwarePath(version):
+        deviceOSPath = DEPS + '/deviceOS/' + version
+        legacy = '/firmware-' + version
+        if os.path.isdir(deviceOSPath + legacy):
+            deviceOSPath += legacy
+        return deviceOSPath
 
-    process = ['make', '-sf', DEPS + '/buildscripts/' + scriptVersion + '/Makefile',
-               'PARTICLE_CLI_PATH=' + DEPS + '/particle', 'DEVICE_OS_PATH=' +
-               DEPS + '/deviceOS/' + firmwareVersion, 'help'
-               ]
-
-    returncode = subprocess.run(process, env=tempEnv).returncode
-    exit(returncode)
+def addToPath(tempEnv, args):
+    tempEnv['PATH'] += ':' + DEPS
+    for arg in args:
+        tempEnv['PATH'] += arg
 
 # Use the Makefile to build the specified target
-def build(projectPath, command):
-    manifest = loadManifest()
-    compilerVersion = manifest['gcc-arm']
-    scriptVersion = manifest['buildscripts']
-    toolsVersion = manifest['buildtools']
-
+def build(projectPath, command, helpFlag):
+    compilerVersion, scriptVersion, toolsVersion, firmwareVersion = loadManifest()
     tempEnv = os.environ.copy()
-    tempEnv['PATH'] += ':' + DEPS + '/gcc-arm/' + compilerVersion + '/bin'
-    tempEnv['PATH'] += ':' + DEPS + '/buildtools/' + toolsVersion
+    addToPath(tempEnv, ('/gcc-arm/', compilerVersion, '/bin'))
+    addToPath(tempEnv, ('/buildtools/', toolsVersion))
 
-    settings = getSettings(projectPath)
-    platform = settings['particle.targetPlatform']
-    firmwareVersion = settings['particle.firmwareVersion']
-   
-    deviceOSPath = DEPS + '/deviceOS/' + firmwareVersion
-    legacy = '/firmware-' + firmwareVersion
+    if helpFlag:
+        process = ['make', '-sf', DEPS + '/buildscripts/' + scriptVersion + '/Makefile',
+        'DEVICE_OS_PATH=' + DEPS + '/deviceOS/' + firmwareVersion, 'help']
+    else:
+        platform, firmwareVersion = getSettings(projectPath)
+        deviceOSPath = getFirmwarePath(firmwareVersion)
 
-    if os.path.isdir(deviceOSPath + legacy):
-        deviceOSPath += legacy
-
-    deviceOS = 'DEVICE_OS_PATH=' + deviceOSPath
-
-    process = ['make', '-sf', DEPS + '/buildscripts/' + scriptVersion + '/Makefile',
-               'PARTICLE_CLI_PATH=' + DEPS + '/particle', deviceOS,
-               'PLATFORM=' + platform, 'APPDIR=' + projectPath, command
-               ]
-
-    #print(process)
+        process = ['make', '-sf', DEPS + '/buildscripts/' + scriptVersion + '/Makefile',
+               'PARTICLE_CLI_PATH=' + DEPS + '/particle', 'DEVICE_OS_PATH=' + deviceOSPath,
+               'PLATFORM=' + platform, 'APPDIR=' + projectPath, command]
 
     returncode = subprocess.run(process, env=tempEnv).returncode
-    exit(returncode)
+    if returncode:
+        exit(returncode)
 
 # Print help information about the program
 def print_help():
@@ -401,7 +338,7 @@ def buildCommand(command, index):
         project = os.environ['PWD']
 
     try:
-        build(project, command)
+        build(project, command, False)
     except FileNotFoundError:
         print("Invalid project!")
 
@@ -432,86 +369,69 @@ def versions():
         print('To configure a project use:') 
         print('\tneopo configure <platform> <version> <project>')
 
+def configure_command():
+    try:
+            platform = sys.argv[2]
+            version = sys.argv[3]
+    except IndexError:
+            print("You must supply platform and deviceOS version!")
+            return
+    try:
+        projectPath = sys.argv[4]
+    except IndexError:
+        projectPath = os.environ['PWD']
+        
+    configure(projectPath, platform, version)
+
+def run_command():
+    try:
+        command = sys.argv[2]
+    except IndexError:
+        build_help()
+        print("You must supply a Makefile target!")
+        return
+
+    buildCommand(command, 3)
+
+def create_command():
+    try:
+        projectPath = sys.argv[2]
+    except IndexError:
+        print("You must supply a path for the project!")
+        return
+
+    projectPath = os.path.abspath(projectPath)
+    name = os.path.basename(projectPath)
+    path = os.path.dirname(projectPath)
+    create(path, name)
+
+def flash_command():
+    buildCommand('flash-user', 2)
+
+def compile_command():
+    buildCommand('compile-user', 2)
+
+def flash_all_command():
+    buildCommand('flash-all', 2)
+
+def clean_command():
+    buildCommand('clean-user', 2)
 
 # Evaluate command-line arguments and call necessary functions
 def main():
-    # print(sys.argv)
+    commands = {'help': print_help, 'install': install, 'uninstall': uninstall, 'versions': versions, 'create': create_command,
+    'compile': compile_command, 'build': compile_command, 'flash': flash_command, 'flash-all': flash_all_command, 'clean': clean_command,
+    'run': run_command, 'configure': configure_command, 'config': configure_command}
 
-    if len(sys.argv) == 1 or sys.argv[1] == 'help':
-        print_help()
-        return
-
-    if sys.argv[1] == 'install':
-        install()
-        return
-
-    if sys.argv[1] == 'uninstall':
-        uninstall()
-        return
-
-    if sys.argv[1] == 'versions':
-        versions()
-        return
-
-    if sys.argv[1] == 'create':
-        try:
-            projectPath = sys.argv[2]
-        except IndexError:
-            print("You must supply a path for the project!")
-            return
-
-        projectPath = os.path.abspath(projectPath)
-        name = os.path.basename(projectPath)
-        path = os.path.dirname(projectPath)
-        create(path, name)
+    if len(sys.argv) == 1:
+        print_help
         return
     
-    if sys.argv[1] == 'compile' or sys.argv[1] == 'build':
-        buildCommand('compile-user', 2)
-        return
-
-    if sys.argv[1] == 'flash':
-        buildCommand('flash-user', 2)
-        return
-
-    if sys.argv[1] == 'flash-all':
-        buildCommand('flash-all', 2)
-        return
-
-    if sys.argv[1] == 'clean':
-        buildCommand('clean-user', 2)
-        return
-
-    if sys.argv[1] == 'run':
-        try:
-            command = sys.argv[2]
-        except IndexError:
-            build_help()
-            print("You must supply a Makefile target!")
-            return
-
-        buildCommand(command, 3)
-        return
-
-    if sys.argv[1] == 'configure' or sys.argv[1] == 'config':
-        try:
-            platform = sys.argv[2]
-            version = sys.argv[3]
-        except IndexError:
-            print("You must supply platform and deviceOS version!")
-            return
-        
-        try:
-            projectPath = sys.argv[4]
-        except IndexError:
-            projectPath = os.environ['PWD']
-        
-        configure(projectPath, platform, version)
-        return
-
-    print("Invalid command!")
-    print_help()
-
+    if sys.argv[1] in commands:
+        commands[sys.argv[1]]()
+    else:
+        print("Invalid command!")
+        print_help()
 
 if __name__ == "__main__":
     main()
