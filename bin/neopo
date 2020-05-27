@@ -200,8 +200,12 @@ def create(path, name):
     tempEnv = os.environ.copy()
     tempEnv['PATH'] += ':' + DEPS
 
-    subprocess.run(['particle', 'project', 'create',
+    returncode = subprocess.run(['particle', 'project', 'create',
                     path, '--name', name], env=tempEnv)
+
+    if not returncode:
+        exit(returncode)
+
     pathlib.Path(path + '/' + name +
                  '/.vscode/').mkdir(parents=True, exist_ok=True)
 
@@ -327,7 +331,8 @@ def build_help():
                DEPS + '/deviceOS/' + firmwareVersion, 'help'
                ]
 
-    subprocess.run(process, env=tempEnv)
+    returncode = subprocess.run(process, env=tempEnv).returncode
+    exit(returncode)
 
 # Use the Makefile to build the specified target
 def build(projectPath, command):
@@ -359,7 +364,8 @@ def build(projectPath, command):
 
     #print(process)
 
-    subprocess.run(process, env=tempEnv)
+    returncode = subprocess.run(process, env=tempEnv).returncode
+    exit(returncode)
 
 # Print help information about the program
 def print_help():
