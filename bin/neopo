@@ -380,7 +380,8 @@ Options:
 
     Special Options:
         run <target> <project>
-        configure <platform> <version> <project>""")
+        configure <platform> <version> <project>
+        """)
 
 # Parse the project path from the specified index and run a Makefile target
 def buildCommand(command, index):
