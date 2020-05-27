@@ -327,7 +327,7 @@ def main():
         buildCommand(command, 3)
         return
 
-    if sys.argv[1] == 'configure':
+    if sys.argv[1] == 'configure' or sys.argv[1] == 'config':
         try:
             platform = sys.argv[2]
             version = sys.argv[3]
