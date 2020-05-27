@@ -2,7 +2,7 @@
 
 # neopo: A replacement for po-util
 
-## A lightweight solution for local Particle development built with Python
+## A lightweight solution for local Particle development.
 
 ![Neopo screenshot](docs/neopo-screenshot.png)
 
