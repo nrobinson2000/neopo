@@ -8,7 +8,7 @@ case "$(uname)" in
         a="$HOME/.local/bin/neopo";;
 
     Darwin)
-        a=/usr/local/bin/neopo;;
+        a='/usr/local/bin/neopo';;
 
     *)
         >&2 echo "OS is not supported! Use Linux or macOS."
