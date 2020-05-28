@@ -7,11 +7,13 @@
 
 ## Features
 
-- Builds projects offline.
+- Builds Particle projects offline.
 - Supports Linux and macOS.
 - Compatible with Particle Workbench and Particle CLI.
 - Downloads necessary Particle dependencies.
-- Just one small and fast Python executable.
+- One small and fast Python executable.
+- Tab completion support.
+- Much cleaner code than previous `po` projects.
 
 ## Installation
 
