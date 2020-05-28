@@ -257,7 +257,7 @@ def create(path, name):
     if returncode:
         exit(returncode)
 
-    pathlib.Path(os.path.jsoin(path, name, ".vscode")).mkdir(parents=True,
+    pathlib.Path(os.path.join(path, name, ".vscode")).mkdir(parents=True,
                                                              exist_ok=True)
     shutil.copyfile(vscodeFiles["launch"],
                     os.path.join(path, name, projectFiles["launch"]))
