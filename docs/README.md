@@ -65,8 +65,3 @@ $ neopo run clean-debug myProject
 ```bash
 $ neopo uninstall
 ```
-
-## To Do
-
-- [ ] Add `neopo update`.
-- [ ] Add completion.

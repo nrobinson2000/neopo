@@ -16,8 +16,9 @@ import subprocess
 import shutil
 import urllib.request
 
+# Windows is not supported (yet?)
 if platform.system().lower() not in ['darwin', 'linux']:
-    exit('OS is not supported! Use Linux or macOS.')
+    exit('Your OS is not supported! Use Linux or macOS.')
 
 # Global Variables
 DEPS = os.environ['HOME'] + '/.particle/toolchains'
@@ -277,7 +278,8 @@ def getSettings(projectPath):
     with open(projectPath + '/.vscode/settings.json', 'r+') as settings:
         data = json.loads(settings.read())
         return (data['particle.targetPlatform'], data['particle.firmwareVersion'])
-
+        
+# Update Workbench settings in a project
 def writeSettings(projectPath, platform, version):
     with open(projectPath + '/.vscode/settings.json', 'r+') as settings:
         data = json.loads(settings.read())
@@ -307,22 +309,23 @@ def addToPath(environment, args):
             environment['PATH'] += arg
 
 # Use the Makefile to build the specified target
-def build(projectPath, command, helpFlag):
+def build(projectPath, command, helpOnly):
     compilerVersion, scriptVersion, toolsVersion, firmwareVersion = loadManifest(True)
     tempEnv = os.environ.copy()
     addToPath(tempEnv, ('/gcc-arm/', compilerVersion, '/bin'))
     addToPath(tempEnv, ('/buildtools/', toolsVersion))
 
-    if helpFlag:
-        process = ['make', '-sf', DEPS + '/buildscripts/' + scriptVersion + '/Makefile',
-        'DEVICE_OS_PATH=' + DEPS + '/deviceOS/' + firmwareVersion, 'help']
+    process = ['make', '-sf', DEPS + '/buildscripts/' + scriptVersion + '/Makefile', 'PARTICLE_CLI_PATH=' + DEPS + '/particle']
+
+    if helpOnly:
+        process.append('help')
     else:
         platform, firmwareVersion = getSettings(projectPath)
         deviceOSPath = getFirmwarePath(firmwareVersion)
-
-        process = ['make', '-sf', DEPS + '/buildscripts/' + scriptVersion + '/Makefile',
-               'PARTICLE_CLI_PATH=' + DEPS + '/particle', 'DEVICE_OS_PATH=' + deviceOSPath,
-               'PLATFORM=' + platform, 'APPDIR=' + projectPath, command]
+        process.append('APPDIR=' + projectPath)
+        process.append('DEVICE_OS_PATH=' + deviceOSPath)
+        process.append('PLATFORM=' + platform)
+        process.append(command)
 
     returncode = subprocess.run(process, env=tempEnv).returncode
     if returncode:
@@ -357,7 +360,7 @@ def versions():
             for device in devices[1:]:
                 devicesStr += ', ' + device
 
-            if len(version) < 8:
+            if not ('rc' in version or 'beta' in version):
                 version += '\t'
             print('  ' + version + '\t' +  '[ ' + devicesStr + ' ]')
 
@@ -365,7 +368,7 @@ def versions():
         print('To configure a project use:') 
         print('\tneopo configure <platform> <version> <project>')
 
-# Wrapper for configure()
+# Wrapper for [config/configure]
 def configure_command():
     try:
             platform = sys.argv[2]
@@ -380,7 +383,7 @@ def configure_command():
         
     configure(projectPath, platform, version)
 
-# Wrapper for buildCommand()
+# Wrapper for [run]
 def run_command():
     try:
         command = sys.argv[2]
@@ -391,7 +394,7 @@ def run_command():
 
     buildCommand(command, 3)
 
-# Wrapper for create()
+# Wrapper for [create]
 def create_command():
     try:
         projectPath = sys.argv[2]
@@ -402,7 +405,7 @@ def create_command():
     projectPath = os.path.abspath(projectPath)
     create(os.path.dirname(projectPath), os.path.basename(projectPath))
 
-# Wrapper for downloadFirmware()
+# Wrapper for [get]
 def get_command():
     try:
         version = sys.argv[2]
