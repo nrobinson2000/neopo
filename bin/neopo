@@ -249,7 +249,7 @@ def uninstall():
 # Create a Particle project and copy in Workbench settings
 def create(path, name):
     tempEnv = os.environ.copy()
-    addToPath(tempEnv, None)
+    addToPath(tempEnv, DEPS)
 
     returncode = subprocess.run(
         ["particle", "project", "create", path, "--name", name],
