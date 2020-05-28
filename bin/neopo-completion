@@ -13,7 +13,7 @@ _project() {
 
 _get-versions() {
     local _versions
-    _versions=$(neopo versions-compressed)
+    _versions=$(neopo list-versions)
     COMPREPLY=($(compgen -W  "$_versions" -- "$cur"))
 }
 
@@ -32,8 +32,7 @@ _configure() {
 _neopo() {
     local _options cur prev prev1 prev2
     
-    _options="help install uninstall versions update create
-    compile build flash flash-all clean run configure get"
+    _options="$(neopo options)"
 
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"

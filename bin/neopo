@@ -556,9 +556,15 @@ Options:
         get <version>
         """)
 
-# Evaluate command-line arguments and call necessary functions
-def main():
-    commands = {
+# Print all commands (for completion)
+def options():
+	output = ""
+	for key in commands.keys():
+		output += key + " "
+	print(output)
+
+# Available options
+commands = {
         "help": print_help,
         "install": install_command,
         "uninstall": uninstall,
@@ -571,15 +577,17 @@ def main():
         "clean": clean_command,
         "run": run_command,
         "configure": configure_command,
-        "config": configure_command,
         "update": update_command,
         "get": get_command,
-		"versions-compressed": versions_compressed,
+		"list-versions": versions_compressed,
 		"platforms": platforms_command,
 		"projects": findValidProjects,
-		"targets": getMakefileTargets
-    }
+		"targets": getMakefileTargets,
+		"options": options
+}
 
+# Evaluate command-line arguments and call necessary functions
+def main():
     if len(sys.argv) == 1:
         print_help()
     elif sys.argv[1] in commands:
