@@ -14,3 +14,4 @@ esac
 echo "Downloading installation script..."
 curl -LO "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/install.py"
 python3 install.py && neopo install
+rm install.py
