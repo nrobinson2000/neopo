@@ -1,5 +1,5 @@
-# neopo: A replacement for po-util
-# Copyright (c) 2020 - Nathan Robinson
+# neopo: A lightweight solution for local Particle development.
+# Copyright (c) 2020 Nathan Robinson.
 
 os:
   - linux
