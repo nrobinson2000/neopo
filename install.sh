@@ -16,7 +16,7 @@ curl -LO "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/insta
 python3 install.py && neopo install
 rm install.py
 
-if [ "$(uname)" == "Linux"]; then
+if [ "$(uname)" == "Linux" ]; then
 echo "Installing tab completion script:"
 sudo curl -fsSLo /etc/bash_completion.d/neopo "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/neopo-completion"
 else
