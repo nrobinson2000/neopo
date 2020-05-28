@@ -405,6 +405,45 @@ def buildCommand(command, index):
     except FileNotFoundError:
         print("Invalid project!")
 
+# Print available versions compressed (for completion)
+def versions_compressed():
+	with open(jsonFiles["firmware"], "r") as firmwareFile:
+		data = json.load(firmwareFile)
+		output = ""
+		for entry in data:
+			output += entry['version'] + " "
+		print(output)
+
+# Print available platforms (for completion)
+def platforms_command():
+	with open(jsonFiles['platforms'], "r") as platformFile:
+		data = json.load(platformFile)
+		output = ""
+		for entry in data:
+			output += entry['name'] + " "
+		print(output)
+
+# Find all valid projects in PWD (for completion)
+def findValidProjects():
+	(_, dirs, _) = next(os.walk(os.environ['PWD']))
+	output = ""
+	for dir in dirs:
+		if os.access(os.path.join(dir, "project.properties"), os.R_OK):
+			output += dir + " "
+	print(output)
+
+# Find all makefile targets (for completion)
+def getMakefileTargets():
+	with open(jsonFiles["manifest"], "r") as manifest:
+		data = json.load(manifest)
+		with open(os.path.join(DEPS, "buildscripts", data['buildscripts'], 'Makefile')) as makefile:
+			contents = makefile.readlines()
+			sep = ".PHONY: "
+			for line in contents:
+				if line.startswith(sep):
+					print(line.partition(sep)[2].strip("\n"))
+					return
+
 # Print available versions and platforms
 def versions():
     with open(jsonFiles["firmware"], "r") as firmwareFile:
@@ -535,6 +574,10 @@ def main():
         "config": configure_command,
         "update": update_command,
         "get": get_command,
+		"versions-compressed": versions_compressed,
+		"platforms": platforms_command,
+		"projects": findValidProjects,
+		"targets": getMakefileTargets
     }
 
     if len(sys.argv) == 1:

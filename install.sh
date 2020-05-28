@@ -15,3 +15,14 @@ echo "Downloading installation script..."
 curl -LO "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/install.py"
 python3 install.py && neopo install
 rm install.py
+
+if [ "$(uname)" == "Linux"]; then
+echo "Installing tab completion script:"
+sudo curl -fsSLo /etc/bash_completion.d/neopo "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/neopo-completion"
+else
+echo "The tab completion script is recommended for the best experience:"
+echo "You can download it from:"
+echo "  https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/neopo-completion"
+echo "To load it you would run:"
+echo "  $ source neopo-completion"
+fi

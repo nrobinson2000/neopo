@@ -1,0 +1,87 @@
+#!/bin/bash
+
+# neopo: A lightweight solution for local Particle development.
+# Copyright (c) 2020 Nathan Robinson.
+
+# Neopo tab completion function
+
+_project() { 
+    local _projects
+    _projects=$(neopo projects)
+    COMPREPLY=($(compgen -W  "$_projects" -- "$cur"))
+}
+
+_get-versions() {
+    local _versions
+    _versions=$(neopo versions-compressed)
+    COMPREPLY=($(compgen -W  "$_versions" -- "$cur"))
+}
+
+_run() {
+    local _targets
+    _targets=$(neopo targets)
+    COMPREPLY=($(compgen -W  "$_targets" -- "$cur"))
+}
+
+_configure() {
+    local _platforms
+    _platforms=$(neopo platforms)
+    COMPREPLY=($(compgen -W  "$_platforms" -- "$cur"))
+}
+
+_neopo() {
+    local _options cur prev prev1 prev2
+    
+    _options="help install uninstall versions update create
+    compile build flash flash-all clean run configure get"
+
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD - 1]}"
+    prev1="${COMP_WORDS[COMP_CWORD - 2]}"
+    prev2="${COMP_WORDS[COMP_CWORD - 3]}"
+
+    if [ "$COMP_CWORD" == 1 ]; then
+        COMPREPLY=($(compgen -W "$_options" -- "$cur"))
+        return 0
+    fi
+
+    if [ "$prev1" == "run" ]; then
+        _project
+        return 0
+    fi
+
+    if [ "$prev1" == "configure" ]; then
+        _get-versions
+        return 0
+    fi
+
+    if [ "$prev2" == "configure" ]; then
+        _project
+        return 0
+    fi
+
+    case "$prev" in
+    create)
+        _project;;
+    compile)
+        _project;;
+    build)
+        _project;;
+    flash)
+        _project;;
+    flash-all)
+        _project;;
+    clean)
+        _project;;
+    run)
+       _run;;
+    configure)
+        _configure;;
+    get)
+        _get-versions;;
+    esac
+}
+
+# Apply the _neopo completion function
+complete -F _neopo neopo
