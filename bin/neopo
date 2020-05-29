@@ -258,7 +258,7 @@ def create(path, name):
         exit(returncode)
 
     pathlib.Path(os.path.join(path, name, ".vscode")).mkdir(parents=True,
-                                                             exist_ok=True)
+                                                            exist_ok=True)
     shutil.copyfile(vscodeFiles["launch"],
                     os.path.join(path, name, projectFiles["launch"]))
     shutil.copyfile(vscodeFiles["settings"],
@@ -407,42 +407,44 @@ def buildCommand(command, index):
 
 # Print available versions compressed (for completion)
 def versions_compressed():
-	with open(jsonFiles["firmware"], "r") as firmwareFile:
-		data = json.load(firmwareFile)
-		output = ""
-		for entry in data:
-			output += entry['version'] + " "
-		print(output)
+    with open(jsonFiles["firmware"], "r") as firmwareFile:
+        data = json.load(firmwareFile)
+        output = ""
+        for entry in data:
+            output += entry["version"] + " "
+        print(output)
 
 # Print available platforms (for completion)
 def platforms_command():
-	with open(jsonFiles['platforms'], "r") as platformFile:
-		data = json.load(platformFile)
-		output = ""
-		for entry in data:
-			output += entry['name'] + " "
-		print(output)
+    with open(jsonFiles["platforms"], "r") as platformFile:
+        data = json.load(platformFile)
+        output = ""
+        for entry in data:
+            output += entry["name"] + " "
+        print(output)
 
 # Find all valid projects in PWD (for completion)
 def findValidProjects():
-	(_, dirs, _) = next(os.walk(os.environ['PWD']))
-	output = ""
-	for dir in dirs:
-		if os.access(os.path.join(dir, "project.properties"), os.R_OK):
-			output += dir + " "
-	print(output)
+    (_, dirs, _) = next(os.walk(os.environ["PWD"]))
+    output = ""
+    for dir in dirs:
+        if os.access(os.path.join(dir, "project.properties"), os.R_OK):
+            output += dir + " "
+    print(output)
 
 # Find all makefile targets (for completion)
 def getMakefileTargets():
-	with open(jsonFiles["manifest"], "r") as manifest:
-		data = json.load(manifest)
-		with open(os.path.join(DEPS, "buildscripts", data['buildscripts'], 'Makefile')) as makefile:
-			contents = makefile.readlines()
-			sep = ".PHONY: "
-			for line in contents:
-				if line.startswith(sep):
-					print(line.partition(sep)[2].strip("\n"))
-					return
+    with open(jsonFiles["manifest"], "r") as manifest:
+        data = json.load(manifest)
+        with open(
+                os.path.join(DEPS, "buildscripts", data["buildscripts"],
+                             "Makefile")) as makefile:
+            contents = makefile.readlines()
+            sep = ".PHONY: "
+            for line in contents:
+                if line.startswith(sep):
+                    print(line.partition(sep)[2].strip("\n"))
+                    return
 
 # Print available versions and platforms
 def versions():
@@ -558,32 +560,32 @@ Options:
 
 # Print all commands (for completion)
 def options():
-	output = ""
-	for key in commands.keys():
-		output += key + " "
-	print(output)
+    output = ""
+    for key in commands.keys():
+        output += key + " "
+    print(output)
 
 # Available options
 commands = {
-        "help": print_help,
-        "install": install_command,
-        "uninstall": uninstall,
-        "versions": versions,
-        "create": create_command,
-        "compile": compile_command,
-        "build": compile_command,
-        "flash": flash_command,
-        "flash-all": flash_all_command,
-        "clean": clean_command,
-        "run": run_command,
-        "configure": configure_command,
-        "update": update_command,
-        "get": get_command,
-		"list-versions": versions_compressed,
-		"platforms": platforms_command,
-		"projects": findValidProjects,
-		"targets": getMakefileTargets,
-		"options": options
+    "help": print_help,
+    "install": install_command,
+    "uninstall": uninstall,
+    "versions": versions,
+    "create": create_command,
+    "compile": compile_command,
+    "build": compile_command,
+    "flash": flash_command,
+    "flash-all": flash_all_command,
+    "clean": clean_command,
+    "run": run_command,
+    "configure": configure_command,
+    "update": update_command,
+    "get": get_command,
+    "list-versions": versions_compressed,
+    "platforms": platforms_command,
+    "projects": findValidProjects,
+    "targets": getMakefileTargets,
+    "options": options
 }
 
 # Evaluate command-line arguments and call necessary functions
