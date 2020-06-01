@@ -20,7 +20,7 @@ binary = "neopo"
 
 install = None
 paths = os.environ["PATH"].split(":")
-paths.reverse()
+#paths.reverse()
 
 for path in paths:
     if os.access(path, os.W_OK):

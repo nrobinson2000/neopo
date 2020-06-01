@@ -48,6 +48,7 @@ extensionFiles = {
 projectFiles = {
     "launch": os.path.join(".vscode", "launch.json"),
     "settings": os.path.join(".vscode", "settings.json"),
+    "properties": "project.properties"
 }
 
 # Find the Workbench extension URL from the Visual Studio Marketplace
@@ -94,11 +95,11 @@ def downloadDep(dep, updateManifest):
     name, version, url = (dep["name"], dep["version"], dep["url"])
     print("Downloading dependency " + name + " version " + version + "...")
 
-    path = os.path.join(DEPS, name, version)
-    pathlib.Path(path).mkdir(parents=True, exist_ok=True)
-
     with urllib.request.urlopen(url) as response:
         content = response.read()
+
+    path = os.path.join(DEPS, name, version)
+    pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
     fileName = os.path.join(path, "temp.tar.gz")
     with open(fileName, "wb") as gzFile:
@@ -188,6 +189,41 @@ def writeJSONcache(data, key):
         keyData = data[key]
         json.dump(keyData, file, indent=4)
 
+
+# Attempt to download deviceOS version not specified in manifest (experimental)
+def downloadUnlisted(version):
+    firmware = {"name": "deviceOS", "version": version,
+    "url": "https://binaries.particle.io/device-os/v" + version + ".tar.gz"}
+
+    print("Trying binaries.particle.io/device-os...")
+
+    try:
+        downloadDep(firmware, False)
+        return
+    except urllib.error.HTTPError:
+        print("DeviceOS version " + version + " not found!")
+        print()
+
+
+    # Try to download from github
+    firmware = {"name": "deviceOS", "version": version,
+    "url": "https://github.com/particle-iot/device-os/archive/v" + version + ".tar.gz"}
+
+    print("Trying github.com/particle-iot/device-os...")
+
+    try:
+        downloadDep(firmware, False)
+        return
+    except urllib.error.HTTPError:
+        print("DeviceOS version " + version + " not found!")
+
+# Wrapper for [download-unlisted]
+def downloadUnlisted_command():
+    try:
+        downloadUnlisted(sys.argv[2])
+    except IndexError:
+        print("You must specify a deviceOS version!")
+
 # Download a specific deviceOS version
 def downloadFirmware(version):
     firmware = getFirmwareData(version)
@@ -257,13 +293,6 @@ def create(path, name):
     if returncode:
         exit(returncode)
 
-    pathlib.Path(os.path.join(path, name, ".vscode")).mkdir(parents=True,
-                                                            exist_ok=True)
-    shutil.copyfile(vscodeFiles["launch"],
-                    os.path.join(path, name, projectFiles["launch"]))
-    shutil.copyfile(vscodeFiles["settings"],
-                    os.path.join(path, name, projectFiles["settings"]))
-
     platform = "argon"
     version = loadManifest(True)[-1]
     configure(os.path.join(path, name), platform, version)
@@ -325,6 +354,14 @@ def configure(projectPath, platform, firmwareVersion):
     if not checkFirmwareVersion(platform, firmwareVersion):
         exit(1)
 
+    if not os.path.isfile(os.path.join(projectPath, projectFiles["settings"])):
+        pathlib.Path(os.path.join(projectPath, ".vscode")).mkdir(parents=True,
+                                                            exist_ok=True)
+        shutil.copyfile(vscodeFiles["launch"],
+                    os.path.join(projectPath, projectFiles["launch"]))
+        shutil.copyfile(vscodeFiles["settings"],
+                    os.path.join(projectPath, projectFiles["settings"]))
+
     writeSettings(projectPath, platform, firmwareVersion)
     print("Configured project " + projectPath + ":")
     print("\tparticle.targetPlatform: " + platform)
@@ -357,8 +394,14 @@ def build_help():
 def getFirmwarePath(version):
     deviceOSPath = os.path.join(DEPS, "deviceOS", version)
     legacy = "firmware-" + version
+    github = "device-os-" + version
+
     if os.path.isdir(os.path.join(deviceOSPath, legacy)):
         deviceOSPath = os.path.join(deviceOSPath, legacy)
+
+    if os.path.isdir(os.path.join(deviceOSPath, github)):
+        deviceOSPath = os.path.join(deviceOSPath, github)
+
     return deviceOSPath
 
 # Add a path to an environment
@@ -383,7 +426,16 @@ def build(projectPath, command, helpOnly):
     if helpOnly:
         process.append("help")
     else:
-        platform, firmwareVersion = getSettings(projectPath)
+        try:
+            platform, firmwareVersion = getSettings(projectPath)
+        except FileNotFoundError:
+            if os.path.isfile(os.path.join(projectPath, projectFiles['properties'])):
+                print("Project not configured!")
+                print("Use: neopo configure <platform> <version> <project>")
+                return
+            else:
+                raise
+
         deviceOSPath = getFirmwarePath(firmwareVersion)
         process.append("APPDIR=" + projectPath)
         process.append("DEVICE_OS_PATH=" + deviceOSPath)
@@ -585,7 +637,8 @@ commands = {
     "platforms": platforms_command,
     "projects": findValidProjects,
     "targets": getMakefileTargets,
-    "options": options
+    "options": options,
+    "download-unlisted": downloadUnlisted_command
 }
 
 # Evaluate command-line arguments and call necessary functions
