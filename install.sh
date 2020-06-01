@@ -19,7 +19,7 @@ esac
 echo "Downloading installation script..."
 curl -LO "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/install.py"
 sudo python3 install.py || exit
-sudo chown $USER $(which neopo)
+sudo chown $USER $(sudo which neopo)
 rm install.py
 
 neopo install
