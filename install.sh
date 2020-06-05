@@ -5,11 +5,17 @@
 
 case "$(uname)" in
 Linux)
-    if hash apt >/dev/null 2>&1 && [ "$(uname -m)" == "x86_64" ]; then
+    if hash apt >/dev/null 2>&1; then
         echo "Installing apt dependencies..."
-        sudo apt install libarchive-zip-perl libc6-i386
+    
+        if [ "$(uname -m)" == "x86_64" ]; then
+            sudo apt install libarchive-zip-perl libc6-i386
+        fi
+        if [ "$(uname -m)" == "armv7l" ]; then
+            sudo apt install libarchive-zip-perl libusb-1.0-0-dev dfu-util libudev-dev
+        fi
     fi
-    ;;
+;;
 
 Darwin) ;;
 
@@ -25,8 +31,11 @@ rm install.py
 neopo install
 
 if [ "$(uname)" == "Linux" ]; then
+
+    sudo mkdir -p /etc/bash_completion.d
+
     if [ -d /etc/bash_completion.d ]; then
-        echo "Installing tab completion script:"
+        echo "Installing tab completion script:"    
         sudo curl -fsSLo /etc/bash_completion.d/neopo "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/neopo-completion"
     fi
 else
