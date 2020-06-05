@@ -23,6 +23,7 @@ if platform.system().lower() not in ["darwin", "linux"]:
 # Global Variables
 DEPS = os.path.join(os.environ["HOME"], ".particle", "toolchains")
 particle_cli = os.path.join(DEPS, "particle")
+raspberry_pi_gcc_arm = "https://github.com/nrobinson2000/neopo/releases/download/0.0.1/gcc-arm-v5.3.1-raspberry-pi.tar.gz"
 
 jsonFiles = {
     "firmware": os.path.join(DEPS, "firmware.json"),
@@ -248,6 +249,13 @@ def installOrUpdate(install):
 
     for dep in dependencies:
         depJSON.append(data[dep][platform.system().lower()]["x64"][0])
+
+    # Support for Raspberry Pi
+    if platform.machine() == "armv7l":
+        for dep in depJSON:
+            if dep["name"] == "gcc-arm":
+                dep["url"] = raspberry_pi_gcc_arm
+                break
 
     for key in caches:
         writeJSONcache(data, key)
