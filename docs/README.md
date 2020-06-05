@@ -1,16 +1,19 @@
 [![Build Status](https://travis-ci.org/nrobinson2000/neopo.svg?branch=master)](https://travis-ci.org/nrobinson2000/neopo)
+[![Particle Community](https://img.shields.io/badge/particle-community-informational)](https://community.particle.io/t/neopo-a-lightweight-solution-for-local-particle-development/56378?u=nrobinson2000)
+
+# neopo
+## A lightweight solution for local Particle development.
 
 ![Neopo Screenshot](neopo.png)
 
 ## Features
 
-- Builds Particle projects offline.
-- Supports Linux and macOS.
+- Builds Particle projects locally without any overhead.
 - Compatible with Particle Workbench and Particle CLI.
-- Downloads necessary Particle dependencies.
-- One small and fast Python executable.
-- Tab completion support.
-- Much cleaner code than previous `po` projects.
+- Installs and manages necessary Particle dependencies.
+- Built with Python using only the standard library.
+- Supports Linux, macOS, and Raspberry Pi.
+- Supports tab completion to assist development.
 
 ## Installation
 
@@ -22,7 +25,7 @@ $ bash <( curl -sL https://git.io/JfwhJ )
 
 Neopo will be installed to `~/.local/bin/neopo` (Linux) or `/usr/local/bin/neopo` (macOS).
 
-Alternatively, you can clone this repository and add the directory to your `PATH`:
+Alternatively, you can clone this repository, add the directory to your `PATH`, and run the install command:
 
 ```bash
 $ git clone https://github.com/nrobinson2000/neopo
@@ -62,8 +65,20 @@ $ neopo flash myProject
 $ neopo run clean-debug myProject
 ```
 
-## Uninstalling
+### Uninstalling
 
 ```bash
 $ neopo uninstall
+```
+
+**Note: Specifying the project directory is optional if your current working directory is a Particle project. Tab completion can also find valid projects in the current working directory.**
+
+**For example:**
+
+```bash
+$ cd myProject
+
+$ neopo build
+
+$ neopo flash
 ```
