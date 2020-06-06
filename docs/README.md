@@ -20,8 +20,6 @@ The easiest way to install neopo is to open a Terminal and run:
 $ bash <( curl -sL https://git.io/JfwhJ )
 ```
 
-Neopo will be installed to `~/.local/bin/neopo` (Linux) or `/usr/local/bin/neopo` (macOS).
-
 Alternatively, you can clone this repository, add the directory to your `PATH`, and run the install command:
 
 ```bash
