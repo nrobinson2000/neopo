@@ -7,32 +7,33 @@
 
 _project() { 
     local _projects
-    _projects=$(neopo projects)
+    _projects=$($1 projects)
     COMPREPLY=($(compgen -W  "$_projects" -- "$cur"))
 }
 
 _get-versions() {
     local _versions
-    _versions=$(neopo list-versions)
+    _versions=$($1 list-versions)
     COMPREPLY=($(compgen -W  "$_versions" -- "$cur"))
 }
 
 _run() {
     local _targets
-    _targets=$(neopo targets)
+    _targets=$($1 targets)
     COMPREPLY=($(compgen -W  "$_targets" -- "$cur"))
 }
 
 _configure() {
     local _platforms
-    _platforms=$(neopo platforms)
+    _platforms=$($1 platforms)
     COMPREPLY=($(compgen -W  "$_platforms" -- "$cur"))
 }
 
 _neopo() {
-    local _options cur prev prev1 prev2
+    local _options _executable cur prev prev1 prev2
     
-    _options="$(neopo options)"
+    _executable="${COMP_WORDS[0]}"
+    _options="$($_executable options)"
 
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
@@ -46,39 +47,29 @@ _neopo() {
     fi
 
     if [ "$prev1" == "run" ]; then
-        _project
+        _project $_executable
         return 0
     fi
 
     if [ "$prev1" == "configure" ]; then
-        _get-versions
+        _get-versions $_executable
         return 0
     fi
 
     if [ "$prev2" == "configure" ]; then
-        _project
+        _project $_executable
         return 0
     fi
 
     case "$prev" in
-    create)
-        _project;;
-    compile)
-        _project;;
-    build)
-        _project;;
-    flash)
-        _project;;
-    flash-all)
-        _project;;
-    clean)
-        _project;;
+    create|compile|build|flash|flash-all|clean)
+        _project $_executable;;
     run)
-       _run;;
+       _run $_executable;;
     configure)
-        _configure;;
+        _configure $_executable;;
     get)
-        _get-versions;;
+        _get-versions $_executable;;
     esac
 }
 
