@@ -4,7 +4,7 @@
 # neopo
 ## A lightweight solution for local Particle development.
 
-![Neopo Screenshot](neopo.png)
+![Neopo Screenshot](carbon.png)
 
 ## Features
 
