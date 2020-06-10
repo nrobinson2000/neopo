@@ -28,9 +28,7 @@ $ export PATH="$PATH:$PWD/neopo"
 $ neopo install
 ```
 
-On Windows the installation process is more involved but not very difficult.
-
-[Windows Installation](windows.md)
+On Windows the installation process is more involved but not very difficult: [Windows Installation](windows.md)
 
 ## Examples
 
