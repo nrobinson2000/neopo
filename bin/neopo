@@ -128,7 +128,7 @@ def writeExecutable(content, path):
 # Download extension manifest and simple dependencies
 def getDeps():
     osPlatform = platform.system().lower()    
-    osArch = platform.machine.lower() if running_on_windows else "amd64" if platform.machine() == "x86_64" else "arm"
+    osArch = platform.machine().lower() if running_on_windows else "amd64" if platform.machine() == "x86_64" else "arm"
 
     extension = getExtension(getExtensionURL())
     pathlib.Path(vscodeFiles["dir"]).mkdir(parents=True, exist_ok=True)
