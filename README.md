@@ -12,7 +12,7 @@
 - Compatible with Particle Workbench and Particle CLI.
 - Installs and manages necessary Particle dependencies.
 - Built with Python using only the standard library.
-- Supports Linux, macOS, and Raspberry Pi.
+- Supports Linux, macOS, Windows, and Raspberry Pi.
 - Supports tab completion to assist development.
 
 ## Installation
@@ -30,6 +30,10 @@ $ git clone https://github.com/nrobinson2000/neopo
 $ export PATH="$PATH:$PWD/neopo"
 $ neopo install
 ```
+
+On Windows the installation process is more involved but not very difficult.
+
+[Windows Installation](docs/windows.md)
 
 ## Examples
 
