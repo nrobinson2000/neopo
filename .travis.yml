@@ -10,8 +10,5 @@ install:
   - source travis.sh
   - neopo install
 script:
-  - neopo versions
-  - neopo create test
-  - neopo build test
-  - neopo configure electron 1.5.0 test
-  - neopo build test
+  - neopo load scripts/travis
+  - neopo script travis

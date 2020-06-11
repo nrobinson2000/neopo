@@ -21,25 +21,30 @@ import shutil
 import urllib.request
 
 # Global Variables
-DEPS = os.path.join(os.environ["HOME"], ".particle", "toolchains")
+PARTICLE_DEPS = os.path.join(os.environ["HOME"], ".particle", "toolchains")
+NEOPO_DEPS = os.path.join(os.environ["HOME"], ".neopo")
+CACHE_DIR = os.path.join(NEOPO_DEPS, "cache")
+SCRIPTS_DIR = os.path.join(NEOPO_DEPS, "scripts")
+
 raspberry_pi_gcc_arm = "https://github.com/nrobinson2000/neopo/releases/download/0.0.1/gcc-arm-v5.3.1-raspberry-pi.tar.gz"
 running_on_windows = platform.system() == "Windows"
 
-particle_cli = os.path.join(DEPS, "particle")
+particle_cli = os.path.join(NEOPO_DEPS, "particle")
+
 if running_on_windows:
-    particle_cli = os.path.join(DEPS, "particle.exe")
+    particle_cli = os.path.join(NEOPO_DEPS, "particle.exe")
 
 jsonFiles = {
-    "firmware": os.path.join(DEPS, "firmware.json"),
-    "toolchains": os.path.join(DEPS, "toolchains.json"),
-    "platforms": os.path.join(DEPS, "platforms.json"),
-    "manifest": os.path.join(DEPS, "manifest.json")
+    "firmware": os.path.join(CACHE_DIR, "firmware.json"),
+    "toolchains": os.path.join(CACHE_DIR, "toolchains.json"),
+    "platforms": os.path.join(CACHE_DIR, "platforms.json"),
+    "manifest": os.path.join(CACHE_DIR, "manifest.json")
 }
 
 vscodeFiles = {
-    "dir": os.path.join(DEPS, "vscode"),
-    "launch": os.path.join(DEPS, "vscode", "launch.json"),
-    "settings": os.path.join(DEPS, "vscode", "settings.json")
+    "dir": os.path.join(NEOPO_DEPS, "vscode"),
+    "launch": os.path.join(NEOPO_DEPS, "vscode", "launch.json"),
+    "settings": os.path.join(NEOPO_DEPS, "vscode", "settings.json")
 }
 
 extensionFiles = {
@@ -101,7 +106,7 @@ def downloadDep(dep, updateManifest):
     with urllib.request.urlopen(url) as response:
         content = response.read()
 
-    path = os.path.join(DEPS, name, version)
+    path = os.path.join(PARTICLE_DEPS, name, version)
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
     fileName = os.path.join(path, name + "-v" + version + ".tar.gz")
@@ -129,6 +134,9 @@ def writeExecutable(content, path):
 def getDeps():
     osPlatform = platform.system().lower()    
     osArch = platform.machine().lower() if running_on_windows else "amd64" if platform.machine() == "x86_64" else "arm"
+
+    pathlib.Path(CACHE_DIR).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(SCRIPTS_DIR).mkdir(parents=True, exist_ok=True)
 
     extension = getExtension(getExtensionURL())
     pathlib.Path(vscodeFiles["dir"]).mkdir(parents=True, exist_ok=True)
@@ -191,7 +199,7 @@ def loadManifest(tupleOrDict):
 
 # Write an object to JSON file
 def writeJSONcache(data, key):
-    with open(os.path.join(DEPS, key + ".json"), "w") as file:
+    with open(jsonFiles[key], "w") as file:
         keyData = data[key]
         json.dump(keyData, file, indent=4)
 
@@ -228,9 +236,9 @@ def downloadUnlisted(version):
         print("DeviceOS version", version, "not found!")
 
 # Wrapper for [download-unlisted]
-def downloadUnlisted_command():
+def downloadUnlisted_command(args):
     try:
-        downloadUnlisted(sys.argv[2])
+        downloadUnlisted(args[2])
     except IndexError:
         print("You must specify a deviceOS version!")
 
@@ -284,8 +292,8 @@ def installOrUpdate(install):
         print("Dependencies are up to date!")
 
 # Delete the neopo script from the system
-def uninstall():
-    execpath = sys.argv[0]
+def uninstall(args):
+    execpath = args[0]
     print("Are you sure you want to uninstall neopo at", execpath + "?")
 
     answer = input("(Y/N): ")
@@ -308,7 +316,7 @@ def uninstall():
 # Create a Particle project and copy in Workbench settings
 def create(path, name):
     tempEnv = os.environ.copy()
-    addToPath(tempEnv, DEPS)
+    addToPath(tempEnv, PARTICLE_DEPS)
 
     returncode = subprocess.run(
         ["particle", "project", "create", path, "--name", name],
@@ -367,7 +375,7 @@ def checkFirmwareVersion(platform, version):
               version + "!")
         return False
 
-    path = os.path.join(DEPS, "deviceOS", version)
+    path = os.path.join(PARTICLE_DEPS, "deviceOS", version)
     if os.path.isdir(path):
         return True
 
@@ -413,11 +421,11 @@ def writeSettings(projectPath, platform, version):
 
 # Print help information directly from Makefile
 def build_help():
-    build(None, None, True, False)
+    build(None, None, True, 0)
 
 # Create the path string for a given deviceOS version
 def getFirmwarePath(version):
-    deviceOSPath = os.path.join(DEPS, "deviceOS", version)
+    deviceOSPath = os.path.join(PARTICLE_DEPS, "deviceOS", version)
     legacy = "firmware-" + version
     github = "device-os-" + version
 
@@ -437,30 +445,30 @@ def addToPath(environment, path):
         environment["PATH"] += ":" + path
 
 # Use the Makefile to build the specified target
-def build(projectPath, command, helpOnly, doVerbose):
+def build(projectPath, command, helpOnly, verbosity):
     compilerVersion, scriptVersion, toolsVersion, firmwareVersion = loadManifest(
         True)
     tempEnv = os.environ.copy()
-    addToPath(tempEnv, os.path.join(DEPS, "gcc-arm", compilerVersion, "bin"))
+    addToPath(tempEnv, os.path.join(PARTICLE_DEPS, "gcc-arm", compilerVersion, "bin"))
 
     particle = particle_cli
 
     if running_on_windows:
-        addToPath(tempEnv, os.path.join(DEPS, "buildtools", toolsVersion,
+        addToPath(tempEnv, os.path.join(PARTICLE_DEPS, "buildtools", toolsVersion,
                                         "bin"))
         particle = particle.replace("C:\\", "/cygdrive/c/")
         particle = particle.replace("\\", "/")
     else:
-        addToPath(tempEnv, os.path.join(DEPS, "buildtools", toolsVersion))
+        addToPath(tempEnv, os.path.join(PARTICLE_DEPS, "buildtools", toolsVersion))
 
     process = [
         "make", "-sf",
-        os.path.join(DEPS, "buildscripts", scriptVersion, "Makefile"),
+        os.path.join(PARTICLE_DEPS, "buildscripts", scriptVersion, "Makefile"),
         "PARTICLE_CLI_PATH=" + particle
     ]
 
     # Remove [s] flag from make to get verbose output
-    if doVerbose:
+    if verbosity == 1:
         process[1] = "-f"
 
     if helpOnly:
@@ -487,19 +495,22 @@ def build(projectPath, command, helpOnly, doVerbose):
         process.append(command)
 
     returncode = subprocess.run(process, env=tempEnv,
-                                shell=running_on_windows).returncode
+                                shell=running_on_windows,
+                                stdout= subprocess.PIPE if verbosity == -1 else None,
+                                stderr= subprocess.PIPE if verbosity == -1 else None
+                                ).returncode
     if returncode:
         exit(returncode)
 
 # Parse the project path from the specified index and run a Makefile target
-def buildCommand(command, index):
+def buildCommand(command, index, args):
     verboseIndex = index
-    doVerbose = False
     project = None
+    verbosityDict = {"-v": 1, "-q": -1}
 
     try:
-        if not sys.argv[index].startswith("-"):
-            project = os.path.abspath(sys.argv[index])
+        if not args[index].startswith("-"):
+            project = os.path.abspath(args[index])
             verboseIndex += 1
         else:
             project = os.getcwd()
@@ -508,17 +519,21 @@ def buildCommand(command, index):
         verboseIndex = index
 
     try:
-        doVerbose = sys.argv[verboseIndex] == "-v"
+        verbosityStr = args[verboseIndex]
+        verbosity = verbosityDict[verbosityStr]
     except IndexError:
-        pass
+        verbosity = 0
+    except KeyError:
+        print("Invalid verbosity!")
+        return
 
     try:
-        build(project, command, False, doVerbose)
+        build(project, command, False, verbosity)
     except FileNotFoundError:
         print("Invalid project!")
 
 # Print available versions compressed (for completion)
-def versions_compressed():
+def versions_compressed(args):
     with open(jsonFiles["firmware"], "r") as firmwareFile:
         data = json.load(firmwareFile)
         output = ""
@@ -527,7 +542,7 @@ def versions_compressed():
         print(output)
 
 # Print available platforms (for completion)
-def platforms_command():
+def platforms_command(args):
     with open(jsonFiles["platforms"], "r") as platformFile:
         data = json.load(platformFile)
         output = ""
@@ -536,7 +551,7 @@ def platforms_command():
         print(output)
 
 # Find all valid projects in PWD (for completion)
-def findValidProjects():
+def findValidProjects(args):
     (_, dirs, _) = next(os.walk(os.getcwd()))
     output = ""
     for dir in dirs:
@@ -545,11 +560,11 @@ def findValidProjects():
     print(output)
 
 # Find all makefile targets (for completion)
-def getMakefileTargets():
+def getMakefileTargets(args):
     with open(jsonFiles["manifest"], "r") as manifest:
         data = json.load(manifest)
         with open(
-                os.path.join(DEPS, "buildscripts", data["buildscripts"],
+                os.path.join(PARTICLE_DEPS, "buildscripts", data["buildscripts"],
                              "Makefile")) as makefile:
             contents = makefile.readlines()
             sep = ".PHONY: "
@@ -559,7 +574,7 @@ def getMakefileTargets():
                     return
 
 # Print available versions and platforms
-def versions():
+def versions(args):
     with open(jsonFiles["firmware"], "r") as firmwareFile:
         data = json.load(firmwareFile)
         print("Available deviceOS versions:")
@@ -583,35 +598,35 @@ def versions():
         print("\tneopo configure <platform> <version> <project>")
 
 # Wrapper for [config/configure]
-def configure_command():
+def configure_command(args):
     try:
-        platform = sys.argv[2]
-        version = sys.argv[3]
+        platform = args[2]
+        version = args[3]
     except IndexError:
         print("You must supply platform and deviceOS version!")
         return
     try:
-        projectPath = sys.argv[4]
+        projectPath = args[4]
     except IndexError:
         projectPath = os.getcwd()
 
     configure(projectPath, platform, version)
 
 # Wrapper for [run]
-def run_command():
+def run_command(args):
     try:
-        command = sys.argv[2]
+        command = args[2]
     except IndexError:
         build_help()
         print("You must supply a Makefile target!")
         return
 
-    buildCommand(command, 3)
+    buildCommand(command, 3, args)
 
 # Wrapper for [create]
-def create_command():
+def create_command(args):
     try:
-        projectPath = sys.argv[2]
+        projectPath = args[2]
     except IndexError:
         print("You must supply a path for the project!")
         return
@@ -620,30 +635,127 @@ def create_command():
     create(os.path.dirname(projectPath), os.path.basename(projectPath))
 
 # Wrapper for [get]
-def get_command():
+def get_command(args):
     try:
-        version = sys.argv[2]
+        version = args[2]
         downloadFirmware(version)
     except IndexError:
         print("You must specify a deviceOS version!")
 
 # More wrappers
-def flash_command():
-    buildCommand("flash-user", 2)
-def compile_command():
-    buildCommand("compile-user", 2)
-def flash_all_command():
-    buildCommand("flash-all", 2)
-def clean_command():
-    buildCommand("clean-user", 2)
-def install_command():
+def flash_command(args):
+    buildCommand("flash-user", 2, args)
+def compile_command(args):
+    buildCommand("compile-user", 2, args)
+def flash_all_command(args):
+    buildCommand("flash-all", 2, args)
+def clean_command(args):
+    buildCommand("clean-user", 2, args)
+def install_command(args):
     installOrUpdate(True)
-def update_command():
+def update_command(args):
     installOrUpdate(False)
 
+# List all scripts installed (for completion)
+def listScripts(args):
+    (_, _, files) = next(os.walk(SCRIPTS_DIR))
+    print(*files, sep=" ")
+
+# Load a script into the scripts directory
+def load(args):
+    try:
+        scriptPath = args[2]
+    except IndexError:
+        print("You must specify a script file!")
+        exit(1)
+
+    shutil.copyfile(scriptPath, os.path.join(SCRIPTS_DIR, os.path.basename(scriptPath)))
+    print("Copied", scriptPath, "into", SCRIPTS_DIR)
+
+# Wrapper for [script]
+def script(args):
+    try:
+        name = args[2]
+    except IndexError:
+        print("You must supply a script name!")
+        exit(1)
+
+    scriptPath = os.path.join(SCRIPTS_DIR, name)
+
+    try:
+        with open(scriptPath, "r") as script:
+            for line in script.readlines():
+
+                if line.startswith("#"):
+                    continue
+
+                process = line.split()
+                process.insert(0, args[0])
+
+                if len(process) > 1:
+                    print(process)
+                    try:
+                        commands[process[1]](process)
+                    except:
+                        print("Invalid command!")
+
+    except FileNotFoundError:
+        print("Could find script!")
+
+# Available options for iterate
+iterable_commands = {
+    "compile": compile_command,
+    "build": compile_command,
+    "flash": flash_command,
+    "flash-all": flash_all_command,
+    "clean": clean_command,
+    "run": run_command,
+    "script": script
+}
+
+# Iterate through all connected devices and run a command
+def iterate_command(args):
+    tempEnv = os.environ.copy()
+    addToPath(tempEnv, NEOPO_DEPS)
+
+    process = ["particle", "serial", "list"]
+    particle = subprocess.run(process, stdout=subprocess.PIPE,
+                                        env=tempEnv,
+                                        shell=running_on_windows)
+
+    devices = []
+    
+    for line in particle.stdout.splitlines()[1:]:
+        words = line.decode("utf-8").split()
+        device = words[-1]
+        devices.append(device)
+
+    del args[1]
+
+    try:
+        if args[1] == "iterate":
+            print("Do not use `iterate` recursively!")
+            return
+        elif not args[1] in iterable_commands.keys():
+            print("Invalid command!")
+            return
+    except IndexError:
+        print("You must supply a command to iterate with!")
+        return
+
+    for device in devices:
+        print("DeviceID:", device)
+        process = ["particle", "usb", "dfu", device]
+        subprocess.run(process, stderr=subprocess.PIPE,
+                                stdout=subprocess.PIPE,
+                                env=tempEnv,
+                                shell=running_on_windows)
+
+        iterable_commands[args[1]](args)
+            
 # Print help information about the program
-def print_help():
-    print("""Usage: neopo [OPTIONS] [PROJECT] [-v]
+def print_help(args):
+    print("""Usage: neopo [OPTIONS] [PROJECT] [-v/q]
 
 Options:
     General Options:
@@ -654,13 +766,13 @@ Options:
         create <project>
 
     Build Options:
-        compile|build [project] [-v]
-        flash [project] [-v]
-        flash-all [project] [-v]
-        clean [project] [-v]
+        compile/build [project] [-v/q]
+        flash [project] [-v/q]
+        flash-all [project] [-v/q]
+        clean [project] [-v/q]
 
     Special Options:
-        run <target> [project] [-v]
+        run <target> [project] [-v/q]
         configure <platform> <version> [project]
 
     Dependency Options:
@@ -669,7 +781,7 @@ Options:
         """)
 
 # Print all commands (for completion)
-def options():
+def options(args):
     print(*commands.keys(), sep=" ")
 
 # Available options
@@ -693,7 +805,11 @@ commands = {
     "projects": findValidProjects,
     "targets": getMakefileTargets,
     "options": options,
-    "download-unlisted": downloadUnlisted_command
+    "download-unlisted": downloadUnlisted_command,
+    "script": script,
+    "list-scripts": listScripts,
+    "load": load,
+    "iterate": iterate_command
 }
 
 # Evaluate command-line arguments and call necessary functions
@@ -701,7 +817,7 @@ def main():
     if len(sys.argv) == 1:
         print_help()
     elif sys.argv[1] in commands:
-        commands[sys.argv[1]]()
+        commands[sys.argv[1]](sys.argv)
     else:
         print("Invalid command!")
         print_help()
