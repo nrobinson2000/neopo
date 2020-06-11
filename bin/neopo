@@ -696,8 +696,9 @@ def script(args):
                     print(process)
                     try:
                         commands[process[1]](process)
-                    except:
+                    except KeyError:
                         print("Invalid command!")
+                        exit(1)
 
     except FileNotFoundError:
         print("Could find script!")
