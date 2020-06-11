@@ -820,12 +820,12 @@ commands = {
 # Evaluate command-line arguments and call necessary functions
 def main():
     if len(sys.argv) == 1:
-        print_help()
+        print_help(sys.argv)
     elif sys.argv[1] in commands:
         commands[sys.argv[1]](sys.argv)
     else:
         print("Invalid command!")
-        print_help()
+        print_help(sys.argv)
 
 if __name__ == "__main__":
     main()
