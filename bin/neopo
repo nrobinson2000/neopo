@@ -316,7 +316,7 @@ def uninstall(args):
 # Create a Particle project and copy in Workbench settings
 def create(path, name):
     tempEnv = os.environ.copy()
-    addToPath(tempEnv, PARTICLE_DEPS)
+    addToPath(tempEnv, NEOPO_DEPS)
 
     returncode = subprocess.run(
         ["particle", "project", "create", path, "--name", name],
