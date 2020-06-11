@@ -702,6 +702,10 @@ def script(args):
     except FileNotFoundError:
         print("Could find script!")
 
+# Print all iterable options (for completion)
+def iterate_options(args):
+    print(*iterable_commands.keys(), sep=" ")
+
 # Available options for iterate
 iterable_commands = {
     "compile": compile_command,
@@ -809,7 +813,8 @@ commands = {
     "script": script,
     "list-scripts": listScripts,
     "load": load,
-    "iterate": iterate_command
+    "iterate": iterate_command,
+    "options-iterable": iterate_options
 }
 
 # Evaluate command-line arguments and call necessary functions

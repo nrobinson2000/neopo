@@ -36,10 +36,11 @@ _configure() {
 }
 
 _neopo() {
-    local _options _executable cur prev prev1 prev2
+    local _options _executable _iterable cur prev prev1 prev2
     
     _executable="${COMP_WORDS[0]}"
     _options="$($_executable options)"
+    _iterable="$($_executable options-iterable)"
 
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
@@ -79,7 +80,7 @@ _neopo() {
     script)
         _get-scripts $_executable;;
     iterate)
-        COMPREPLY=($(compgen -W "$_options" -- "$cur"));;
+        COMPREPLY=($(compgen -W "$_iterable" -- "$cur"));;
     esac
 }
 
