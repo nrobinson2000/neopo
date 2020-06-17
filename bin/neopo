@@ -631,7 +631,8 @@ def script(args):
                 if line.startswith("#"):
                     continue
 
-                process = line.split().insert(0, args[0])
+                process = line.split()
+                process.insert(0, args[0])
 
                 if len(process) > 1:
                     print(process)
