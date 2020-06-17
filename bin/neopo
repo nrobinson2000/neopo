@@ -28,11 +28,7 @@ SCRIPTS_DIR = os.path.join(NEOPO_DEPS, "scripts")
 
 raspberry_pi_gcc_arm = "https://github.com/nrobinson2000/neopo/releases/download/0.0.1/gcc-arm-v5.3.1-raspberry-pi.tar.gz"
 running_on_windows = platform.system() == "Windows"
-
-particle_cli = os.path.join(NEOPO_DEPS, "particle")
-
-if running_on_windows:
-    particle_cli = os.path.join(NEOPO_DEPS, "particle.exe")
+particle_cli = os.path.join(NEOPO_DEPS, "particle.exe") if running_on_windows else os.path.join(NEOPO_DEPS, "particle")
 
 jsonFiles = {
     "firmware": os.path.join(CACHE_DIR, "firmware.json"),
@@ -69,13 +65,9 @@ def getExtensionURL():
         "https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery",
         method="POST",
         headers={
-            "content-type":
-            "application/json",
-            "accept":
-            "application/json;api-version=6.0-preview.1;excludeUrls=true",
-        },
-        data=payload.encode("utf-8"),
-    )
+            "content-type": "application/json",
+            "accept": "application/json;api-version=6.0-preview.1;excludeUrls=true",
+        }, data=payload.encode("utf-8"))
 
     with urllib.request.urlopen(request) as response:
         content = response.read()
@@ -92,8 +84,7 @@ def getExtension(url):
 
 # Load a file from a ZIP
 def getFile(file, path):
-    content = file.read(path)
-    return content
+    return file.read(path)
 
 # Download the specified dependency
 def downloadDep(dep, updateManifest):
@@ -132,7 +123,7 @@ def writeExecutable(content, path):
 
 # Download extension manifest and simple dependencies
 def getDeps():
-    osPlatform = platform.system().lower()    
+    osPlatform = platform.system().lower()
     osArch = platform.machine().lower() if running_on_windows else "amd64" if platform.machine() == "x86_64" else "arm"
 
     pathlib.Path(CACHE_DIR).mkdir(parents=True, exist_ok=True)
@@ -142,7 +133,7 @@ def getDeps():
     pathlib.Path(vscodeFiles["dir"]).mkdir(parents=True, exist_ok=True)
     manifest = getFile(extension, extensionFiles["manifest"])
 
-    particle_bin = "particle.exe" if running_on_windows else "particle"
+    particle_bin = os.path.basename(particle_cli)
 
     particle = getFile(
         extension, extensionFiles["bin"] + "/" + osPlatform + "/" + osArch +
@@ -186,7 +177,7 @@ def loadManifest(tupleOrDict):
                 data["gcc-arm"],
                 data["buildscripts"],
                 data["buildtools"],
-                data["deviceOS"],
+                data["deviceOS"]
             )
         else:
             return {
@@ -194,7 +185,7 @@ def loadManifest(tupleOrDict):
                 "buildscripts": data["buildscripts"],
                 "buildtools": data["buildtools"],
                 "deviceOS": data["deviceOS"],
-                "openocd": data["openocd"],
+                "openocd": data["openocd"]
             }
 
 # Write an object to JSON file
@@ -217,8 +208,7 @@ def downloadUnlisted(version):
         downloadDep(firmware, False)
         return
     except urllib.error.HTTPError:
-        print("DeviceOS version", version, "not found!")
-        print()
+        print("DeviceOS version", version, "not found!\n")
 
     # Try to download from github
     firmware = {
@@ -261,11 +251,11 @@ def installOrUpdate(install):
     caches = ["firmware", "platforms", "toolchains"]
 
     data = getDeps()
-    depJSON = []
-    depJSON.append(data["firmware"][0])
+    depJSON = [data["firmware"][0]]
+    system = platform.system().lower()
 
     for dep in dependencies:
-        depJSON.append(data[dep][platform.system().lower()]["x64"][0])
+        depJSON.append(data[dep][system]["x64"][0])
 
     # Support for Raspberry Pi
     if platform.machine() == "armv7l":
@@ -300,7 +290,6 @@ def uninstall(args):
     if answer.lower() != "y":
         print("Aborted.")
         return
-
     try:
         os.remove(execpath)
     except PermissionError:
@@ -309,9 +298,7 @@ def uninstall(args):
         exit(1)
 
     print("Uninstalled neopo.")
-    print(
-        "Note: The .particle directory may still exist (remove it with `rm -rf ~/.particle`)"
-    )
+    print("Note: The .particle directory may still exist (remove it with `rm -rf ~/.particle`)")
 
 # Create a Particle project and copy in Workbench settings
 def create(path, name):
@@ -333,8 +320,7 @@ def create(path, name):
 # Get a deviceOS dependency from a version
 def getFirmwareData(version):
     with open(jsonFiles["firmware"], "r") as firmwareFile:
-        data = json.load(firmwareFile)
-        for entry in data:
+        for entry in json.load(firmwareFile):
             if entry["version"] == version:
                 return entry
         return False
@@ -342,8 +328,7 @@ def getFirmwareData(version):
 # Convert between platform IDs and device names
 def platformConvert(data, key1, key2):
     with open(jsonFiles["platforms"], "r") as platformFile:
-        platforms = json.load(platformFile)
-        for platform in platforms:
+        for platform in json.load(platformFile):
             if platform[key1] == data:
                 return platform[key2]
         return False
@@ -351,8 +336,7 @@ def platformConvert(data, key1, key2):
 # List the supported platform IDs for a given version
 def getSupportedPlatforms(version):
     with open(jsonFiles["toolchains"], "r") as toolchainsFile:
-        toolchains = json.load(toolchainsFile)
-        for toolchain in toolchains:
+        for toolchain in json.load(toolchainsFile):
             if toolchain["firmware"] == "deviceOS@" + version:
                 return toolchain["platforms"]
         return False
@@ -371,8 +355,7 @@ def checkFirmwareVersion(platform, version):
         return False
 
     if not platformID in getSupportedPlatforms(version):
-        print("Platform", platform, " is not supported in deviceOS version",
-              version + "!")
+        print("Platform", platform, " is not supported in deviceOS version", version + "!")
         return False
 
     path = os.path.join(PARTICLE_DEPS, "deviceOS", version)
@@ -388,12 +371,9 @@ def configure(projectPath, platform, firmwareVersion):
         exit(1)
 
     if not os.path.isfile(os.path.join(projectPath, projectFiles["settings"])):
-        pathlib.Path(os.path.join(projectPath, ".vscode")).mkdir(parents=True,
-                                                                 exist_ok=True)
-        shutil.copyfile(vscodeFiles["launch"],
-                        os.path.join(projectPath, projectFiles["launch"]))
-        shutil.copyfile(vscodeFiles["settings"],
-                        os.path.join(projectPath, projectFiles["settings"]))
+        pathlib.Path(os.path.join(projectPath, ".vscode")).mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(vscodeFiles["launch"], os.path.join(projectPath, projectFiles["launch"]))
+        shutil.copyfile(vscodeFiles["settings"], os.path.join(projectPath, projectFiles["settings"]))
 
     writeSettings(projectPath, platform, firmwareVersion)
     print("Configured project", projectPath + ":")
@@ -402,16 +382,13 @@ def configure(projectPath, platform, firmwareVersion):
 
 # Load Workbench settings from a project
 def getSettings(projectPath):
-    with open(os.path.join(projectPath, projectFiles["settings"]),
-              "r+") as settings:
+    with open(os.path.join(projectPath, projectFiles["settings"]), "r+") as settings:
         data = json.loads(settings.read())
-        return (data["particle.targetPlatform"],
-                data["particle.firmwareVersion"])
+        return (data["particle.targetPlatform"], data["particle.firmwareVersion"])
 
 # Update Workbench settings in a project
 def writeSettings(projectPath, platform, version):
-    with open(os.path.join(projectPath, projectFiles["settings"]),
-              "r+") as settings:
+    with open(os.path.join(projectPath, projectFiles["settings"]), "r+") as settings:
         data = json.loads(settings.read())
         data["particle.targetPlatform"] = platform
         data["particle.firmwareVersion"] = version
@@ -446,16 +423,14 @@ def addToPath(environment, path):
 
 # Use the Makefile to build the specified target
 def build(projectPath, command, helpOnly, verbosity):
-    compilerVersion, scriptVersion, toolsVersion, firmwareVersion = loadManifest(
-        True)
+    compilerVersion, scriptVersion, toolsVersion, firmwareVersion = loadManifest(True)
     tempEnv = os.environ.copy()
     addToPath(tempEnv, os.path.join(PARTICLE_DEPS, "gcc-arm", compilerVersion, "bin"))
 
     particle = particle_cli
 
     if running_on_windows:
-        addToPath(tempEnv, os.path.join(PARTICLE_DEPS, "buildtools", toolsVersion,
-                                        "bin"))
+        addToPath(tempEnv, os.path.join(PARTICLE_DEPS, "buildtools", toolsVersion, "bin"))
         particle = particle.replace("C:\\", "/cygdrive/c/")
         particle = particle.replace("\\", "/")
     else:
@@ -517,7 +492,6 @@ def buildCommand(command, index, args):
     except IndexError:
         project = os.getcwd()
         verboseIndex = index
-
     try:
         verbosityStr = args[verboseIndex]
         verbosity = verbosityDict[verbosityStr]
@@ -526,7 +500,6 @@ def buildCommand(command, index, args):
     except KeyError:
         print("Invalid verbosity!")
         return
-
     try:
         build(project, command, False, verbosity)
     except FileNotFoundError:
@@ -536,65 +509,35 @@ def buildCommand(command, index, args):
 def versions_compressed(args):
     with open(jsonFiles["firmware"], "r") as firmwareFile:
         data = json.load(firmwareFile)
-        output = ""
-        for entry in data:
-            output += entry["version"] + " "
-        print(output)
+        print(" ".join(map(lambda entry: entry["version"], data)))
 
 # Print available platforms (for completion)
 def platforms_command(args):
     with open(jsonFiles["platforms"], "r") as platformFile:
-        data = json.load(platformFile)
-        output = ""
-        for entry in data:
-            output += entry["name"] + " "
-        print(output)
+        print(" ".join(map(lambda entry: entry["name"], json.load(platformFile))))
 
 # Find all valid projects in PWD (for completion)
 def findValidProjects(args):
     (_, dirs, _) = next(os.walk(os.getcwd()))
-    output = ""
-    for dir in dirs:
-        if os.access(os.path.join(dir, "project.properties"), os.R_OK):
-            output += dir + " "
-    print(output)
+    print(" ".join(filter(False.__ne__, map(lambda dir: os.access(os.path.join(dir, "project.properties"), os.R_OK) and dir, dirs))))
 
 # Find all makefile targets (for completion)
 def getMakefileTargets(args):
     with open(jsonFiles["manifest"], "r") as manifest:
-        data = json.load(manifest)
-        with open(
-                os.path.join(PARTICLE_DEPS, "buildscripts", data["buildscripts"],
-                             "Makefile")) as makefile:
-            contents = makefile.readlines()
+        with open(os.path.join(PARTICLE_DEPS, "buildscripts", json.load(manifest)["buildscripts"], "Makefile")) as makefile:
             sep = ".PHONY: "
-            for line in contents:
-                if line.startswith(sep):
-                    print(line.partition(sep)[2].strip("\n"))
-                    return
+            print(*filter(False.__ne__, map(lambda line: line.startswith(sep) and line.partition(sep)[2].strip("\n"), makefile.readlines())))
 
 # Print available versions and platforms
 def versions(args):
+    print("Available deviceOS versions:\n")
     with open(jsonFiles["firmware"], "r") as firmwareFile:
-        data = json.load(firmwareFile)
-        print("Available deviceOS versions:")
-        print()
-        data.reverse()
-        for entry in data:
+        for entry in reversed(json.load(firmwareFile)):
             version = entry["version"]
-            platforms = getSupportedPlatforms(version)
-            devices = []
-            for platform in platforms:
-                devices.append(platformConvert(platform, "id", "name"))
-
-            devicesStr = devices[0]
-            for device in devices[1:]:
-                devicesStr += ", " + device
-
+            devicesStr = ", ".join(map(lambda platform: platformConvert(platform, "id", "name"), getSupportedPlatforms(version)))
             print("  ", version + "\t", "[", devicesStr, "]")
 
-        print()
-        print("To configure a project use:")
+        print("\nTo configure a project use:")
         print("\tneopo configure <platform> <version> <project>")
 
 # Wrapper for [config/configure]
@@ -685,12 +628,10 @@ def script(args):
     try:
         with open(scriptPath, "r") as script:
             for line in script.readlines():
-
                 if line.startswith("#"):
                     continue
 
-                process = line.split()
-                process.insert(0, args[0])
+                process = line.split().insert(0, args[0])
 
                 if len(process) > 1:
                     print(process)
@@ -705,7 +646,7 @@ def script(args):
 
 # Print all iterable options (for completion)
 def iterate_options(args):
-    print(*iterable_commands.keys(), sep=" ")
+    print(*iterable_commands, sep=" ")
 
 # Available options for iterate
 iterable_commands = {
@@ -728,12 +669,7 @@ def iterate_command(args):
                                         env=tempEnv,
                                         shell=running_on_windows)
 
-    devices = []
-    
-    for line in particle.stdout.splitlines()[1:]:
-        words = line.decode("utf-8").split()
-        device = words[-1]
-        devices.append(device)
+    devices = map(lambda line: line.decode("utf-8").split()[-1], particle.stdout.splitlines()[1:])
 
     del args[1]
 
@@ -787,7 +723,7 @@ Options:
 
 # Print all commands (for completion)
 def options(args):
-    print(*commands.keys(), sep=" ")
+    print(*commands, sep=" ")
 
 # Available options
 commands = {
