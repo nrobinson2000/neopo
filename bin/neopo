@@ -135,9 +135,7 @@ def getDeps():
 
     particle_bin = os.path.basename(particle_cli)
 
-    particle = getFile(
-        extension, extensionFiles["bin"] + "/" + osPlatform + "/" + osArch +
-        "/" + particle_bin)
+    particle = getFile(extension, extensionFiles["bin"] + "/" + osPlatform + "/" + osArch + "/" + particle_bin)
     launch = getFile(extension, extensionFiles["launch"])
     settings = getFile(extension, extensionFiles["settings"])
 
@@ -631,8 +629,7 @@ def script(args):
                 if line.startswith("#"):
                     continue
 
-                process = line.split()
-                process.insert(0, args[0])
+                process = [args[0], *line.split()]
 
                 if len(process) > 1:
                     print(process)
