@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/nrobinson2000/neopo.svg?branch=master)](https://travis-ci.org/nrobinson2000/neopo)
 [![Particle Community](https://img.shields.io/badge/particle-community-informational)](https://community.particle.io/t/neopo-a-lightweight-solution-for-local-particle-development/56378?u=nrobinson2000)
 
-![Neopo Screenshot](carbon-neopo.png)
+![Neopo Screenshot](neopo-carbon.png)
 
 ## Features
 
