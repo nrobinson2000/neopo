@@ -7,17 +7,17 @@
 # On Windows (Cygwin) you may need to change the shebang to:
 #!/usr/bin/env python
 
-import json
-import zipfile
 import io
-import tarfile
-import platform
-import stat
 import os
-import pathlib
+import json
 import sys
-import subprocess
+import stat
 import shutil
+import zipfile
+import tarfile
+import pathlib
+import platform
+import subprocess
 import urllib.request
 
 # Global Variables
@@ -69,8 +69,12 @@ def getExtensionURL():
             "accept": "application/json;api-version=6.0-preview.1;excludeUrls=true",
         }, data=payload.encode("utf-8"))
 
-    with urllib.request.urlopen(request) as response:
-        content = response.read()
+    try:
+        with urllib.request.urlopen(request) as response:
+            content = response.read()
+    except urllib.error.URLError:
+        print("Failed to get extension URL!")
+        raise
 
     data = json.loads(content.decode("utf-8"))
     return data["results"][0]["extensions"][0]["versions"][0]["files"][-1]["source"]
@@ -78,8 +82,12 @@ def getExtensionURL():
 # Download the the Workbench extension from the URL
 def getExtension(url):
     print("Downloading Workbench extension...")
-    with urllib.request.urlopen(url) as response:
-        content = response.read()
+    try:
+        with urllib.request.urlopen(url) as response:
+            content = response.read()
+    except urllib.error.URLError:
+        print("Failed to download extension!")
+        raise
     return zipfile.ZipFile(io.BytesIO(content), "r")
 
 # Load a file from a ZIP
@@ -94,8 +102,12 @@ def downloadDep(dep, updateManifest):
     name, version, url = dep["name"], dep["version"], dep["url"]
     print("Downloading dependency", name, "version", version + "...")
 
-    with urllib.request.urlopen(url) as response:
-        content = response.read()
+    try:
+        with urllib.request.urlopen(url) as response:
+            content = response.read()
+    except urllib.error.URLError:
+        print("Failed to download dependency!")
+        raise
 
     path = os.path.join(PARTICLE_DEPS, name, version)
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
@@ -144,8 +156,7 @@ def getDeps():
     writeExecutable(particle, particle_cli)
     createManifest()
 
-    data = json.loads(manifest.decode("utf-8"))
-    return data
+    return json.loads(manifest.decode("utf-8"))
 
 # Update the manifest JSON file
 def writeManifest(dep):
@@ -205,7 +216,7 @@ def downloadUnlisted(version):
     try:
         downloadDep(firmware, False)
         return
-    except urllib.error.HTTPError:
+    except urllib.error.URLError:
         print("DeviceOS version", version, "not found!\n")
 
     # Try to download from github
@@ -220,8 +231,9 @@ def downloadUnlisted(version):
     try:
         downloadDep(firmware, False)
         return
-    except urllib.error.HTTPError:
+    except urllib.error.URLError:
         print("DeviceOS version", version, "not found!")
+        raise
 
 # Wrapper for [download-unlisted]
 def downloadUnlisted_command(args):
@@ -229,6 +241,7 @@ def downloadUnlisted_command(args):
         downloadUnlisted(args[2])
     except IndexError:
         print("You must specify a deviceOS version!")
+        raise
 
 # Download a specific deviceOS version
 def downloadFirmware(version):
@@ -287,13 +300,14 @@ def uninstall(args):
     answer = input("(Y/N): ")
     if answer.lower() != "y":
         print("Aborted.")
-        return
+        raise InterruptedError
+
     try:
         os.remove(execpath)
     except PermissionError:
         print("Could not delete", execpath)
         print("Try running with sudo.")
-        exit(1)
+        raise
 
     print("Uninstalled neopo.")
     print("Note: The .particle directory may still exist (remove it with `rm -rf ~/.particle`)")
@@ -308,7 +322,7 @@ def create(path, name):
         env=tempEnv,
         shell=running_on_windows).returncode
     if returncode:
-        exit(returncode)
+        raise ChildProcessError(returncode)
 
     #TODO: Default device in manifest.json
     device = "argon"
@@ -366,7 +380,7 @@ def checkFirmwareVersion(platform, version):
 # Modify Workbench settings in a project (platform, firmwareVersion)
 def configure(projectPath, platform, firmwareVersion):
     if not checkFirmwareVersion(platform, firmwareVersion):
-        exit(1)
+        raise ChildProcessError
 
     if not os.path.isfile(os.path.join(projectPath, projectFiles["settings"])):
         pathlib.Path(os.path.join(projectPath, ".vscode")).mkdir(parents=True, exist_ok=True)
@@ -454,9 +468,7 @@ def build(projectPath, command, helpOnly, verbosity):
                     os.path.join(projectPath, projectFiles['properties'])):
                 print("Project not configured!")
                 print("Use: neopo configure <platform> <version> <project>")
-                return
-            else:
-                raise
+            raise
 
         if running_on_windows:
             projectPath = projectPath.replace("\\", "\\\\")
@@ -473,7 +485,7 @@ def build(projectPath, command, helpOnly, verbosity):
                                 stderr= subprocess.PIPE if verbosity == -1 else None
                                 ).returncode
     if returncode:
-        exit(returncode)
+        raise ChildProcessError(returncode)
 
 # Parse the project path from the specified index and run a Makefile target
 def buildCommand(command, index, args):
@@ -497,17 +509,17 @@ def buildCommand(command, index, args):
         verbosity = 0
     except KeyError:
         print("Invalid verbosity!")
-        return
+        raise
     try:
         build(project, command, False, verbosity)
     except FileNotFoundError:
         print("Invalid project!")
+        raise
 
 # Print available versions compressed (for completion)
 def versions_compressed(args):
     with open(jsonFiles["firmware"], "r") as firmwareFile:
-        data = json.load(firmwareFile)
-        print(" ".join(map(lambda entry: entry["version"], data)))
+        print(" ".join(map(lambda entry: entry["version"], json.load(firmwareFile))))
 
 # Print available platforms (for completion)
 def platforms_command(args):
@@ -545,7 +557,7 @@ def configure_command(args):
         version = args[3]
     except IndexError:
         print("You must supply platform and deviceOS version!")
-        return
+        raise IndexError
     try:
         projectPath = args[4]
     except IndexError:
@@ -560,7 +572,7 @@ def run_command(args):
     except IndexError:
         build_help()
         print("You must supply a Makefile target!")
-        return
+        raise
 
     buildCommand(command, 3, args)
 
@@ -570,7 +582,7 @@ def create_command(args):
         projectPath = args[2]
     except IndexError:
         print("You must supply a path for the project!")
-        return
+        raise
 
     projectPath = os.path.abspath(projectPath)
     create(os.path.dirname(projectPath), os.path.basename(projectPath))
@@ -582,6 +594,7 @@ def get_command(args):
         downloadFirmware(version)
     except IndexError:
         print("You must specify a deviceOS version!")
+        raise
 
 # More wrappers
 def flash_command(args):
@@ -608,7 +621,7 @@ def load(args):
         scriptPath = args[2]
     except IndexError:
         print("You must specify a script file!")
-        exit(1)
+        raise
 
     shutil.copyfile(scriptPath, os.path.join(SCRIPTS_DIR, os.path.basename(scriptPath)))
     print("Copied", scriptPath, "into", SCRIPTS_DIR)
@@ -619,7 +632,7 @@ def script(args):
         name = args[2]
     except IndexError:
         print("You must supply a script name!")
-        exit(1)
+        raise
 
     scriptPath = os.path.join(SCRIPTS_DIR, name)
 
@@ -637,10 +650,11 @@ def script(args):
                         commands[process[1]](process)
                     except KeyError:
                         print("Invalid command!")
-                        exit(1)
+                        raise
 
     except FileNotFoundError:
         print("Could find script!")
+        raise
 
 # Print all iterable options (for completion)
 def iterate_options(args):
@@ -674,13 +688,13 @@ def iterate_command(args):
     try:
         if args[1] == "iterate":
             print("Do not use `iterate` recursively!")
-            return
+            raise KeyError
         elif not args[1] in iterable_commands.keys():
             print("Invalid command!")
-            return
+            raise KeyError
     except IndexError:
         print("You must supply a command to iterate with!")
-        return
+        raise
 
     for device in devices:
         print("DeviceID:", device)
@@ -757,7 +771,10 @@ def main():
     if len(sys.argv) == 1:
         print_help(sys.argv)
     elif sys.argv[1] in commands:
-        commands[sys.argv[1]](sys.argv)
+        try:
+            commands[sys.argv[1]](sys.argv)
+        except:
+            pass
     else:
         print("Invalid command!")
         print_help(sys.argv)
