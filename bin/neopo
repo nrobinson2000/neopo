@@ -716,7 +716,7 @@ Options:
         install                 # Install neopo dependencies
         uninstall               # Uninstall neopo script
         versions                # List available versions and platforms
-        create <project>        # Create a Workbench project
+        create <project>        # Create a Workbench/neopo project
 
     Build Options:
         compile/build [project] [-v/q]  # Build a project: `compile-user`
