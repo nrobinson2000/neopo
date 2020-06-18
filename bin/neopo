@@ -712,25 +712,30 @@ def print_help(args):
 
 Options:
     General Options:
-        help
-        install
-        uninstall
-        versions
-        create <project>
+        help                    # Show this help information
+        install                 # Install neopo dependencies
+        uninstall               # Uninstall neopo script
+        versions                # List available versions and platforms
+        create <project>        # Create a Workbench project
 
     Build Options:
-        compile/build [project] [-v/q]
-        flash [project] [-v/q]
-        flash-all [project] [-v/q]
-        clean [project] [-v/q]
+        compile/build [project] [-v/q]  # Build a project: `compile-user`
+        flash [project] [-v/q]          # Flash a project: `flash-user`
+        flash-all [project] [-v/q]      # Flash a project: `flash-all`
+        clean [project] [-v/q]          # Clean a project: `clean-user`
 
     Special Options:
-        run <target> [project] [-v/q]
-        configure <platform> <version> [project]
+        run <target> [project] [-v/q]             # Run a makefile target
+        configure <platform> <version> [project]  # Configure a project
+        iterate <command> [OPTIONS] [-v/q]        # Put devices into DFU mode
+                                                  # and run commands on them
+    Script Options:
+        script <script name>    # Execute a script in ~/.neopo/scripts
+        load <script name>      # Copy a script into ~/.neopo/scripts
 
     Dependency Options:
-        update
-        get <version>
+        update                  # Update neopo dependencies
+        get <version>           # Download a specific deviceOS version
         """)
 
 # Print all commands (for completion)
