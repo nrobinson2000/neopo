@@ -572,7 +572,7 @@ def update_command(args):
 # List all scripts installed (for completion)
 def listScripts(args):
     (_, _, files) = next(os.walk(SCRIPTS_DIR))
-    print(*files, sep=" ")
+    print(*files)
 
 # Load a script into the scripts directory
 def load(args):
@@ -612,7 +612,7 @@ def script(args):
 
 # Print all iterable options (for completion)
 def iterate_options(args):
-    print(*iterable_commands, sep=" ")
+    print(*iterable_commands)
 
 # Available options for iterate
 iterable_commands = {
@@ -694,7 +694,7 @@ Options:
 
 # Print all commands (for completion)
 def options(args):
-    print(*commands, sep=" ")
+    print(*commands)
 
 # Available options
 commands = {
