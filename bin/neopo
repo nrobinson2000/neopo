@@ -69,8 +69,7 @@ def getExtensionURL():
         with urllib.request.urlopen(request) as response:
             content = response.read()
     except urllib.error.URLError:
-        print("Failed to get extension URL!")
-        raise
+        raise RuntimeError("Failed to get extension URL!")
 
     data = json.loads(content.decode("utf-8"))
     return data["results"][0]["extensions"][0]["versions"][0]["files"][-1]["source"]
@@ -82,8 +81,7 @@ def getExtension(url):
         with urllib.request.urlopen(url) as response:
             content = response.read()
     except urllib.error.URLError:
-        print("Failed to download extension!")
-        raise
+        raise RuntimeError("Failed to download extension!")
     return zipfile.ZipFile(io.BytesIO(content), "r")
 
 # Load a file from a ZIP
@@ -102,8 +100,7 @@ def downloadDep(dep, updateManifest):
         with urllib.request.urlopen(url) as response:
             content = response.read()
     except urllib.error.URLError:
-        print("Failed to download dependency!")
-        raise
+        raise RuntimeError("Failed to download dependency!")
 
     path = os.path.join(PARTICLE_DEPS, name, version)
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
@@ -141,17 +138,19 @@ def getDeps():
     pathlib.Path(vscodeFiles["dir"]).mkdir(parents=True, exist_ok=True)
     manifest = getFile(extension, extensionFiles["manifest"])
 
-    particle_bin = os.path.basename(particle_cli)
+    try:
+        particle_bin = os.path.basename(particle_cli)
+        particle = getFile(extension, "/".join([extensionFiles["bin"], osPlatform, osArch, particle_bin]))
+        writeExecutable(particle, particle_cli)
+    except KeyError:
+        raise RuntimeError("Failed to download particle executable from extension!")
 
-    particle = getFile(extension, extensionFiles["bin"] + "/" + osPlatform + "/" + osArch + "/" + particle_bin)
     launch = getFile(extension, extensionFiles["launch"])
     settings = getFile(extension, extensionFiles["settings"])
-
     writeFile(launch, vscodeFiles["launch"])
     writeFile(settings, vscodeFiles["settings"])
-    writeExecutable(particle, particle_cli)
-    createManifest()
 
+    createManifest()
     return json.loads(manifest.decode("utf-8"))
 
 # Update the manifest JSON file
@@ -228,16 +227,14 @@ def downloadUnlisted(version):
         downloadDep(firmware, False)
         return
     except urllib.error.URLError:
-        print("DeviceOS version", version, "not found!")
-        raise
+        raise RuntimeError("DeviceOS version " + version + " not found!")
 
 # Wrapper for [download-unlisted]
 def downloadUnlisted_command(args):
     try:
         downloadUnlisted(args[2])
     except IndexError:
-        print("You must specify a deviceOS version!")
-        raise
+        raise RuntimeError("You must specify a deviceOS version!")
 
 # Download a specific deviceOS version
 def downloadFirmware(version):
@@ -295,18 +292,14 @@ def uninstall(args):
 
     answer = input("(Y/N): ")
     if answer.lower() != "y":
-        print("Aborted.")
-        raise InterruptedError
+        raise InterruptedError("Aborted.")
 
     try:
         os.remove(execpath)
+        print("Uninstalled neopo.")
+        print("Note: The .particle directory may still exist (remove it with `rm -rf ~/.particle`)")
     except PermissionError:
-        print("Could not delete", execpath)
-        print("Try running with sudo.")
-        raise
-
-    print("Uninstalled neopo.")
-    print("Note: The .particle directory may still exist (remove it with `rm -rf ~/.particle`)")
+        raise PermissionError("Could not delete " + execpath + "\n" + "Try running with sudo.")
 
 # Create a Particle project and copy in Workbench settings
 def create(path, name):
@@ -318,11 +311,11 @@ def create(path, name):
         env=tempEnv,
         shell=running_on_windows).returncode
     if returncode:
-        raise ChildProcessError(returncode)
+        raise ChildProcessError("Failed with code " + str(returncode))
 
     #TODO: Default device in manifest.json
     device = "argon"
-    version = loadManifest(True)[-1]
+    version = loadManifest(False)["deviceOS"]
     configure(os.path.join(path, name), device, version)
 
 # Get a deviceOS dependency from a version
@@ -376,7 +369,10 @@ def checkFirmwareVersion(platform, version):
 # Modify Workbench settings in a project (platform, firmwareVersion)
 def configure(projectPath, platform, firmwareVersion):
     if not checkFirmwareVersion(platform, firmwareVersion):
-        raise ChildProcessError
+        raise ChildProcessError("Firmware related error!")
+
+    if not os.path.isfile(os.path.join(projectPath, projectFiles["properties"])):
+        raise FileNotFoundError(projectPath + " is not a Particle project!")
 
     if not os.path.isfile(os.path.join(projectPath, projectFiles["settings"])):
         pathlib.Path(os.path.join(projectPath, ".vscode")).mkdir(parents=True, exist_ok=True)
@@ -411,16 +407,9 @@ def build_help():
 # Create the path string for a given deviceOS version
 def getFirmwarePath(version):
     deviceOSPath = os.path.join(PARTICLE_DEPS, "deviceOS", version)
-    legacy = "firmware-" + version
-    github = "device-os-" + version
-
-    if os.path.isdir(os.path.join(deviceOSPath, legacy)):
-        deviceOSPath = os.path.join(deviceOSPath, legacy)
-
-    if os.path.isdir(os.path.join(deviceOSPath, github)):
-        deviceOSPath = os.path.join(deviceOSPath, github)
-
-    return deviceOSPath
+    legacy = os.path.join(deviceOSPath, "firmware-" + version)
+    github = os.path.join(deviceOSPath, "device-os-" + version)
+    return legacy if os.path.isdir(legacy) else github if os.path.isdir(github) else deviceOSPath
 
 # Add a path to an environment
 def addToPath(environment, path):
@@ -438,6 +427,7 @@ def build(projectPath, command, helpOnly, verbosity):
         addToPath(tempEnv, os.path.join(PARTICLE_DEPS, "buildtools", toolsVersion, "bin"))
         particle = particle.replace("C:\\", "/cygdrive/c/")
         particle = particle.replace("\\", "/")
+        projectPath = projectPath.replace("\\", "\\\\")
     else:
         addToPath(tempEnv, os.path.join(PARTICLE_DEPS, "buildtools", toolsVersion))
 
@@ -448,8 +438,7 @@ def build(projectPath, command, helpOnly, verbosity):
     ]
 
     # Remove [s] flag from make to get verbose output
-    if verbosity == 1:
-        process[1] = "-f"
+    process[1] = "-f" if verbosity == 1 else "-sf"
 
     if helpOnly:
         process.append("help")
@@ -457,15 +446,11 @@ def build(projectPath, command, helpOnly, verbosity):
         try:
             devicePlatform, firmwareVersion = getSettings(projectPath)
         except FileNotFoundError:
-            if os.path.isfile(
-                    os.path.join(projectPath, projectFiles['properties'])):
-                print("Project not configured!")
-                print("Use: neopo configure <platform> <version> <project>")
-            raise
-
-        if running_on_windows:
-            projectPath = projectPath.replace("\\", "\\\\")
-
+            if os.path.isfile(os.path.join(projectPath, projectFiles["properties"])):
+                raise RuntimeError("Project not configured!" + "\n" + "Use: neopo configure <platform> <version> <project>")
+            else:
+                raise FileNotFoundError(projectPath + " is not a Particle project!")
+            
         deviceOSPath = getFirmwarePath(firmwareVersion)
         process.append("APPDIR=" + projectPath)
         process.append("DEVICE_OS_PATH=" + deviceOSPath)
@@ -478,7 +463,7 @@ def build(projectPath, command, helpOnly, verbosity):
                                 stderr= subprocess.PIPE if verbosity == -1 else None
                                 ).returncode
     if returncode:
-        raise ChildProcessError(returncode)
+        raise ChildProcessError("Failed with code " + str(returncode))
 
 # Parse the project path from the specified index and run a Makefile target
 def buildCommand(command, index, args):
@@ -501,13 +486,9 @@ def buildCommand(command, index, args):
     except IndexError:
         verbosity = 0
     except KeyError:
-        print("Invalid verbosity!")
-        raise
-    try:
-        build(project, command, False, verbosity)
-    except FileNotFoundError:
-        print("Invalid project!")
-        raise
+        raise RuntimeError("Invalid verbosity!")
+
+    build(project, command, False, verbosity)
 
 # Print available versions compressed (for completion)
 def versions_compressed(args):
@@ -522,7 +503,7 @@ def platforms_command(args):
 # Find all valid projects in PWD (for completion)
 def findValidProjects(args):
     (_, dirs, _) = next(os.walk(os.getcwd()))
-    print(*[dir for dir in dirs if os.access(os.path.join(dir, "project.properties"), os.R_OK)])
+    print(*[dir for dir in dirs if os.access(os.path.join(dir, projectFiles["properties"]), os.R_OK)])
 
 # Find all makefile targets (for completion)
 def getMakefileTargets(args):
@@ -546,48 +527,33 @@ def versions(args):
 # Wrapper for [config/configure]
 def configure_command(args):
     try:
-        platform = args[2]
-        version = args[3]
+        projectPath = args[4] if len(args) >= 5 else os.getcwd()
+        configure(projectPath, args[2], args[3])
     except IndexError:
-        print("You must supply platform and deviceOS version!")
-        raise IndexError
-    try:
-        projectPath = args[4]
-    except IndexError:
-        projectPath = os.getcwd()
-
-    configure(projectPath, platform, version)
+        raise RuntimeError("You must supply platform and deviceOS version!")
 
 # Wrapper for [run]
 def run_command(args):
     try:
-        command = args[2]
+        buildCommand(args[2], 3, args)
     except IndexError:
         build_help()
-        print("You must supply a Makefile target!")
-        raise
-
-    buildCommand(command, 3, args)
+        raise RuntimeError("You must supply a Makefile target!")
 
 # Wrapper for [create]
 def create_command(args):
     try:
-        projectPath = args[2]
+        projectPath = os.path.abspath(args[2])
+        create(os.path.dirname(projectPath), os.path.basename(projectPath))
     except IndexError:
-        print("You must supply a path for the project!")
-        raise
-
-    projectPath = os.path.abspath(projectPath)
-    create(os.path.dirname(projectPath), os.path.basename(projectPath))
+        raise RuntimeError("You must supply a path for the project!")
 
 # Wrapper for [get]
 def get_command(args):
     try:
-        version = args[2]
-        downloadFirmware(version)
+        downloadFirmware(args[2])
     except IndexError:
-        print("You must specify a deviceOS version!")
-        raise
+        raise RuntimeError("You must specify a deviceOS version!")
 
 # More wrappers
 def flash_command(args):
@@ -612,20 +578,17 @@ def listScripts(args):
 def load(args):
     try:
         scriptPath = args[2]
+        shutil.copyfile(scriptPath, os.path.join(SCRIPTS_DIR, os.path.basename(scriptPath)))
+        print("Copied", scriptPath, "into", SCRIPTS_DIR)
     except IndexError:
-        print("You must specify a script file!")
-        raise
-
-    shutil.copyfile(scriptPath, os.path.join(SCRIPTS_DIR, os.path.basename(scriptPath)))
-    print("Copied", scriptPath, "into", SCRIPTS_DIR)
+        raise RuntimeError("You must specify a script file!")
 
 # Wrapper for [script]
 def script(args):
     try:
         name = args[2]
     except IndexError:
-        print("You must supply a script name!")
-        raise
+        raise RuntimeError("You must supply a script name!")
 
     scriptPath = os.path.join(SCRIPTS_DIR, name)
 
@@ -642,12 +605,10 @@ def script(args):
                     try:
                         commands[process[1]](process)
                     except KeyError:
-                        print("Invalid command!")
-                        raise
+                        raise RuntimeError("Invalid command!")
 
     except FileNotFoundError:
-        print("Could find script!")
-        raise
+        raise RuntimeError("Could find script!")
 
 # Print all iterable options (for completion)
 def iterate_options(args):
@@ -677,21 +638,17 @@ def iterate_command(args):
     devices = [line.decode("utf-8").split()[-1] for line in particle.stdout.splitlines()[1:]]
 
     if not devices:
-        print("No devices found!")
-        raise KeyError
+        raise RuntimeError("No devices found!")
 
     del args[1]
 
     try:
         if args[1] == "iterate":
-            print("Do not use `iterate` recursively!")
-            raise KeyError
+            raise RuntimeError("Do not use `iterate` recursively!")
         elif not args[1] in iterable_commands.keys():
-            print("Invalid command!")
-            raise KeyError
+            raise RuntimeError("Invalid command!")
     except IndexError:
-        print("You must supply a command to iterate with!")
-        raise
+        raise RuntimeError("You must supply a command to iterate with!")
 
     for device in devices:
         print("DeviceID:", device)
@@ -775,11 +732,13 @@ def main():
     elif sys.argv[1] in commands:
         try:
             commands[sys.argv[1]](sys.argv)
-        except:
-            pass
+        except Exception as e:
+            print(e)
+            exit(1)
     else:
         print("Invalid command!")
         print_help(sys.argv)
+        exit(1)
 
 if __name__ == "__main__":
     main()
