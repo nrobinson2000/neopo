@@ -424,10 +424,7 @@ def getFirmwarePath(version):
 
 # Add a path to an environment
 def addToPath(environment, path):
-    if running_on_windows:
-        environment["PATH"] = path + ";" + environment["PATH"]
-    else:
-        environment["PATH"] += ":" + path
+        environment["PATH"] = path + os.pathsep + environment["PATH"]
 
 # Use the Makefile to build the specified target
 def build(projectPath, command, helpOnly, verbosity):
@@ -515,24 +512,24 @@ def buildCommand(command, index, args):
 # Print available versions compressed (for completion)
 def versions_compressed(args):
     with open(jsonFiles["firmware"], "r") as firmwareFile:
-        print(" ".join(map(lambda entry: entry["version"], json.load(firmwareFile))))
+        print(*[entry["version"] for entry in json.load(firmwareFile)])
 
 # Print available platforms (for completion)
 def platforms_command(args):
     with open(jsonFiles["platforms"], "r") as platformFile:
-        print(" ".join(map(lambda entry: entry["name"], json.load(platformFile))))
+        print(*[entry["name"] for entry in json.load(platformFile)])
 
 # Find all valid projects in PWD (for completion)
 def findValidProjects(args):
     (_, dirs, _) = next(os.walk(os.getcwd()))
-    print(" ".join(filter(False.__ne__, map(lambda dir: os.access(os.path.join(dir, "project.properties"), os.R_OK) and dir, dirs))))
+    print(*[dir for dir in dirs if os.access(os.path.join(dir, "project.properties"), os.R_OK)])
 
 # Find all makefile targets (for completion)
 def getMakefileTargets(args):
     with open(jsonFiles["manifest"], "r") as manifest:
         with open(os.path.join(PARTICLE_DEPS, "buildscripts", json.load(manifest)["buildscripts"], "Makefile")) as makefile:
             sep = ".PHONY: "
-            print(*filter(False.__ne__, map(lambda line: line.startswith(sep) and line.partition(sep)[2].strip("\n"), makefile.readlines())))
+            print(*[line.partition(sep)[2].strip("\n") for line in makefile.readlines() if line.startswith(sep)])
 
 # Print available versions and platforms
 def versions(args):
@@ -540,7 +537,7 @@ def versions(args):
     with open(jsonFiles["firmware"], "r") as firmwareFile:
         for entry in reversed(json.load(firmwareFile)):
             version = entry["version"]
-            devicesStr = ", ".join(map(lambda platform: platformConvert(platform, "id", "name"), getSupportedPlatforms(version)))
+            devicesStr = ", ".join([platformConvert(platform, "id", "name") for platform in getSupportedPlatforms(version)])
             print("  ", version + "\t", "[", devicesStr, "]")
 
         print("\nTo configure a project use:")
@@ -677,7 +674,11 @@ def iterate_command(args):
                                         env=tempEnv,
                                         shell=running_on_windows)
 
-    devices = map(lambda line: line.decode("utf-8").split()[-1], particle.stdout.splitlines()[1:])
+    devices = [line.decode("utf-8").split()[-1] for line in particle.stdout.splitlines()[1:]]
+
+    if not devices:
+        print("No devices found!")
+        raise KeyError
 
     del args[1]
 
