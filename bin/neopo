@@ -17,8 +17,8 @@ import subprocess
 import urllib.request
 
 # Global Variables
-PARTICLE_DEPS = os.path.join(os.environ["HOME"], ".particle", "toolchains")
-NEOPO_DEPS = os.path.join(os.environ["HOME"], ".neopo")
+PARTICLE_DEPS = os.path.join(os.path.expanduser("~"), ".particle", "toolchains")
+NEOPO_DEPS = os.path.join(os.path.expanduser("~"), ".neopo")
 CACHE_DIR = os.path.join(NEOPO_DEPS, "cache")
 SCRIPTS_DIR = os.path.join(NEOPO_DEPS, "scripts")
 
@@ -312,6 +312,19 @@ def create(path, name):
         shell=running_on_windows).returncode
     if returncode:
         raise ChildProcessError("Failed with code " + str(returncode))
+
+    # Change name/src/name.ino to name/src/name.cpp
+    # Add #include "Particle.h"
+
+    include = '#include "Particle.h"\n'
+    src = os.path.join(path, name, "src", name + ".ino")
+    dst = os.path.join(path, name, "src", name + ".cpp")
+    shutil.move(src, dst)
+
+    with open(dst, "r") as original:
+        data = original.read()
+    with open(dst, "w") as modified:
+        modified.write(include + data)
 
     #TODO: Default device in manifest.json
     device = "argon"
