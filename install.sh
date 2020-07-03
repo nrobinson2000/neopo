@@ -14,7 +14,6 @@ Linux)
         if [ "$(uname -m)" == "armv7l" ]; then
             sudo apt install libarchive-zip-perl libusb-1.0-0-dev dfu-util libudev-dev
         fi
-    fi
 
     elif hash yum >/dev/null 2>&1; then
         sudo yum install glibc.i686 perl-Archive-Zip
