@@ -825,6 +825,7 @@ def upgrade(args):
     # Ensure that we are calling neopo absolutely (to prevent overwriting dev)
     # execPath may be root owned!
     if execPath == os.path.abspath(execPath):
+        print("Upgrading neopo...")
         try:
             with urllib.request.urlopen(url) as response, open(execPath, "w") as file:
                 content = response.read().decode("utf-8")
