@@ -526,9 +526,11 @@ def build(projectPath, command, helpOnly, verbosity):
                 raise ProjectError(projectPath + " is not a Particle project!")
             
         deviceOSPath = getFirmwarePath(firmwareVersion)
+        extraCompilerFlags = getFlags(projectPath)
         process.append("APPDIR=" + projectPath)
         process.append("DEVICE_OS_PATH=" + deviceOSPath)
         process.append("PLATFORM=" + devicePlatform)
+        process.append("EXTRA_CFLAGS=" + extraCompilerFlags)
         process.append(command)
 
     returncode = subprocess.run(process, env=tempEnv,
@@ -743,6 +745,38 @@ def iterate_command(args):
                                 shell=running_on_windows)
 
         iterable_commands[args[1]](args)
+
+# Get EXTRA_CFLAGS for a project
+def getFlags(projectPath):
+    try:
+        settingsPath = os.path.join(projectPath, projectFiles["settings"])
+        with open(settingsPath, "r") as file:
+            settings = json.load(file)
+        return settings["EXTRA_CFLAGS"]
+    except:
+        return ""
+
+# Set EXTRA_CFLAGS for a project
+def setFlags(projectPath, makeFlags):
+    settingsPath = os.path.join(projectPath, projectFiles["settings"])
+    with open(settingsPath, "r") as file:
+        settings = json.load(file)
+    settings["EXTRA_CFLAGS"] = makeFlags
+    with open(settingsPath, "w") as file:
+        json.dump(settings, file, indent=4)
+
+# Wrapper for [flags]
+def flags_command(args):
+    try:
+        makeFlags = args[2]
+    except IndexError:
+        raise UserError("You must provide the flags as one (quoted) string!")    
+    try:
+        project = os.path.abspath(args[3])
+    except IndexError:
+        project = os.getcwd()
+
+    setFlags(project, makeFlags)
             
 # Print help information about the program
 def print_help(args):
@@ -765,6 +799,7 @@ Options:
     Special Options:
         run <target> [project] [-v/q]             # Run a makefile target
         configure <platform> <version> [project]  # Configure a project
+        flags <string> [project]                  # Set EXTRA_CFLAGS in project 
         iterate <command> [OPTIONS] [-v/q]        # Put devices into DFU mode
                                                   # and run commands on them
     Script Options:
@@ -806,7 +841,8 @@ commands = {
     "list-scripts": listScripts,
     "load": load,
     "iterate": iterate_command,
-    "options-iterable": iterate_options
+    "options-iterable": iterate_options,
+    "flags": flags_command
 }
 
 # Evaluate command-line arguments and call necessary functions
