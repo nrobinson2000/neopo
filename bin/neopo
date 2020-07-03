@@ -27,16 +27,18 @@ class ProcessError(RuntimeError):
 class ProjectError(RuntimeError):
     pass
 
-# Global Variables
+# Primary directories: dependencies, caches, scripts
 PARTICLE_DEPS = os.path.join(os.path.expanduser("~"), ".particle", "toolchains")
 NEOPO_DEPS = os.path.join(os.path.expanduser("~"), ".neopo")
 CACHE_DIR = os.path.join(NEOPO_DEPS, "cache")
 SCRIPTS_DIR = os.path.join(NEOPO_DEPS, "scripts")
 
+# Compatiblity tricks
 raspberry_pi_gcc_arm = "https://github.com/nrobinson2000/neopo/releases/download/0.0.1/gcc-arm-v5.3.1-raspberry-pi.tar.gz"
 running_on_windows = platform.system() == "Windows"
 particle_cli = os.path.join(NEOPO_DEPS, "particle.exe") if running_on_windows else os.path.join(NEOPO_DEPS, "particle")
 
+# JSON cache files
 jsonFiles = {
     "firmware": os.path.join(CACHE_DIR, "firmware.json"),
     "toolchains": os.path.join(CACHE_DIR, "toolchains.json"),
@@ -44,12 +46,14 @@ jsonFiles = {
     "manifest": os.path.join(CACHE_DIR, "manifest.json")
 }
 
+# Workbench template files
 vscodeFiles = {
     "dir": os.path.join(NEOPO_DEPS, "vscode"),
     "launch": os.path.join(NEOPO_DEPS, "vscode", "launch.json"),
     "settings": os.path.join(NEOPO_DEPS, "vscode", "settings.json")
 }
 
+# Files inside VSIX
 extensionFiles = {
     "bin": "extension/src/cli/bin",
     "manifest": "extension/src/compiler/manifest.json",
@@ -57,11 +61,32 @@ extensionFiles = {
     "settings": "extension/src/cli/vscode/settings.json"
 }
 
+# Files inside project
 projectFiles = {
     "launch": os.path.join(".vscode", "launch.json"),
     "settings": os.path.join(".vscode", "settings.json"),
     "properties": "project.properties"
 }
+
+# Use this as .travis.yml when creating project repos
+TRAVIS_YML = """# Build a neopo project with travis
+os: linux
+language: bash
+sudo: required
+install:
+  - export PATH="$PATH:$PWD"
+  - sudo apt update
+  - sudo apt install libarchive-zip-perl libc6-i386
+  - curl -LO https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/neopo
+  - chmod +x neopo
+  - neopo install
+script:
+  - neopo build
+cache:
+  directories:
+    - $HOME/.particle
+    - $HOME/.neopo
+"""
 
 # Find the Workbench extension URL from the Visual Studio Marketplace
 def getExtensionURL():
@@ -306,7 +331,7 @@ def installOrUpdate(install, force):
             else:
                 skippedDeps.append(dep)
 
-        # Notify user of skipped dependencies for bandwidth and time saving
+        # Notify user of dependencies skipped to save bandwidth and time
         if skippedDeps:
             print()
             print("Skipped previously installed dependencies:")
@@ -361,31 +386,15 @@ def create(path, name):
     if shutil.which("git"):
         subprocess.run(["git", "init", projectPath])
 
-        travis = """# Build a neopo project with travis
-os: linux
-language: bash
-sudo: required
-install:
-  - export PATH="$PATH:$PWD"
-  - sudo apt update
-  - sudo apt install libarchive-zip-perl libc6-i386
-  - curl -LO https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/neopo
-  - chmod +x neopo
-  - neopo install
-script:
-  - neopo build
-cache:
-  directories:
-    - $HOME/.particle
-    - $HOME/.neopo
-"""
-        writeFile(travis, os.path.join(projectPath, ".travis.yml"), "w")
+        # Add .travis.yml to project
+        writeFile(TRAVIS_YML, os.path.join(projectPath, ".travis.yml"), "w")
+        
+        # Add .gitignore to project
         writeFile("target", os.path.join(projectPath, ".gitignore"), "w")
 
+        # Add buttons to README.md
         travisButton = "[![](https://api.travis-ci.org/yourUser/yourRepo.svg?branch=master)](https://travis-ci.org/yourUser/yourRepo)"
         neopoButton = "[![](https://img.shields.io/badge/built_with-neopo-informational)](https://nrobinson2000.github.io/neopo)"
-
-        # Add buttons to README.md
         readmePath = os.path.join(projectPath, "README.md")
         with open(readmePath, "r") as file:
             readme = file.readlines()
@@ -895,5 +904,6 @@ def main(args):
         print_help(args)
         exit(3)
 
+# Call main() with command-line arguments
 if __name__ == "__main__":
     main(sys.argv)
