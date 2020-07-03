@@ -291,16 +291,17 @@ def installOrUpdate(install, force):
     if install:
         skippedDeps = []
         for dep in depJSON:
-            new = dep["version"]
-            old = manifest[dep["name"]] if manifest != None and dep["name"] in manifest else None
-            if new != old or forceInstall:
+            installed = os.path.isdir(os.path.join(PARTICLE_DEPS, dep["name"], dep["version"]))
+            if not installed or forceInstall:
                 downloadDep(dep, True)
             else:
                 skippedDeps.append(dep)
         
-        print("Skipped previously installed dependencies:")
-        print(*[dep["name"]+"@"+dep["version"] for dep in skippedDeps], sep=", ")
-        print()
+        if skippedDeps:
+            print()
+            print("Skipped previously installed dependencies:")
+            print(*[dep["name"]+"@"+dep["version"] for dep in skippedDeps], sep=", ")
+            print()
                     
         print("Finished installation. To create a project use:")
         print("\tneopo create <project>")
@@ -785,7 +786,7 @@ def print_help(args):
 Options:
     General Options:
         help                    # Show this help information
-        install                 # Install neopo dependencies
+        install [-f]            # Install neopo dependencies
         uninstall               # Uninstall neopo script
         versions                # List available versions and platforms
         create <project>        # Create a Workbench/neopo project
