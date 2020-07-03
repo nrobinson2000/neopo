@@ -815,6 +815,27 @@ def flags_command(args):
         project = os.getcwd()
 
     setFlags(project, makeFlags)
+
+# Wrapper for [upgrade]
+def upgrade(args):
+    # This is a primitive upgrade function. Releases will be used in future.
+    url = "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/neopo"
+    execPath = args[0]
+
+    # Ensure that we are calling neopo absolutely (to prevent overwriting dev)
+    # execPath may be root owned!
+    if execPath == os.path.abspath(execPath):
+        try:
+            with urllib.request.urlopen(url) as response, open(execPath, "w") as file:
+                content = response.read().decode("utf-8")
+                file.write(content)
+        except urllib.error.URLError:
+            raise ProcessError("Failed to download upgrade!")
+        except PermissionError:
+            raise ProcessError("Failed to apply upgrade!\nTry running with sudo.")
+    else:
+        raise ProcessError("Neopo was not run absolutely, not upgrading.")
+
             
 # Print help information about the program
 def print_help(args):
@@ -823,8 +844,9 @@ def print_help(args):
 Options:
     General Options:
         help                    # Show this help information
-        install [-f]            # Install neopo dependencies
-        uninstall               # Uninstall neopo script
+        install [-f]            # Install dependencies (-f to force)
+        upgrade                 # Upgrade neopo
+        uninstall               # Uninstall neopo
         versions                # List available versions and platforms
         create <project>        # Create a Workbench/neopo project
 
@@ -880,7 +902,8 @@ commands = {
     "load": load,
     "iterate": iterate_command,
     "options-iterable": iterate_options,
-    "flags": flags_command
+    "flags": flags_command,
+    "upgrade": upgrade
 }
 
 # Evaluate command-line arguments and call necessary functions
