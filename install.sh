@@ -17,7 +17,6 @@ Linux)
 
     elif hash yum >/dev/null 2>&1; then
         sudo yum install glibc.i686 perl-Archive-Zip
-    fi
 
     elif hash pacman >/dev/null 2>&1; then
         sudo pacman -Syu libusb lib32-glibc yaourt
@@ -33,7 +32,7 @@ esac
 echo "Downloading installation script..."
 curl -LO "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/install.py"
 sudo python3 install.py || exit
-sudo chown $USER $(sudo which neopo)
+sudo chown "$USER" "$(sudo which neopo)"
 rm install.py
 
 neopo install
