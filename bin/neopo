@@ -301,7 +301,10 @@ def installOrUpdate(install, force):
         for dep in depJSON:
             # Install dependency if not currently installed, or forced, otherwise skip
             installed = os.path.isdir(os.path.join(PARTICLE_DEPS, dep["name"], dep["version"]))
-            not installed or forceInstall and downloadDep(dep, True) or skippedDeps.append(dep)
+            if not installed or forceInstall:
+                downloadDep(dep, True)
+            else:
+                skippedDeps.append(dep)
 
         # Notify user of skipped dependencies for bandwidth and time saving
         if skippedDeps:
