@@ -13,8 +13,19 @@ import zipfile
 import tarfile
 import pathlib
 import platform
+import traceback
 import subprocess
 import urllib.request
+
+# Custom errors
+class UserError(RuntimeError):
+    pass
+class DependencyError(RuntimeError):
+    pass
+class ProcessError(RuntimeError):
+    pass
+class ProjectError(RuntimeError):
+    pass
 
 # Global Variables
 PARTICLE_DEPS = os.path.join(os.path.expanduser("~"), ".particle", "toolchains")
@@ -69,7 +80,7 @@ def getExtensionURL():
         with urllib.request.urlopen(request) as response:
             content = response.read()
     except urllib.error.URLError:
-        raise RuntimeError("Failed to get extension URL!")
+        raise DependencyError("Failed to get extension URL!")
 
     data = json.loads(content.decode("utf-8"))
     return data["results"][0]["extensions"][0]["versions"][0]["files"][-1]["source"]
@@ -81,7 +92,7 @@ def getExtension(url):
         with urllib.request.urlopen(url) as response:
             content = response.read()
     except urllib.error.URLError:
-        raise RuntimeError("Failed to download extension!")
+        raise DependencyError("Failed to download extension!")
     return zipfile.ZipFile(io.BytesIO(content), "r")
 
 # Load a file from a ZIP
@@ -100,7 +111,7 @@ def downloadDep(dep, updateManifest):
         with urllib.request.urlopen(url) as response:
             content = response.read()
     except urllib.error.URLError:
-        raise RuntimeError("Failed to download dependency!")
+        raise DependencyError("Failed to download dependency!")
 
     path = os.path.join(PARTICLE_DEPS, name, version)
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
@@ -143,7 +154,7 @@ def getDeps():
         particle = getFile(extension, "/".join([extensionFiles["bin"], osPlatform, osArch, particle_bin]))
         writeExecutable(particle, particle_cli)
     except KeyError:
-        raise RuntimeError("Failed to download particle executable from extension!")
+        raise DependencyError("Failed to download particle executable from extension!")
 
     launch = getFile(extension, extensionFiles["launch"])
     settings = getFile(extension, extensionFiles["settings"])
@@ -227,14 +238,14 @@ def downloadUnlisted(version):
         downloadDep(firmware, False)
         return
     except urllib.error.URLError:
-        raise RuntimeError("DeviceOS version " + version + " not found!")
+        raise DependencyError("DeviceOS version " + version + " not found!")
 
 # Wrapper for [download-unlisted]
 def downloadUnlisted_command(args):
     try:
         downloadUnlisted(args[2])
     except IndexError:
-        raise RuntimeError("You must specify a deviceOS version!")
+        raise UserError("You must specify a deviceOS version!")
 
 # Download a specific deviceOS version
 def downloadFirmware(version):
@@ -245,7 +256,8 @@ def downloadFirmware(version):
         print("Could not download deviceOS version", version + "!")
 
 # Install or update neopo dependencies (not the neopo script)
-def installOrUpdate(install):
+def installOrUpdate(install, force):    
+    forceInstall = force == "-f"
     if install:
         print("Installing neopo...")
     else:
@@ -271,14 +283,27 @@ def installOrUpdate(install):
     for key in caches:
         writeJSONcache(data, key)
 
+    manifest = loadManifest(False)
+
     if install:
+        skippedDeps = []
         for dep in depJSON:
-            downloadDep(dep, True)
+            new = dep["version"]
+            # TODO: Try here?
+            old = manifest[dep["name"]]
+            if new != old or forceInstall:
+                downloadDep(dep, True)
+            else:
+                skippedDeps.append(dep)
+        
+        print("Skipped previously installed dependencies:")
+        print(*[dep["name"]+"@"+dep["version"] for dep in skippedDeps], sep=", ")
+        print()
+                    
         print("Finished installation. To create a project use:")
         print("\tneopo create <project>")
     else:
         for dep in depJSON:
-            manifest = loadManifest(False)
             new = int(dep["version"].split("-")[0].replace(".", ""))
             old = int(manifest[dep["name"]].split("-")[0].replace(".", ""))
             if new > old:
@@ -292,33 +317,67 @@ def uninstall(args):
 
     answer = input("(Y/N): ")
     if answer.lower() != "y":
-        raise InterruptedError("Aborted.")
+        raise UserError("Aborted.")
 
     try:
         os.remove(execpath)
         print("Uninstalled neopo.")
         print("Note: The .particle directory may still exist (remove it with `rm -rf ~/.particle`)")
     except PermissionError:
-        raise PermissionError("Could not delete " + execpath + "\n" + "Try running with sudo.")
+        raise ProcessError("Could not delete " + execpath + "\n" + "Try running with sudo.")
 
 # Create a Particle project and copy in Workbench settings
 def create(path, name):
     tempEnv = os.environ.copy()
     addToPath(tempEnv, NEOPO_DEPS)
 
+    projectPath = os.path.join(path, name)
+
     returncode = subprocess.run(
         ["particle", "project", "create", path, "--name", name],
         env=tempEnv,
         shell=running_on_windows).returncode
     if returncode:
-        raise ChildProcessError("Failed with code " + str(returncode))
+        raise ProcessError("Failed with code " + str(returncode))
+
+    # Initialize project as git repo and add .travis.yml
+    if shutil.which("git"):
+        subprocess.run(["git", "init", projectPath])
+
+        travis = """# Build a neopo project with travis
+os: linux
+language: bash
+sudo: required
+install:
+  - export PATH="$PATH:$PWD"
+  - sudo apt update
+  - sudo apt install libarchive-zip-perl libc6-i386
+  - curl -LO https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/neopo
+  - chmod +x neopo
+  - neopo install
+script:
+  - neopo build
+cache:
+  directories:
+    - $HOME/.particle
+    - $HOME/.neopo
+"""
+        with open(os.path.join(projectPath, ".travis.yml"), "w") as ymlFile:
+            ymlFile.write(travis)
+
+
+    #TODO:
+    # Minify README.md
+
+    #TODO: Add .gitignore
+
 
     # Change name/src/name.ino to name/src/name.cpp
     # Add #include "Particle.h"
 
     include = '#include "Particle.h"\n'
-    src = os.path.join(path, name, "src", name + ".ino")
-    dst = os.path.join(path, name, "src", name + ".cpp")
+    src = os.path.join(projectPath, "src", name + ".ino")
+    dst = os.path.join(projectPath, "src", name + ".cpp")
     shutil.move(src, dst)
 
     with open(dst, "r") as original:
@@ -329,7 +388,7 @@ def create(path, name):
     #TODO: Default device in manifest.json
     device = "argon"
     version = loadManifest(False)["deviceOS"]
-    configure(os.path.join(path, name), device, version)
+    configure(projectPath, device, version)
 
 # Get a deviceOS dependency from a version
 def getFirmwareData(version):
@@ -382,10 +441,10 @@ def checkFirmwareVersion(platform, version):
 # Modify Workbench settings in a project (platform, firmwareVersion)
 def configure(projectPath, platform, firmwareVersion):
     if not checkFirmwareVersion(platform, firmwareVersion):
-        raise ChildProcessError("Firmware related error!")
+        raise ProjectError("Firmware related error!")
 
     if not os.path.isfile(os.path.join(projectPath, projectFiles["properties"])):
-        raise FileNotFoundError(projectPath + " is not a Particle project!")
+        raise ProjectError(projectPath + " is not a Particle project!")
 
     if not os.path.isfile(os.path.join(projectPath, projectFiles["settings"])):
         pathlib.Path(os.path.join(projectPath, ".vscode")).mkdir(parents=True, exist_ok=True)
@@ -460,9 +519,9 @@ def build(projectPath, command, helpOnly, verbosity):
             devicePlatform, firmwareVersion = getSettings(projectPath)
         except FileNotFoundError:
             if os.path.isfile(os.path.join(projectPath, projectFiles["properties"])):
-                raise RuntimeError("Project not configured!" + "\n" + "Use: neopo configure <platform> <version> <project>")
+                raise ProjectError("Project not configured!" + "\n" + "Use: neopo configure <platform> <version> <project>")
             else:
-                raise FileNotFoundError(projectPath + " is not a Particle project!")
+                raise ProjectError(projectPath + " is not a Particle project!")
             
         deviceOSPath = getFirmwarePath(firmwareVersion)
         process.append("APPDIR=" + projectPath)
@@ -476,7 +535,7 @@ def build(projectPath, command, helpOnly, verbosity):
                                 stderr= subprocess.PIPE if verbosity == -1 else None
                                 ).returncode
     if returncode:
-        raise ChildProcessError("Failed with code " + str(returncode))
+        raise ProcessError("Failed with code " + str(returncode))
 
 # Parse the project path from the specified index and run a Makefile target
 def buildCommand(command, index, args):
@@ -499,7 +558,7 @@ def buildCommand(command, index, args):
     except IndexError:
         verbosity = 0
     except KeyError:
-        raise RuntimeError("Invalid verbosity!")
+        raise UserError("Invalid verbosity!")
 
     build(project, command, False, verbosity)
 
@@ -543,7 +602,7 @@ def configure_command(args):
         projectPath = args[4] if len(args) >= 5 else os.getcwd()
         configure(projectPath, args[2], args[3])
     except IndexError:
-        raise RuntimeError("You must supply platform and deviceOS version!")
+        raise UserError("You must supply platform and deviceOS version!")
 
 # Wrapper for [run]
 def run_command(args):
@@ -551,7 +610,7 @@ def run_command(args):
         buildCommand(args[2], 3, args)
     except IndexError:
         build_help()
-        raise RuntimeError("You must supply a Makefile target!")
+        raise UserError("You must supply a Makefile target!")
 
 # Wrapper for [create]
 def create_command(args):
@@ -559,14 +618,14 @@ def create_command(args):
         projectPath = os.path.abspath(args[2])
         create(os.path.dirname(projectPath), os.path.basename(projectPath))
     except IndexError:
-        raise RuntimeError("You must supply a path for the project!")
+        raise UserError("You must supply a path for the project!")
 
 # Wrapper for [get]
 def get_command(args):
     try:
         downloadFirmware(args[2])
     except IndexError:
-        raise RuntimeError("You must specify a deviceOS version!")
+        raise UserError("You must specify a deviceOS version!")
 
 # More wrappers
 def flash_command(args):
@@ -577,10 +636,20 @@ def flash_all_command(args):
     buildCommand("flash-all", 2, args)
 def clean_command(args):
     buildCommand("clean-user", 2, args)
+
 def install_command(args):
-    installOrUpdate(True)
+    try:
+        force = args[2]
+    except IndexError:
+        force = None
+    installOrUpdate(True, force)
+
 def update_command(args):
-    installOrUpdate(False)
+    try:
+        force = args[2]
+    except IndexError:
+        force = None
+    installOrUpdate(False, force)
 
 # List all scripts installed (for completion)
 def listScripts(args):
@@ -594,14 +663,14 @@ def load(args):
         shutil.copyfile(scriptPath, os.path.join(SCRIPTS_DIR, os.path.basename(scriptPath)))
         print("Copied", scriptPath, "into", SCRIPTS_DIR)
     except IndexError:
-        raise RuntimeError("You must specify a script file!")
+        raise UserError("You must specify a script file!")
 
 # Wrapper for [script]
 def script(args):
     try:
         name = args[2]
     except IndexError:
-        raise RuntimeError("You must supply a script name!")
+        raise UserError("You must supply a script name!")
 
     scriptPath = os.path.join(SCRIPTS_DIR, name)
 
@@ -618,10 +687,10 @@ def script(args):
                     try:
                         commands[process[1]](process)
                     except KeyError:
-                        raise RuntimeError("Invalid command!")
+                        raise UserError("Invalid command!")
 
     except FileNotFoundError:
-        raise RuntimeError("Could find script!")
+        raise ProcessError("Could find script!")
 
 # Print all iterable options (for completion)
 def iterate_options(args):
@@ -651,17 +720,17 @@ def iterate_command(args):
     devices = [line.decode("utf-8").split()[-1] for line in particle.stdout.splitlines()[1:]]
 
     if not devices:
-        raise RuntimeError("No devices found!")
+        raise ProcessError("No devices found!")
 
     del args[1]
 
     try:
         if args[1] == "iterate":
-            raise RuntimeError("Do not use `iterate` recursively!")
+            raise UserError("Do not use `iterate` recursively!")
         elif not args[1] in iterable_commands.keys():
-            raise RuntimeError("Invalid command!")
+            raise UserError("Invalid command!")
     except IndexError:
-        raise RuntimeError("You must supply a command to iterate with!")
+        raise UserError("You must supply a command to iterate with!")
 
     for device in devices:
         print("DeviceID:", device)
@@ -745,13 +814,19 @@ def main():
     elif sys.argv[1] in commands:
         try:
             commands[sys.argv[1]](sys.argv)
-        except Exception as e:
+        except RuntimeError as e:
             print(e)
             exit(1)
+        except Exception as e:
+            traceback.print_exc()
+            print("An unexpected error occurred!")
+            print("To report this error on GitHub, please open an issue:")
+            print("https://github.com/nrobinson2000/neopo/issues")
+            exit(2)
     else:
         print("Invalid command!")
         print_help(sys.argv)
-        exit(1)
+        exit(3)
 
 if __name__ == "__main__":
     main()

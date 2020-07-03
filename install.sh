@@ -5,15 +5,24 @@
 
 case "$(uname)" in
 Linux)
-    if hash apt >/dev/null 2>&1; then
-        echo "Installing apt dependencies..."
+    echo "Installing Linux dependencies..."
     
+    if hash apt >/dev/null 2>&1; then
         if [ "$(uname -m)" == "x86_64" ]; then
             sudo apt install libarchive-zip-perl libc6-i386
         fi
         if [ "$(uname -m)" == "armv7l" ]; then
             sudo apt install libarchive-zip-perl libusb-1.0-0-dev dfu-util libudev-dev
         fi
+    fi
+
+    elif hash yum >/dev/null 2>&1; then
+        sudo yum install glibc.i686 perl-Archive-Zip
+    fi
+
+    elif hash pacman >/dev/null 2>&1; then
+        sudo pacman -Syu libusb lib32-glibc yaourt
+        yaourt -S perl-archive-zip
     fi
 ;;
 
