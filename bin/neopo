@@ -292,7 +292,7 @@ def installOrUpdate(install, force):
         skippedDeps = []
         for dep in depJSON:
             new = dep["version"]
-            old = manifest[dep["name"]] if dep["name"] in manifest else None
+            old = manifest[dep["name"]] if manifest != None and dep["name"] in manifest else None
             if new != old or forceInstall:
                 downloadDep(dep, True)
             else:
