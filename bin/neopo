@@ -840,7 +840,11 @@ def upgrade(args):
 # Wrapper for [particle]
 def particle_command(args):
     process = [particle_cli, *args[2:]]
-    returncode = subprocess.run(process).returncode
+    try:
+        returncode = subprocess.run(process).returncode
+    # Return cleanly if ^C was pressed
+    except KeyboardInterrupt:
+        return
     if returncode:
         raise ProcessError("Particle CLI exited with code " + str(returncode))
             
