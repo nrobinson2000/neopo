@@ -58,7 +58,7 @@ neopo versions
 
 ### create
 
-Create a new Particle project at the specified project path. The created project is compatible with neopo, Particle Workbench, and Particle CLI. If `git` is installed on your system, the project is additionally initialized as a repository and support for [TravisCI](https://travis-ci.org/) as added.
+Create a new Particle project at the specified project path. The created project is compatible with neopo, Particle Workbench, and Particle CLI. If `git` is installed on your system, the project is additionally initialized as a repository and support for [TravisCI](https://travis-ci.org/) is added.
 
 Examples:
 
