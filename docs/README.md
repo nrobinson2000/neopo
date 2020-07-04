@@ -34,4 +34,4 @@ On Windows the installation process is more involved but not very difficult: [Wi
 
 [Quick Reference](full-docs.md)
 
-[Complete Reference](full-docs.md)
+[Complete Reference](quick-docs.md)
