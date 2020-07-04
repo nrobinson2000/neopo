@@ -837,6 +837,12 @@ def upgrade(args):
     else:
         raise ProcessError("Neopo was not run absolutely, not upgrading.")
 
+# Wrapper for [particle]
+def particle_command(args):
+    process = [particle_cli, *args[2:]]
+    returncode = subprocess.run(process).returncode
+    if returncode:
+        raise ProcessError("Particle CLI exited with code " + str(returncode))
             
 # Print help information about the program
 def print_help(args):
@@ -850,6 +856,7 @@ Options:
         uninstall               # Uninstall neopo
         versions                # List available versions and platforms
         create <project>        # Create a Workbench/neopo project
+        particle [OPTIONS]      # Use the encapsulated Particle CLI
 
     Build Options:
         compile/build [project] [-v/q]  # Build a project: `compile-user`
@@ -904,7 +911,8 @@ commands = {
     "iterate": iterate_command,
     "options-iterable": iterate_options,
     "flags": flags_command,
-    "upgrade": upgrade
+    "upgrade": upgrade,
+    "particle": particle_command
 }
 
 # Evaluate command-line arguments and call necessary functions
