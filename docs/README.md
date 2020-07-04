@@ -30,6 +30,10 @@ $ neopo install
 
 On Windows the installation process is more involved but not very difficult: [Windows Installation](windows.md)
 
+## Usage
+
+The complete reference is available [here.](full-docs.md)
+
 ## Examples
 
 ### Creating a project
