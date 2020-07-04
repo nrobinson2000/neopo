@@ -35,6 +35,6 @@ On Windows the installation process is more involved but not very difficult: [Wi
 
 ## Usage
 
-[Quick Reference](docs/full-docs.md)
+[Quick Reference](docs/quick-docs.md)
 
-[Complete Reference](docs/quick-docs.md)
+[Complete Reference](docs/full-docs.md)
