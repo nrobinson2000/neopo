@@ -302,7 +302,7 @@ def installOrUpdate(install, force):
     dependencies = ["compilers", "tools", "scripts", "debuggers"]
     caches = ["firmware", "platforms", "toolchains"]
 
-    # Donwload dependency data and create list of installables
+    # Download dependency data and create list of installables
     data = getDeps()
     depJSON = [data["firmware"][0]]
 
@@ -695,6 +695,18 @@ def update_command(args):
         force = None
     installOrUpdate(False, force)
 
+# Wait for user to press enter [for scripting]
+def script_wait(args):
+    input("Press Enter to continue...")
+
+# Print a message to the console [for scripting]
+def script_print(args):
+    try:
+        message = args[2:]
+    except IndexError:
+        message = ""
+    print(*message)
+
 # List all scripts installed (for completion)
 def listScripts(args):
     (_, _, files) = next(os.walk(SCRIPTS_DIR))
@@ -916,7 +928,9 @@ commands = {
     "options-iterable": iterate_options,
     "flags": flags_command,
     "upgrade": upgrade,
-    "particle": particle_command
+    "particle": particle_command,
+    "wait": script_wait,
+    "print": script_print
 }
 
 # Evaluate command-line arguments and call necessary functions
