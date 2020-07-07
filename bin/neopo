@@ -550,13 +550,15 @@ def build(projectPath, command, helpOnly, verbosity):
     else:
         try:
             devicePlatform, firmwareVersion = getSettings(projectPath)
+            if not checkFirmwareVersion(devicePlatform, firmwareVersion):
+                raise ProjectError("Firmware related error!")
         except FileNotFoundError:
             if os.path.isfile(os.path.join(projectPath, projectFiles["properties"])):
                 raise ProjectError("Project not configured!" + "\n" + "Use: neopo configure <platform> <version> <project>")
             else:
                 raise ProjectError(projectPath + " is not a Particle project!")
         
-        # Set dditional variables for make
+        # Set additional variables for make
         deviceOSPath = getFirmwarePath(firmwareVersion)
         extraCompilerFlags = getFlags(projectPath)
         process.append("APPDIR=" + projectPath)
