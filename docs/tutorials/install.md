@@ -1,4 +1,4 @@
-# Installing neopo
+# Installing Neopo
 
 Neopo installs quickly giving you a local Particle development environment fast.
 
