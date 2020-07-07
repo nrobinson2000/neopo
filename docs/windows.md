@@ -1,66 +1,62 @@
-# Using neopo on Windows
+# Installing neopo on Windows
 
-***Basic knowledge of Vim is assumed.***
+***For this tutorial basic knowledge of Vim is assumed. You can also use your preferred editor instead.***
 
-## Install Dependencies
+## Step 1: Install Windows Dependencies
 
-### Python
-https://www.python.org/downloads/windows/
+Download and install [Python](https://www.python.org/downloads/windows/), [Cygwin](https://www.cygwin.com/setup-x86_64.exe), and [Git](https://git-scm.com/download/win). When installing Cygwin, please also install Vim.
 
-### Cygwin and Vim
-https://www.cygwin.com/setup-x86_64.exe
+## Step 2: Download Neopo inside of Cygwin
 
-### Git
-https://git-scm.com/download/win
-
-
-## Install Neopo inside Cygwin
-
-- Clone the repository:
+Clone the neopo repository:
 
 ```bash
-cd
 git clone https://github.com/nrobinson2000/neopo
 ```
 
-- Edit the shebang (The first line):
+Open `neopo/bin/neopo` with Vim or your preferred editor:
 
 ```bash
 vim neopo/bin/neopo
+```
 
+Change the first line (shebang) to:
+
+```bash
 #!/usr/bin/env python
 ```
 
-- Add a neopo alias to end of bashrc:
+Save and close the file.
+
+## Step 3: Create a neopo alias
+
+Open `~/.bashrc` with Vim or your preferred editor:
 
 ```bash
 vim ~/.bashrc
+```
 
+Add the followng line to the bottom of the file:
+
+```
 alias neopo='python C:\\cygwin64\\home\\'$USER'\\neopo\\bin\\neopo'
 ```
 
-- Reload bashrc:
+Save and close the file.
+
+Reload ~/.bashrc or open a new Cygwin window so that the alias is available:
 
 ```bash
 source ~/.bashrc
 ```
 
-- Install neopo dependencies:
+## Step 4: Install neopo dependencies
 
 ```bash
 neopo install
 ```
 
-## Create a project
+## Step 5: Begin using neopo
 
-```bash
-neopo create test
-```
-
-## Flash a project
-
-```bash
-neopo flash test
-```
-
+To get started with neopo, please refer to the [Quick Reference.](quick-docs.md)
 

@@ -33,12 +33,6 @@ $ neopo flash myProject
 $ neopo run clean-debug myProject
 ```
 
-## Uninstalling
-
-```bash
-$ neopo uninstall
-```
-
 **Note: Specifying the project directory is optional if your current working directory is a Particle project. Tab completion can also find valid projects in the current working directory.**
 
 **For example:**

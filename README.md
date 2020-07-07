@@ -17,13 +17,13 @@
 
 ## Installation
 
-The easiest way to install neopo is to open a Terminal and run:
+Universal Installer (Linux/macOS):
 
 ```bash
 $ bash <( curl -sL https://git.io/JfwhJ )
 ```
 
-Alternatively, you can clone this repository, add the directory to your `PATH`, and run the install command:
+Running from source:
 
 ```bash
 $ git clone https://github.com/nrobinson2000/neopo
@@ -31,10 +31,10 @@ $ export PATH="$PATH:$PWD/neopo"
 $ neopo install
 ```
 
-On Windows the installation process is more involved but not very difficult: [Windows Installation](docs/windows.md)
+For more installation information, please refer to the [Installation tutorial.](docs/tutorials/install.md)
 
 ## Usage
 
-[Quick Reference](docs/quick-docs.md)
+To get started with neopo, please refer to the [Quick Reference.](docs/quick-docs.md)
 
-[Complete Reference](docs/full-docs.md)
+For descriptions of all available commands, please refer to the [Complete Reference.](docs/full-docs.md)
