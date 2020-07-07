@@ -69,10 +69,9 @@ projectFiles = {
 }
 
 # Use this as .travis.yml when creating project repos
-TRAVIS_YML = """# Build a neopo project with travis
+TRAVIS_YML = """# Build a neopo project with Travis CI
 os: linux
-language: bash
-sudo: required
+language: shell
 install:
   - export PATH="$PATH:$PWD"
   - sudo apt update

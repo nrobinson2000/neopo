@@ -14,11 +14,11 @@ On most Linux distributions the universal installer will correctly install the n
 
 ## Mac
 
-On macOS, the univeral installer will work, but unlike on Linux the tab completion script will not be automatically installed. [To install tab completion manually, follow these steps.](../full-docs#tab-completion)
+On macOS, the universal installer will work, but unlike on Linux, the tab completion script will not be automatically installed. [To install tab completion manually, follow these steps.](../full-docs#tab-completion)
 
 ## Windows
 
-On Windows the universal installer will not work, but neopo can be installed manually using Cygwin. [Please follow the steps here.](../windows.md)
+On Windows, the universal installer will not work, but neopo can be installed manually using Cygwin. [Please follow the steps here.](../windows.md)
 
 ## Running from source
 
@@ -30,7 +30,7 @@ $ bin/neopo install
 
 ## Uninstalling
 
-Uninstalling neopo takes two steps. First you must delete the neopo script installed on your system. You can do this with:
+Uninstalling neopo takes two steps. First, you must delete the neopo script installed on your system. You can do this with:
 
 ```bash
 $ neopo uninstall
