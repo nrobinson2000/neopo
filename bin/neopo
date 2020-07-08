@@ -516,7 +516,7 @@ def getFirmwarePath(version):
 
 # Add a path to an environment
 def addToPath(environment, path):
-        environment["PATH"] = path + os.pathsep + environment["PATH"]
+        environment["PATH"] += os.pathsep + path
 
 # Use the Makefile to build the specified target
 def build(projectPath, command, helpOnly, verbosity):
