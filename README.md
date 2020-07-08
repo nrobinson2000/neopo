@@ -31,10 +31,10 @@ $ cd neopo
 $ bin/neopo install
 ```
 
-For more installation information, please refer to the [Installation tutorial.](docs/tutorials/install.md)
+For more installation information, please refer to the [Installation tutorial.](https://neopo.xyz/tutorials/install)
 
 ## Usage
 
-To get started with neopo, please refer to the [Quick Reference.](docs/quick-docs.md)
+To get started with neopo, please refer to the [Quick Reference.](https://neopo.xyz/docs/quick-docs)
 
-For descriptions of all available commands, please refer to the [Complete Reference.](docs/full-docs.md)
+For descriptions of all available commands, please refer to the [Complete Reference.](https://neopo.xyz/docs/full-docs)
