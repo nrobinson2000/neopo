@@ -4,7 +4,7 @@
 # neopo
 ## A lightweight solution for local Particle development.
 
-![Neopo Screenshot](docs/neopo-carbon.png)
+![Neopo Screenshot](https://d33wubrfki0l68.cloudfront.net/a150d27eab79c2658e2914154168cf323dc42475/6daf1/assets/images/neopo-carbon.png)
 
 ## Features
 
@@ -20,15 +20,15 @@
 Universal Installer (Linux/macOS):
 
 ```bash
-$ bash <( curl -sL https://git.io/JfwhJ )
+$ bash <(curl -sL neopo.xyz/install)
 ```
 
 Running from source:
 
 ```bash
 $ git clone https://github.com/nrobinson2000/neopo
-$ export PATH="$PATH:$PWD/neopo"
-$ neopo install
+$ cd neopo
+$ bin/neopo install
 ```
 
 For more installation information, please refer to the [Installation tutorial.](docs/tutorials/install.md)

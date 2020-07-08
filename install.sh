@@ -9,17 +9,17 @@ Linux)
     
     if hash apt >/dev/null 2>&1; then
         if [ "$(uname -m)" == "x86_64" ]; then
-            sudo apt install libarchive-zip-perl libc6-i386 python3 xxd
+            sudo apt install libarchive-zip-perl libc6-i386 python3 xxd git
         fi
         if [ "$(uname -m)" == "armv7l" ]; then
-            sudo apt install libarchive-zip-perl libusb-1.0-0-dev dfu-util libudev-dev
+            sudo apt install libarchive-zip-perl libusb-1.0-0-dev dfu-util libudev-dev git
         fi
 
     elif hash yum >/dev/null 2>&1; then
-        sudo yum install glibc.i686 perl-Archive-Zip vim
+        sudo yum install glibc.i686 perl-Archive-Zip vim git
 
     elif hash pacman >/dev/null 2>&1; then
-        sudo pacman -Syu libusb lib32-glibc vim pamac
+        sudo pacman -Syu libusb lib32-glibc vim pamac git
         sudo pamac install perl-archive-zip
     fi
 ;;
