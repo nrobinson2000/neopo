@@ -4,11 +4,10 @@
 os:
   - linux
   - osx
-language: bash
-sudo: required
+language: shell
 install:
   - source travis.sh
   - neopo install
 script:
-  - neopo load scripts/travis
-  - neopo script travis
+  - neopo load travisTests
+  - neopo script travisTests
