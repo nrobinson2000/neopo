@@ -12,14 +12,14 @@ Linux)
             sudo apt install libarchive-zip-perl libc6-i386 python3 git vim
         fi
         if [ "$(uname -m)" == "armv7l" ]; then
-            sudo apt install libarchive-zip-perl libusb-1.0-0-dev dfu-util libudev-dev git vim
+            sudo apt install libarchive-zip-perl libusb-1.0-0-dev dfu-util libudev-dev python3 git vim
         fi
 
     elif hash yum >/dev/null 2>&1; then
-        sudo yum install glibc.i686 perl-Archive-Zip vim git
+        sudo yum install glibc.i686 perl-Archive-Zip python3 vim git
 
     elif hash pacman >/dev/null 2>&1; then
-        sudo pacman -Syu libusb lib32-glibc vim pamac git
+        sudo pacman -Syu libusb lib32-glibc python3 vim pamac git
         sudo pamac install perl-archive-zip
     fi
 ;;
