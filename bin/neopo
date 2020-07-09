@@ -330,6 +330,10 @@ def installOrUpdate(install, force):
             else:
                 skippedDeps.append(dep)
 
+        # Put skippedDeps in manifest.json. Fixes: nrobinson2000/neopo/issues/8
+        if skippedDeps:
+            [writeManifest(dep) for dep in skippedDeps]
+
         # Notify user of dependencies skipped to save bandwidth and time
         if skippedDeps:
             print()
