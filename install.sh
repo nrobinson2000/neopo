@@ -17,6 +17,9 @@ Linux)
 
     elif hash yum >/dev/null 2>&1; then
         sudo yum install glibc.i686 perl-Archive-Zip python3 vim git
+    
+    elif hash xbps-install >/dev/null 2>&1; then
+        sudo xbps-install dfu-util python3 git vim perl-Archive-Zip
 
     elif hash pacman >/dev/null 2>&1; then
         sudo pacman -Syu libusb lib32-glibc python3 vim pamac git
