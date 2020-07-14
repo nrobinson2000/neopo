@@ -7,22 +7,28 @@ case "$(uname)" in
 Linux)
     echo "Installing Linux dependencies..."
     
+    # Ubuntu / Debian / Linux Mint
     if hash apt >/dev/null 2>&1; then
         if [ "$(uname -m)" == "x86_64" ]; then
             sudo apt install libarchive-zip-perl libc6-i386 python3 git vim
         fi
+        # Raspbian
         if [ "$(uname -m)" == "armv7l" ]; then
             sudo apt install libarchive-zip-perl libusb-1.0-0-dev dfu-util libudev-dev python3 git vim
         fi
 
+    # Fedora
     elif hash yum >/dev/null 2>&1; then
         sudo yum install glibc.i686 perl-Archive-Zip python3 vim git
     
+    # Void Linux
     elif hash xbps-install >/dev/null 2>&1; then
-        sudo xbps-install dfu-util python3 git vim perl-Archive-Zip
+        sudo xbps-install -Sy dfu-util python3 git vim perl-Archive-Zip void-repo-multilib bash-completion
+        sudo xbps-install -Sy glibc-32bit
 
+    # Manjaro / Arch
     elif hash pacman >/dev/null 2>&1; then
-        sudo pacman -Syu libusb lib32-glibc python3 vim pamac git
+        sudo pacman -Sy libusb lib32-glibc python3 vim pamac git
         sudo pamac install perl-archive-zip
     fi
 ;;
