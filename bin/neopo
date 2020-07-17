@@ -493,7 +493,7 @@ def configure(projectPath, platform, firmwareVersion):
 
 # Load Workbench settings from a project
 def getSettings(projectPath):
-    with open(os.path.join(projectPath, projectFiles["settings"]), "r+") as settings:
+    with open(os.path.join(projectPath, projectFiles["settings"]), "r") as settings:
         data = json.loads(settings.read())
         return (data["particle.targetPlatform"], data["particle.firmwareVersion"])
 
