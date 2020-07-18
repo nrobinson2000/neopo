@@ -3,6 +3,10 @@
 # neopo: A lightweight solution for local Particle development.
 # Copyright (c) 2020 Nathan Robinson.
 
+# Docker compatiblity
+[ -f "/.dockerenv" ] && SUDO="" || SUDO="sudo"
+
+# Install additional dependencies for Linux
 case "$(uname)" in
 Linux)
     echo "Installing Linux dependencies..."
@@ -10,54 +14,58 @@ Linux)
     # Ubuntu / Debian / Linux Mint
     if hash apt >/dev/null 2>&1; then
         if [ "$(uname -m)" == "x86_64" ]; then
-            sudo apt install libarchive-zip-perl libc6-i386 python3 git vim
+            $SUDO apt install libarchive-zip-perl libc6-i386 python3 git vim
         fi
         # Raspbian
         if [ "$(uname -m)" == "armv7l" ]; then
-            sudo apt install libarchive-zip-perl libusb-1.0-0-dev dfu-util libudev-dev python3 git vim
+            $SUDO apt install libarchive-zip-perl libusb-1.0-0-dev dfu-util libudev-dev libisl15 python3 git vim
         fi
 
     # Fedora
     elif hash yum >/dev/null 2>&1; then
-        sudo yum install glibc.i686 perl-Archive-Zip python3 vim git
+        $SUDO yum install glibc.i686 perl-Archive-Zip python3 vim git
     
     # Void Linux
     elif hash xbps-install >/dev/null 2>&1; then
-        sudo xbps-install -Sy dfu-util python3 git vim perl-Archive-Zip void-repo-multilib bash-completion
-        sudo xbps-install -Sy glibc-32bit
+        $SUDO xbps-install -Sy dfu-util python3 git vim perl-Archive-Zip void-repo-multilib bash-completion
+        $SUDO xbps-install -Sy glibc-32bit
 
     # Manjaro / Arch
     elif hash pacman >/dev/null 2>&1; then
-        sudo pacman -Sy libusb lib32-glibc python3 vim pamac git
-        sudo pamac install perl-archive-zip
+        $SUDO pacman -Sy libusb lib32-glibc python3 vim pamac git
+        $SUDO pamac install perl-archive-zip
     fi
 ;;
 
+# TODO: Mac dependencies
 Darwin) ;;
 
-*) >&2 echo "Your OS is not supported! Use Linux or macOS." ; exit 1
+# This script does not support Windows
+*)
+    echo "To install neopo on Windows follow the instructions here:"
+    echo "  https://neopo.xyz/tutorials/windows"
+    exit 1
 esac
 
 echo "Downloading installation script..."
-curl -LO "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/install.py"
-sudo python3 install.py || exit
-sudo chown "$USER" "$(sudo which neopo)"
-rm install.py
+TEMPFILE="$(mktemp)"
+curl -Lo "$TEMPFILE" "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/install.py"
+$SUDO python3 "$TEMPFILE" || exit
+$SUDO chown "$USER" "$($SUDO which neopo)"
+rm "$TEMPFILE"
 
+# Run the neopo installer
 neopo install
 
-if [ "$(uname)" == "Linux" ]; then
+# Run Particle CLI so that it has a chance to pre-download its dependencies
+neopo particle --version
 
-    sudo mkdir -p /etc/bash_completion.d
-
-    if [ -d /etc/bash_completion.d ]; then
-        echo "Installing tab completion script:"    
-        sudo curl -fsSLo /etc/bash_completion.d/neopo "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/neopo-completion"
-    fi
+# Attempt to install bash completion script
+if [ -d /etc/bash_completion.d ]; then
+    echo "Installing tab completion script:"    
+    $SUDO curl -fsSLo /etc/bash_completion.d/neopo "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/neopo-completion"
 else
-    echo "The tab completion script is recommended for the best experience:"
-    echo "You can download it from:"
-    echo "  https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/neopo-completion"
-    echo "To load it you would run:"
-    echo "  $ source neopo-completion"
+    echo "The tab completion script is recommended for the best experience."
+    echo "You can follow the installation instructions here:"
+    echo "  https://neopo.xyz/docs/full-docs#tab-completion"
 fi
