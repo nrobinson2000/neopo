@@ -49,6 +49,7 @@ jsonFiles = {
     "firmware": os.path.join(CACHE_DIR, "firmware.json"),
     "toolchains": os.path.join(CACHE_DIR, "toolchains.json"),
     "platforms": os.path.join(CACHE_DIR, "platforms.json"),
+    "compilers": os.path.join(CACHE_DIR, "compilers.json"),
     "manifest": os.path.join(CACHE_DIR, "manifest.json")
 }
 
@@ -305,7 +306,7 @@ def installOrUpdate(install, force):
 
     # Dependencies we wish to install anc caches we will create
     dependencies = ["compilers", "tools", "scripts", "debuggers"]
-    caches = ["firmware", "platforms", "toolchains"]
+    caches = ["firmware", "platforms", "toolchains", "compilers"]
 
     # Download dependency data and create list of installables
     data = getDeps()
@@ -346,6 +347,7 @@ def installOrUpdate(install, force):
             print("Skipped previously installed dependencies:")
             print(*[dep["name"]+"@"+dep["version"] for dep in skippedDeps], sep=", ")
         
+        print()
         # [neopo install] finishes here.
         # In the [install.sh] script additional steps are done afterwards. 
         
@@ -532,6 +534,27 @@ def getCompiler(firmwareVersion):
                 return toolchain["compilers"].split("@")[1]
         raise KeyError("Invalid firmware version!")
 
+# Get a gcc-arm dependency from a version
+def getCompilerData(version):
+    with open(jsonFiles["compilers"], "r") as compilersFile:
+        data = json.load(compilersFile)
+        system = platform.system().lower()
+        compilers = data[system]["x64"]
+
+        for compiler in compilers:
+            if compiler["version"] == version:
+                if platform.machine() == "armv7l":
+                    compiler["url"] = RPI_GCC_ARM[version]
+                return compiler
+        return False
+
+# Ensure that the requested compiler version is installed
+def checkCompiler(compilerVersion):
+    # If required compiler is not installed, download it
+    path = os.path.join(PARTICLE_DEPS, "gcc-arm", compilerVersion)
+    os.path.isdir(path) or downloadDep(getCompilerData(compilerVersion), False)
+    return True
+
 # Add a path to an environment
 def addToPath(environment, path):
         environment["PATH"] += os.pathsep + path
@@ -566,8 +589,14 @@ def build(projectPath, command, helpOnly, verbosity):
     else:
         try:
             devicePlatform, firmwareVersion = getSettings(projectPath)
+            compilerVersion = getCompiler(firmwareVersion)
+
             if not checkFirmwareVersion(devicePlatform, firmwareVersion):
                 raise ProjectError("Firmware related error!")
+
+            if not checkCompiler(compilerVersion):
+                raise ProjectError("Compiler related error!")
+
         except FileNotFoundError:
             if os.path.isfile(os.path.join(projectPath, projectFiles["properties"])):
                 raise ProjectError("Project not configured!" + "\n" + "Use: neopo configure <platform> <version> <project>")
@@ -575,7 +604,6 @@ def build(projectPath, command, helpOnly, verbosity):
                 raise ProjectError(projectPath + " is not a Particle project!")
         
         # Add compiler to path
-        compilerVersion = getCompiler(firmwareVersion)
         addToPath(tempEnv, os.path.join(PARTICLE_DEPS, "gcc-arm", compilerVersion, "bin"))
 
         # Set additional variables for make
