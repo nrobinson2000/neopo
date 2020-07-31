@@ -304,7 +304,7 @@ def installOrUpdate(install, force):
     forceInstall = force == "-f"    
     print("Installing neopo..." if install else "Updating dependencies...")
 
-    # Dependencies we wish to install anc caches we will create
+    # Dependencies we wish to install and caches we will create
     dependencies = ["compilers", "tools", "scripts", "debuggers"]
     caches = ["firmware", "platforms", "toolchains", "compilers"]
 
@@ -392,27 +392,25 @@ def create(path, name):
     if returncode:
         raise ProcessError("Failed with code " + str(returncode))
 
-    # If git is installed, initialize project as git repo and make customizations
+    # If git is installed, initialize project as git repo
     if shutil.which("git"):
         subprocess.run(["git", "init", projectPath])
-
         # Add .travis.yml to project
         writeFile(TRAVIS_YML, os.path.join(projectPath, ".travis.yml"), "w")
-        
         # Add .gitignore to project
         writeFile("target", os.path.join(projectPath, ".gitignore"), "w")
 
-        # Add buttons to README.md
-        travisButton = "[![](https://api.travis-ci.org/yourUser/yourRepo.svg?branch=master)](https://travis-ci.org/yourUser/yourRepo)"
-        neopoButton = "[![](https://img.shields.io/badge/built_with-neopo-informational)](https://nrobinson2000.github.io/neopo)"
-        readmePath = os.path.join(projectPath, "README.md")
-        with open(readmePath, "r") as file:
-            readme = file.readlines()
-            readme.insert(0, "\n")
-            readme.insert(0, neopoButton + "\n")
-            readme.insert(0, travisButton + "\n")
-        with open(readmePath, "w") as file:
-            file.writelines(readme)
+    # Add buttons to README.md
+    travisButton = "[![](https://api.travis-ci.org/yourUser/yourRepo.svg?branch=master)](https://travis-ci.org/yourUser/yourRepo)"
+    neopoButton = "[![](https://img.shields.io/badge/built_with-neopo-informational)](https://nrobinson2000.github.io/neopo)"
+    readmePath = os.path.join(projectPath, "README.md")
+    with open(readmePath, "r") as file:
+        readme = file.readlines()
+        readme.insert(0, "\n")
+        readme.insert(0, neopoButton + "\n")
+        readme.insert(0, travisButton + "\n")
+    with open(readmePath, "w") as file:
+        file.writelines(readme)
 
     # Change name/src/name.ino to name/src/name.cpp
     # Add #include "Particle.h"
