@@ -18,7 +18,7 @@ Linux)
         fi
         # Raspbian
         if [ "$(uname -m)" == "armv7l" ]; then
-            $SUDO apt install libarchive-zip-perl libusb-1.0-0-dev dfu-util libudev-dev libisl15 python3 git vim
+            $SUDO apt install libarchive-zip-perl libusb-1.0-0-dev dfu-util libudev-dev libisl15 libfl-dev python3 git vim
         fi
 
     # Fedora
