@@ -1,6 +1,7 @@
 # TravisCI testing script
 versions
 create test
+build test
 configure electron 1.5.0 test
 build test
 configure argon 1.5.2 test

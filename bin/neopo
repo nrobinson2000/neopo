@@ -34,7 +34,13 @@ CACHE_DIR = os.path.join(NEOPO_DEPS, "cache")
 SCRIPTS_DIR = os.path.join(NEOPO_DEPS, "scripts")
 
 # Compatiblity tricks
-raspberry_pi_gcc_arm = "https://github.com/nrobinson2000/neopo/releases/download/0.0.1/gcc-arm-v5.3.1-raspberry-pi.tar.gz"
+
+# TODO: Upload 9.2.1
+RPI_GCC_ARM = {
+    "5.3.1": "https://github.com/nrobinson2000/neopo/releases/download/0.0.1/gcc-arm-v5.3.1-raspberry-pi.tar.gz",
+    "9.2.1": "https://github.com/nrobinson2000/neopo/releases/download/0.0.2/gcc-arm-v9.2.1-raspberry-pi.tar.gz"
+}
+
 running_on_windows = platform.system() == "Windows"
 particle_cli = os.path.join(NEOPO_DEPS, "particle.exe") if running_on_windows else os.path.join(NEOPO_DEPS, "particle")
 
@@ -313,7 +319,7 @@ def installOrUpdate(install, force):
     if platform.machine() == "armv7l":
         for dep in depJSON:
             if dep["name"] == "gcc-arm":
-                dep["url"] = raspberry_pi_gcc_arm
+                dep["url"] = RPI_GCC_ARM[dep["version"]]
                 break
     
     # Update JSON cache files
@@ -340,10 +346,9 @@ def installOrUpdate(install, force):
             print("Skipped previously installed dependencies:")
             print(*[dep["name"]+"@"+dep["version"] for dep in skippedDeps], sep=", ")
         
-        # Print a sort of "getting started" messsage
-        print()
-        print("Finished installation. To create a project use:")
-        print("\tneopo create <project>")
+        # [neopo install] finishes here.
+        # In the [install.sh] script additional steps are done afterwards. 
+        
     else:
         # Load in dependency manifest, and only install a dependency if newer
         manifest = loadManifest(False)
@@ -518,6 +523,15 @@ def getFirmwarePath(version):
     github = os.path.join(deviceOSPath, "device-os-" + version)
     return legacy if os.path.isdir(legacy) else github if os.path.isdir(github) else deviceOSPath
 
+# For a given firmware version return the appropriate compiler version
+def getCompiler(firmwareVersion):
+    with open(jsonFiles["toolchains"]) as file:
+        data = json.load(file)
+        for toolchain in data:
+            if toolchain["firmware"] == "deviceOS@" + firmwareVersion:
+                return toolchain["compilers"].split("@")[1]
+        raise KeyError("Invalid firmware version!")
+
 # Add a path to an environment
 def addToPath(environment, path):
         environment["PATH"] += os.pathsep + path
@@ -526,7 +540,6 @@ def addToPath(environment, path):
 def build(projectPath, command, helpOnly, verbosity):
     compilerVersion, scriptVersion, toolsVersion, firmwareVersion = loadManifest(True)
     tempEnv = os.environ.copy()
-    addToPath(tempEnv, os.path.join(PARTICLE_DEPS, "gcc-arm", compilerVersion, "bin"))
 
     # Windows compatibility modifications
     particle = particle_cli
@@ -561,6 +574,10 @@ def build(projectPath, command, helpOnly, verbosity):
             else:
                 raise ProjectError(projectPath + " is not a Particle project!")
         
+        # Add compiler to path
+        compilerVersion = getCompiler(firmwareVersion)
+        addToPath(tempEnv, os.path.join(PARTICLE_DEPS, "gcc-arm", compilerVersion, "bin"))
+
         # Set additional variables for make
         deviceOSPath = getFirmwarePath(firmwareVersion)
         extraCompilerFlags = getFlags(projectPath)
@@ -569,6 +586,9 @@ def build(projectPath, command, helpOnly, verbosity):
         process.append("PLATFORM=" + devicePlatform)
         process.append("EXTRA_CFLAGS=" + extraCompilerFlags)
         process.append(command)
+
+    # DEBUG: Confirm we are using correct compiler
+    # print(shutil.which(cmd="arm-none-eabi-gcc", path=tempEnv["PATH"]))
 
     # Run makefile with given verbosity
     returncode = subprocess.run(process, env=tempEnv,
