@@ -574,13 +574,12 @@ def build(projectPath, command, helpOnly, verbosity):
 
     # Command used to invoke the Workbench makefile
     process = [
-        "make", "-sf",
-        os.path.join(PARTICLE_DEPS, "buildscripts", scriptVersion, "Makefile"),
+        "make", "-f", os.path.join(PARTICLE_DEPS, "buildscripts", scriptVersion, "Makefile"),
         "PARTICLE_CLI_PATH=" + particle
     ]
 
-    # Remove [s] flag from make to get verbose output
-    process[1] = "-f" if verbosity == 1 else "-sf"
+    # Add [-s] flag to make to silence output
+    verbosity == 0 and process.append("-s")
 
     if helpOnly:
         process.append("help")
