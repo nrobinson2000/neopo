@@ -33,9 +33,8 @@ NEOPO_DEPS = os.path.join(os.path.expanduser("~"), ".neopo")
 CACHE_DIR = os.path.join(NEOPO_DEPS, "cache")
 SCRIPTS_DIR = os.path.join(NEOPO_DEPS, "scripts")
 
-# Compatiblity tricks
+# Compatibility tricks
 
-# TODO: Upload 9.2.1
 RPI_GCC_ARM = {
     "5.3.1": "https://github.com/nrobinson2000/neopo/releases/download/0.0.1/gcc-arm-v5.3.1-raspberry-pi.tar.gz",
     "9.2.1": "https://github.com/nrobinson2000/neopo/releases/download/0.0.2/gcc-arm-v9.2.1-raspberry-pi.tar.gz"
@@ -530,7 +529,7 @@ def getCompiler(firmwareVersion):
         for toolchain in data:
             if toolchain["firmware"] == "deviceOS@" + firmwareVersion:
                 return toolchain["compilers"].split("@")[1]
-        raise KeyError("Invalid firmware version!")
+        raise DependencyError("Invalid firmware version!")
 
 # Get a gcc-arm dependency from a version
 def getCompilerData(version):
