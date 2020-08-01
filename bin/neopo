@@ -33,13 +33,13 @@ NEOPO_DEPS = os.path.join(os.path.expanduser("~"), ".neopo")
 CACHE_DIR = os.path.join(NEOPO_DEPS, "cache")
 SCRIPTS_DIR = os.path.join(NEOPO_DEPS, "scripts")
 
-# Compatibility tricks
-
+# Raspberry Pi gcc-arm downloads
 RPI_GCC_ARM = {
     "5.3.1": "https://github.com/nrobinson2000/neopo/releases/download/0.0.1/gcc-arm-v5.3.1-raspberry-pi.tar.gz",
     "9.2.1": "https://github.com/nrobinson2000/neopo/releases/download/0.0.2/gcc-arm-v9.2.1-raspberry-pi.tar.gz"
 }
 
+# Windows tricks
 running_on_windows = platform.system() == "Windows"
 particle_cli = os.path.join(NEOPO_DEPS, "particle.exe") if running_on_windows else os.path.join(NEOPO_DEPS, "particle")
 
@@ -152,9 +152,12 @@ def downloadDep(dep, updateManifest):
     fileName = os.path.join(path, name + "-v" + version + ".tar.gz")
     with open(fileName, "wb") as gzFile:
         gzFile.write(content)
+
+    # Extract the archive
     with tarfile.open(fileName, "r:gz") as file:
         file.extractall(path)
 
+    # Delete the temporary archive
     os.remove(fileName)
     return True
 
@@ -172,9 +175,6 @@ def writeExecutable(content, path):
 
 # Download extension manifest and simple dependencies
 def getDeps():
-    osPlatform = platform.system().lower()
-    osArch = platform.machine().lower() if running_on_windows else "amd64" if platform.machine() == "x86_64" else "arm"
-
     # Ensure that cache and scripts directories exist
     pathlib.Path(CACHE_DIR).mkdir(parents=True, exist_ok=True)
     pathlib.Path(SCRIPTS_DIR).mkdir(parents=True, exist_ok=True)
@@ -186,6 +186,8 @@ def getDeps():
 
     # Attempt to pull particle-cli executable from VSIX
     try:
+        osPlatform = platform.system().lower()
+        osArch = platform.machine().lower() if running_on_windows else "amd64" if platform.machine() == "x86_64" else "arm"
         particle_bin = os.path.basename(particle_cli)
         particle = getFile(extension, "/".join([extensionFiles["bin"], osPlatform, osArch, particle_bin]))
         writeExecutable(particle, particle_cli)
@@ -554,7 +556,7 @@ def checkCompiler(compilerVersion):
 
 # Add a path to an environment
 def addToPath(environment, path):
-        environment["PATH"] += os.pathsep + path
+    environment["PATH"] += os.pathsep + path
 
 # Use the Makefile to build the specified target
 def build(projectPath, command, helpOnly, verbosity):
