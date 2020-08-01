@@ -697,6 +697,20 @@ def configure_command(args):
     except IndexError:
         raise UserError("You must supply platform and deviceOS version!")
 
+# Wrapper for [settings]
+def settings_command(args):
+    try:
+        projectPath = args[2] if len(args) >= 3 else os.getcwd()
+        settings = getSettings(projectPath)
+        flags = getFlags(projectPath)
+        print("Configuration for project", projectPath + ":")
+        print("\tparticle.targetPlatform:", settings[0])
+        print("\tparticle.firmwareVersion:", settings[1])
+        print("\tEXTRA_CFLAGS:", flags if flags else "<not set>")
+        print()
+    except FileNotFoundError:
+        raise UserError(projectPath + " is not a Particle project!")
+
 # Wrapper for [run]
 def run_command(args):
     try:
@@ -935,6 +949,7 @@ Options:
         run <target> [project] [-v/q]             # Run a makefile target
         configure <platform> <version> [project]  # Configure a project
         flags <string> [project]                  # Set EXTRA_CFLAGS in project 
+        settings [project]                        # View configured settings
         iterate <command> [OPTIONS] [-v/q]        # Put devices into DFU mode
                                                   # and run commands on them
     Script Options:
@@ -981,7 +996,8 @@ commands = {
     "upgrade": upgrade,
     "particle": particle_command,
     "wait": script_wait,
-    "print": script_print
+    "print": script_print,
+    "settings": settings_command
 }
 
 # Evaluate command-line arguments and call necessary functions
