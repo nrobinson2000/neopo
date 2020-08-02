@@ -927,6 +927,7 @@ def particle_command(args):
             
 # Print help information about the program
 def print_help(args):
+    print_logo()
     print("""Usage: neopo [OPTIONS] [PROJECT] [-v/q]
 
 Options:
@@ -960,6 +961,22 @@ Options:
         update                  # Update neopo dependencies
         get <version>           # Download a specific deviceOS version
         """)
+
+def print_logo():
+    print(
+"""    ____  ___  ____  ____  ____ 
+   / __ \/ _ \/ __ \/ __ \/ __ \\    A lightweight solution for
+  / / / /  __/ /_/ / /_/ / /_/ /    local Particle Development.
+ /_/ /_/\___/\____/ ____/\____/ 
+                 /_/      .xyz      Copyright (c) 2020 Nathan Robinson
+    """)
+
+def help_basic():
+    print_logo()
+    print("""Usage: neopo [OPTIONS] [PROJECT] [-v/q]
+
+Type `neopo help` to see a list of all options.
+""")
 
 # Print all commands (for completion)
 def options(args):
@@ -1003,7 +1020,7 @@ commands = {
 # Evaluate command-line arguments and call necessary functions
 def main(args):
     if len(args) == 1:
-        print_help(args)
+        help_basic()
     elif args[1] in commands:
         try:
             commands[args[1]](args)
