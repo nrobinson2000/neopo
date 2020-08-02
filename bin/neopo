@@ -966,7 +966,7 @@ def print_logo():
     print(
 """    ____  ___  ____  ____  ____ 
    / __ \/ _ \/ __ \/ __ \/ __ \\    A lightweight solution for
-  / / / /  __/ /_/ / /_/ / /_/ /    local Particle Development.
+  / / / /  __/ /_/ / /_/ / /_/ /    local Particle development.
  /_/ /_/\___/\____/ ____/\____/ 
                  /_/      .xyz      Copyright (c) 2020 Nathan Robinson
     """)
