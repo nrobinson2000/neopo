@@ -9,5 +9,6 @@ install:
   - source travis.sh
   - neopo install
 script:
+  - neopo help
   - neopo load travisTests
   - neopo script travisTests

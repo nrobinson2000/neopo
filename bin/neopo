@@ -554,6 +554,72 @@ def checkCompiler(compilerVersion):
     os.path.isdir(path) or downloadDep(getCompilerData(compilerVersion), False)
     return True
 
+# Create a dictionary from a .properties file
+def loadProperties(propertiesPath):
+    properties = {}
+    with open(propertiesPath, "r") as file:
+        for line in file.readlines():
+            tokens = line.split("=", 1)
+            key = tokens[0]
+            value = tokens[1].strip()
+            properties[key] = value
+    return properties
+
+# Download a library using particle-cli
+def downloadLibrary(library, version):
+    process = [particle_cli, "library", "copy", library + "@" + version]
+    returncode = subprocess.run(process, shell=running_on_windows).returncode
+    if returncode != 0:
+        raise ProcessError
+
+# Ensure that the user is logged into particle-cli
+def checkLogin():
+    process = [particle_cli, "whoami"]
+    returncode = subprocess.run(process, shell=running_on_windows,
+            stdout= subprocess.PIPE, stderr= subprocess.PIPE).returncode
+    return returncode == 0
+
+# Ensure that specified libraries are downloaded, otherwise install them
+def checkLibraries(projectPath):
+    try:
+        properties = loadProperties(os.path.join(projectPath, projectFiles["properties"]))
+        libraries = [key.split(".")[1] for key in properties.keys() if key.startswith("dependencies")]
+    except FileNotFoundError:
+        raise ProjectError(projectPath + " is not a Particle Project!")
+    
+    # Ensure that the user is signed into particle
+    if not checkLogin():
+        raise ProcessError("Please log into Particle CLI!\n\tneopo particle login")
+
+    # pushd like behavior
+    oldCWD = os.getcwd()
+    os.chdir(projectPath)
+
+    for library in libraries:
+        requestedVersion = properties["dependencies." + library]
+        try:
+            libProperties = loadProperties(os.path.join("lib", library, "library.properties"))
+            actualVersion = libProperties["version"]
+        except FileNotFoundError:
+            actualVersion = None
+        try:
+            if requestedVersion != actualVersion:
+                downloadLibrary(library, requestedVersion)
+            else:
+                print("Library", library, requestedVersion, "is already installed.")
+        except ProcessError:
+            # Restore CWD
+            os.chdir(oldCWD)
+            raise ProjectError("Failed to download library!")
+
+    # Restore current working directory
+    os.chdir(oldCWD)
+
+# Wrapper for [libs]
+def libraries_command(args):
+    projectPath = args[2] if len(args) >= 3 else os.getcwd()
+    checkLibraries(projectPath)
+
 # Add a path to an environment
 def addToPath(environment, path):
     environment["PATH"] += os.pathsep + path
@@ -594,6 +660,8 @@ def build(projectPath, command, helpOnly, verbosity):
 
             if not checkCompiler(compilerVersion):
                 raise ProjectError("Compiler related error!")
+
+            # TODO: Suggest using [neopo libs] if libraries are not downloaded
 
         except FileNotFoundError:
             if os.path.isfile(os.path.join(projectPath, projectFiles["properties"])):
@@ -951,6 +1019,7 @@ Options:
         configure <platform> <version> [project]  # Configure a project
         flags <string> [project]                  # Set EXTRA_CFLAGS in project 
         settings [project]                        # View configured settings
+        libs [project]                            # Install Particle libraries
         iterate <command> [OPTIONS] [-v/q]        # Put devices into DFU mode
                                                   # and run commands on them
     Script Options:
@@ -1014,7 +1083,8 @@ commands = {
     "particle": particle_command,
     "wait": script_wait,
     "print": script_print,
-    "settings": settings_command
+    "settings": settings_command,
+    "libs": libraries_command
 }
 
 # Evaluate command-line arguments and call necessary functions
@@ -1034,8 +1104,9 @@ def main(args):
             print("https://github.com/nrobinson2000/neopo/issues")
             exit(2)
     else:
-        print("Invalid command!")
         print_help(args)
+        print("Invalid command!")
+        print()
         exit(3)
 
 # Call main() with command-line arguments
