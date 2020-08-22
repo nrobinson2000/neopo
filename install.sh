@@ -59,7 +59,7 @@ rm "$TEMPFILE"
 neopo install
 
 # Run Particle CLI so that it has a chance to pre-download its dependencies
-neopo particle --version
+neopo particle usb configure
 
 # Attempt to install bash completion script
 if [ -d /etc/bash_completion.d ]; then
