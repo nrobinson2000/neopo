@@ -34,7 +34,7 @@ Linux)
     elif hash pacman >/dev/null 2>&1; then
         $SUDO pacman -S --needed libusb lib32-glibc python3 vim yay git
         gpg --keyserver hkp://keys.gnupg.net:80 --recv-keys C52048C0C0748FEE227D47A2702353E0F7E48EDB
-        $SUDO yay -S --needed perl-archive-zip lib32-ncurses5-compat-libs
+        yay -S --needed perl-archive-zip lib32-ncurses5-compat-libs
     fi
 ;;
 
