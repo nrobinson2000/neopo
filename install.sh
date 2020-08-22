@@ -27,8 +27,8 @@ Linux)
     
     # Void Linux
     elif hash xbps-install >/dev/null 2>&1; then
-        $SUDO xbps-install -Sy dfu-util python3 git vim perl-Archive-Zip void-repo-multilib bash-completion
-        $SUDO xbps-install -Sy glibc-32bit ncurses-libs-32bit
+        $SUDO xbps-install -S dfu-util python3 git vim perl-Archive-Zip void-repo-multilib bash-completion
+        $SUDO xbps-install -S glibc-32bit ncurses-libs-32bit
 
     # Manjaro / Arch
     elif hash pacman >/dev/null 2>&1; then
