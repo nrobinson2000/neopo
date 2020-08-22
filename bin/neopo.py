@@ -1023,7 +1023,7 @@ r"""    ____  ___  ____  ____  ____
                  /_/      .xyz      Copyright (c) 2020 Nathan Robinson
     """)
 	
-	def help_basic(self):
+	def help(self):
 	    self.print_logo()
 	    print("""Usage: neopo [OPTIONS] [PROJECT] [-v/q]
 	
@@ -1073,7 +1073,7 @@ r"""    ____  ___  ____  ____  ____
 	# Evaluate command-line arguments and call necessary functions
 	def main(self, args):
 	    if len(args) == 1:
-	        self.help_basic()
+	        self.help()
 	    elif args[1] in self._commands:
 	        try:
 	            self._commands[args[1]](self, args)

@@ -15,7 +15,7 @@ except IndexError:
 
 chosen = not confirm
 
-url = "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/neopo"
+url = "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/neopo.py"
 binary = "neopo"
 
 install = None
