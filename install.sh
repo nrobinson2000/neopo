@@ -32,7 +32,7 @@ Linux)
 
     # Manjaro / Arch
     elif hash pacman >/dev/null 2>&1; then
-        $SUDO pacman -Sy libusb lib32-glibc python3 vim pamac git
+        $SUDO pacman -S libusb lib32-glibc python3 vim yay git
         gpg --keyserver hkp://keys.gnupg.net:80 --recv-keys C52048C0C0748FEE227D47A2702353E0F7E48EDB
         $SUDO yay -S perl-archive-zip lib32-ncurses5-compat-libs
     fi
