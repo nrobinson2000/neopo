@@ -947,7 +947,7 @@ cache:
 	# Wrapper for [upgrade]
 	def upgrade(self, args):
 	    # This is a primitive upgrade function. Releases will be used in future.
-	    url = "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/neopo"
+	    url = "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/neopo.py"
 	    execPath = args[0]
 	
 	    # Ensure that we are calling neopo absolutely (to prevent overwriting dev)
