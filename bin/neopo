@@ -132,8 +132,8 @@ def getFile(file, path):
 
 # Download the specified dependency
 def downloadDep(dep, updateManifest):
-    if updateManifest:
-        writeManifest(dep)
+    if not dep: return False
+    if updateManifest: writeManifest(dep)
 
     name, version, url = dep["name"], dep["version"], dep["url"]
     print("Downloading dependency", name, "version", version + "...")
@@ -220,8 +220,7 @@ def writeManifest(dep):
 # Create the manifest file
 def createManifest():
     if not os.path.isfile(jsonFiles["manifest"]):
-        with open(jsonFiles["manifest"], "w") as file:
-            pass
+        open(jsonFiles["manifest"], "w")
 
 # Load settings from the dependency mainfest JSON file
 def loadManifest(tupleOrDict):
@@ -262,28 +261,19 @@ def attemptDownload(firmware):
 
 # Attempt to download deviceOS version not specified in manifest (experimental)
 def downloadUnlisted(version):
-    firmware = {
-        "name": "deviceOS",
-        "version": version,
-        "url": "https://binaries.particle.io/device-os/v" + version + ".tar.gz"
-    }
+    # Minimum information for a firmware dependency
+    firmware = {"name": "deviceOS", "version": version,
+        "url": "https://binaries.particle.io/device-os/v" + version + ".tar.gz"}
 
-    # Attempt to download from Particle's download mirror
-    print("Trying binaries.particle.io/device-os...")
     try:
+        # Attempt to download from Particle's download mirror
+        print("Trying binaries.particle.io/device-os...")
         attemptDownload(firmware)
     except DependencyError:
-        pass
-
-    firmware = {
-        "name": "deviceOS",
-        "version": version,
-        "url": "https://github.com/particle-iot/device-os/archive/v" + version + ".tar.gz"
-    }
-
-    # Try to download from github
-    print("Trying github.com/particle-iot/device-os...")
-    attemptDownload(firmware)
+        # Try to download from github
+        firmware["url"] = "https://github.com/particle-iot/device-os/archive/v" + version + ".tar.gz"
+        print("Trying github.com/particle-iot/device-os...")
+        attemptDownload(firmware)
     
 # Wrapper for [download-unlisted]
 def downloadUnlisted_command(args):
@@ -294,10 +284,7 @@ def downloadUnlisted_command(args):
 
 # Download a specific deviceOS version
 def downloadFirmware(version):
-    firmware = getFirmwareData(version)
-    if firmware:
-        downloadDep(firmware, False)
-    else:
+    if not downloadDep(getFirmwareData(version), False):
         print("Could not download deviceOS version", version + "!")
 
 # Install or update neopo dependencies (not the neopo script)
@@ -315,7 +302,7 @@ def installOrUpdate(install, force):
 
     # Append dependencies to list
     system = platform.system().lower()
-    [depJSON.append(data[dep][system]["x64"][0]) for dep in dependencies]
+    for dep in dependencies: depJSON.append(data[dep][system]["x64"][0])
 
     # To support Raspberry Pi use my precompiled gcc-arm toolchain
     if platform.machine() == "armv7l":
@@ -325,7 +312,7 @@ def installOrUpdate(install, force):
                 break
     
     # Update JSON cache files
-    [writeJSONcache(data, key) for key in caches]
+    for key in caches: writeJSONcache(data, key)
 
     # Either install or update
     if install:
@@ -333,14 +320,10 @@ def installOrUpdate(install, force):
         for dep in depJSON:
             # Install dependency if not currently installed, or forced, otherwise skip
             installed = os.path.isdir(os.path.join(PARTICLE_DEPS, dep["name"], dep["version"]))
-            if not installed or forceInstall:
-                downloadDep(dep, True)
-            else:
-                skippedDeps.append(dep)
+            downloadDep(dep, True) if not installed or forceInstall else skippedDeps.append(dep)
 
         # Put skippedDeps in manifest.json. Fixes: nrobinson2000/neopo/issues/8
-        if skippedDeps:
-            [writeManifest(dep) for dep in skippedDeps]
+        for dep in skippedDeps: writeManifest(dep)
 
         # Notify user of dependencies skipped to save bandwidth and time
         if skippedDeps:
@@ -358,8 +341,7 @@ def installOrUpdate(install, force):
         for dep in depJSON:
             new = int(dep["version"].split("-")[0].replace(".", ""))
             old = int(manifest[dep["name"]].split("-")[0].replace(".", ""))
-            if new > old:
-                downloadDep(dep, True)
+            if new > old: downloadDep(dep, True)
         print("Dependencies are up to date!")
 
 # Delete the neopo script from the system
@@ -368,8 +350,7 @@ def uninstall(args):
     print("Are you sure you want to uninstall neopo at", execpath + "?")
 
     # Ask for confirmation
-    answer = input("(Y/N): ")
-    if answer.lower() != "y":
+    if input("(Y/N): ").lower() != "y":
         raise UserError("Aborted.")
     try:
         #TODO: the ~/.neopo directory should get deleted too
@@ -1033,8 +1014,8 @@ Options:
 
 def print_logo():
     print(
-"""    ____  ___  ____  ____  ____ 
-   / __ \/ _ \/ __ \/ __ \/ __ \\    A lightweight solution for
+r"""    ____  ___  ____  ____  ____
+   / __ \/ _ \/ __ \/ __ \/ __ \    A lightweight solution for
   / / / /  __/ /_/ / /_/ / /_/ /    local Particle development.
  /_/ /_/\___/\____/ ____/\____/ 
                  /_/      .xyz      Copyright (c) 2020 Nathan Robinson
