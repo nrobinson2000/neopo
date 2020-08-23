@@ -50,7 +50,7 @@ esac
 
 echo "Downloading installation script..."
 TEMPFILE="$(mktemp)"
-curl -Lo "$TEMPFILE" "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/install.py"
+curl -Lo "$TEMPFILE" "https://raw.githubusercontent.com/nrobinson2000/neopo/master/neopo/install.py"
 $SUDO python3 "$TEMPFILE" || exit
 $SUDO chown "$USER" "$($SUDO which neopo)"
 rm "$TEMPFILE"
@@ -64,7 +64,7 @@ neopo particle usb configure
 # Attempt to install bash completion script
 if [ -d /etc/bash_completion.d ]; then
     echo "Installing tab completion script:"    
-    $SUDO curl -fsSLo /etc/bash_completion.d/neopo "https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/neopo-completion"
+    $SUDO curl -fsSLo /etc/bash_completion.d/neopo "https://raw.githubusercontent.com/nrobinson2000/neopo/master/neopo/neopo-completion"
 else
     echo "The tab completion script is recommended for the best experience."
     echo "You can follow the installation instructions here:"
