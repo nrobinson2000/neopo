@@ -8,11 +8,12 @@ pkgdesc="A lightweight solution for local Particle development."
 arch=('any')
 url="https://neopo.xyz"
 license=('custom')
-depends=('libusb' 'lib32-glibc' 'python3' 'vim' 'git' 'perl-archive-zip' 'lib32-ncurses5-compat-libs')
+depends=('libusb' 'lib32-glibc' 'python3' 'vim' 'git' 'perl-archive-zip')
 install=neopo-git.install
 
+# To get debugger working in Workbench:
 # gpg --keyserver hkp://keys.gnupg.net:80 --recv-keys C52048C0C0748FEE227D47A2702353E0F7E48EDB
-# needed for lib32-ncurses5-compat-libs
+# yay -S lib32-ncurses5-compat-libs
 
 validpgpkeys=('C52048C0C0748FEE227D47A2702353E0F7E48EDB')
 provides=('neopo')
