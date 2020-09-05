@@ -1,0 +1,8 @@
+#!/bin/sh
+
+post_install() {
+    echo ":::: neopo ::::"
+    echo -e "To complete installation run:"
+    echo -e "\t $ neopo install"
+    echo -e "\t $ neopo particle usb configure"
+}
