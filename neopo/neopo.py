@@ -11,6 +11,7 @@ import stat
 import shutil
 import zipfile
 import tarfile
+import hashlib
 import pathlib
 import platform
 import traceback
@@ -25,8 +26,14 @@ SCRIPTS_DIR = os.path.join(NEOPO_DEPS, "scripts")
 
 # Raspberry Pi gcc-arm downloads
 RPI_GCC_ARM = {
-    "5.3.1": "https://github.com/nrobinson2000/neopo/releases/download/0.0.1/gcc-arm-v5.3.1-raspberry-pi.tar.gz",
-    "9.2.1": "https://github.com/nrobinson2000/neopo/releases/download/0.0.2/gcc-arm-v9.2.1-raspberry-pi.tar.gz"
+    "5.3.1": {
+        "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.1/gcc-arm-v5.3.1-raspberry-pi.tar.gz",
+        "sha256": "5ff9b9406da9be17c17e0ec475f092b211cd158d826423d17c9fe6d1215db301"
+    },
+    "9.2.1": {
+        "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.2/gcc-arm-v9.2.1-raspberry-pi.tar.gz",
+        "sha256": "d963b551122d57057aaacc82e61ca6a05a524df14bb9fe28ca55b67494639fce"
+    }
 }
 
 # Windows tricks
@@ -132,11 +139,11 @@ def getFile(file, path):
     return file.read(path)
 
 # Download the specified dependency
-def downloadDep(dep, updateManifest):
+def downloadDep(dep, updateManifest, checkHash):
     if not dep: return False
     if updateManifest: writeManifest(dep)
 
-    name, version, url = dep["name"], dep["version"], dep["url"]
+    name, version, url, sha256 = dep["name"], dep["version"], dep["url"], dep["sha256"]
     print("Downloading dependency", name, "version", version + "...")
 
     try:
@@ -144,6 +151,18 @@ def downloadDep(dep, updateManifest):
             content = response.read()
     except urllib.error.URLError:
         raise DependencyError("Failed to download dependency!")
+
+    # Verify that the sha256 matches
+    if checkHash:
+        content_sha256 = hashlib.sha256(content).hexdigest()
+        if content_sha256 != sha256:
+            print("SHA256 mismatch!")
+            print("Expected: ", sha256)
+            print("Actual: ", content_sha256)
+            print()
+            print("Would you like to proceed anyway?")
+            if input("(Y/N): ").lower() != "y":
+                return False
 
     # Ensure that installation directory exists
     path = os.path.join(PARTICLE_DEPS, name, version)
@@ -255,7 +274,7 @@ def writeJSONcache(data, key):
 # Try to download given firmware
 def attemptDownload(firmware):
     try:
-        downloadDep(firmware, False)
+        downloadDep(firmware, False, True)
         return
     except urllib.error.URLError:
         raise DependencyError("DeviceOS version " + firmware["version"] + " not found!")
@@ -285,7 +304,7 @@ def downloadUnlisted_command(args):
 
 # Download a specific deviceOS version
 def downloadFirmware(version):
-    if not downloadDep(getFirmwareData(version), False):
+    if not downloadDep(getFirmwareData(version), False, True):
         print("Could not download deviceOS version", version + "!")
 
 # Install or update neopo dependencies (not the neopo script)
@@ -308,7 +327,8 @@ def installOrUpdate(install, force):
     if platform.machine() == "armv7l":
         for dep in depJSON:
             if dep["name"] == "gcc-arm":
-                dep["url"] = RPI_GCC_ARM[dep["version"]]
+                dep["url"] = RPI_GCC_ARM[dep["version"]]["url"]
+                dep["sha256"] = RPI_GCC_ARM[dep["version"]]["sha256"]
                 break
     
     # Update JSON cache files
@@ -320,7 +340,7 @@ def installOrUpdate(install, force):
         for dep in depJSON:
             # Install dependency if not currently installed, or forced, otherwise skip
             installed = os.path.isdir(os.path.join(PARTICLE_DEPS, dep["name"], dep["version"]))
-            downloadDep(dep, True) if not installed or force else skippedDeps.append(dep)
+            downloadDep(dep, True, True) if not installed or force else skippedDeps.append(dep)
 
         # Put skippedDeps in manifest.json. Fixes: nrobinson2000/neopo/issues/8
         for dep in skippedDeps: writeManifest(dep)
@@ -341,7 +361,7 @@ def installOrUpdate(install, force):
         for dep in depJSON:
             new = int(dep["version"].split("-")[0].replace(".", ""))
             old = int(manifest[dep["name"]].split("-")[0].replace(".", ""))
-            if new > old: downloadDep(dep, True)
+            if new > old: downloadDep(dep, True, True)
         print("Dependencies are up to date!")
 
 # Delete the neopo script from the system
@@ -452,7 +472,7 @@ def checkFirmwareVersion(platform, version):
 
     # If required firmware is not installed, download it
     path = os.path.join(PARTICLE_DEPS, "deviceOS", version)
-    os.path.isdir(path) or downloadDep(firmware, False)
+    os.path.isdir(path) or downloadDep(firmware, False, True)
     return True
 
 # Modify Workbench settings in a project (platform, firmwareVersion)
@@ -524,7 +544,8 @@ def getCompilerData(version):
         for compiler in compilers:
             if compiler["version"] == version:
                 if platform.machine() == "armv7l":
-                    compiler["url"] = RPI_GCC_ARM[version]
+                    compiler["url"] = RPI_GCC_ARM[version]["url"]
+                    compiler["sha256"] = RPI_GCC_ARM[version]["sha256"]
                 return compiler
         return False
 
@@ -532,7 +553,7 @@ def getCompilerData(version):
 def checkCompiler(compilerVersion):
     # If required compiler is not installed, download it
     path = os.path.join(PARTICLE_DEPS, "gcc-arm", compilerVersion)
-    os.path.isdir(path) or downloadDep(getCompilerData(compilerVersion), False)
+    os.path.isdir(path) or downloadDep(getCompilerData(compilerVersion), False, True)
     return True
 
 # Create a dictionary from a .properties file
