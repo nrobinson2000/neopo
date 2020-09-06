@@ -14,6 +14,8 @@ Linux)
     # Ubuntu / Debian / Linux Mint
     if hash apt >/dev/null 2>&1; then
         if [ "$(uname -m)" == "x86_64" ]; then
+            $SUDO dpkg --add-architecture i386
+            $SUDO apt update
             $SUDO apt install libarchive-zip-perl libc6-i386 python3 git vim libncurses5:i386
         fi
         # Raspbian
