@@ -1018,7 +1018,7 @@ Options:
         settings [project]                        # View configured settings
         libs [project]                            # Install Particle libraries
         iterate <command> [OPTIONS] [-v/q]        # Put devices into DFU mode
-                                                    # and run commands on them
+                                                  # and run commands on them
     Script Options:
         script <script name>    # Execute a script in ~/.neopo/scripts
         load <script name>      # Copy a script into ~/.neopo/scripts
