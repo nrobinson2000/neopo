@@ -16,7 +16,7 @@ md5sums=('SKIP')
 ## On x86_64
 depends=('libusb' 'lib32-glibc' 'python3' 'vim' 'git' 'perl-archive-zip')
 ## On aarch64
-# depends=('libusb' 'python3' 'vim' 'git' 'perl-archive-zip' 'dfu-util' 'node')
+# depends=('libusb' 'python3' 'vim' 'git' 'perl-archive-zip' 'dfu-util' 'nodejs')
 
 package() {
     cd $_gitname
