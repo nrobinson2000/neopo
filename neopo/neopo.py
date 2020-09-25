@@ -24,16 +24,29 @@ NEOPO_DEPS = os.path.join(os.path.expanduser("~"), ".neopo")
 CACHE_DIR = os.path.join(NEOPO_DEPS, "cache")
 SCRIPTS_DIR = os.path.join(NEOPO_DEPS, "scripts")
 
-# Raspberry Pi gcc-arm downloads
-RPI_GCC_ARM = {
-    "5.3.1": {
-        "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.1/gcc-arm-v5.3.1-raspberry-pi.tar.gz",
-        "sha256": "5ff9b9406da9be17c17e0ec475f092b211cd158d826423d17c9fe6d1215db301"
+# Precompiled gcc-arm for ARM platforms
+ARM_GCC_ARM = {
+    "aarch64": {
+        "5.3.1": {
+            "url": "gcc-arm-v5.3.1-aarch64.tar.gz",
+            "sha256": "STILL COMPILING"
+        },
+
+        "9.2.1": {
+            "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.3/gcc-arm-v9.2.1-aarch64.tar.gz",
+            "sha256": "83526b6512ff59a5130dcb24603d60f10120c0f5409d23bd7417b19e1328a163"
+        }
     },
-    "9.2.1": {
-        "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.2/gcc-arm-v9.2.1-raspberry-pi.tar.gz",
-        "sha256": "d963b551122d57057aaacc82e61ca6a05a524df14bb9fe28ca55b67494639fce"
-    }
+
+    "armv7l": {
+        "5.3.1": {
+            "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.1/gcc-arm-v5.3.1-raspberry-pi.tar.gz",
+            "sha256": "5ff9b9406da9be17c17e0ec475f092b211cd158d826423d17c9fe6d1215db301"
+        },
+        "9.2.1": {
+            "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.2/gcc-arm-v9.2.1-raspberry-pi.tar.gz",
+            "sha256": "d963b551122d57057aaacc82e61ca6a05a524df14bb9fe28ca55b67494639fce"
+     }}
 }
 
 # Windows tricks
@@ -323,12 +336,13 @@ def installOrUpdate(install, force):
     system = platform.system().lower()
     for dep in dependencies: depJSON.append(data[dep][system]["x64"][0])
 
-    # To support Raspberry Pi use my precompiled gcc-arm toolchain
-    if platform.machine() == "armv7l":
+    # Use my precompiled gcc-arm for ARM
+    installPlatform = platform.machine()
+    if installPlatform != "x86_64":
         for dep in depJSON:
             if dep["name"] == "gcc-arm":
-                dep["url"] = RPI_GCC_ARM[dep["version"]]["url"]
-                dep["sha256"] = RPI_GCC_ARM[dep["version"]]["sha256"]
+                dep["url"] = ARM_GCC_ARM[installPlatform][dep["version"]]["url"]
+                dep["sha256"] = ARM_GCC_ARM[installPlatform][dep["version"]]["sha256"]
                 break
     
     # Update JSON cache files
@@ -541,11 +555,12 @@ def getCompilerData(version):
         system = platform.system().lower()
         compilers = data[system]["x64"]
 
+        installPlatform = platform.machine()
         for compiler in compilers:
             if compiler["version"] == version:
-                if platform.machine() == "armv7l":
-                    compiler["url"] = RPI_GCC_ARM[version]["url"]
-                    compiler["sha256"] = RPI_GCC_ARM[version]["sha256"]
+                if installPlatform != "x86_64":
+                    compiler["url"] = ARM_GCC_ARM[installPlatform][version]["url"]
+                    compiler["sha256"] = ARM_GCC_ARM[installPlatform][version]["sha256"]
                 return compiler
         return False
 

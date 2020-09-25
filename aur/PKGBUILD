@@ -2,24 +2,21 @@
 
 pkgname=neopo-git
 _gitname="neopo"
-pkgver=2020.09.05 # TODO
+pkgver=2020.09.25 # TODO
 pkgrel=1
 pkgdesc="A lightweight solution for local Particle development."
 arch=('any')
 url="https://neopo.xyz"
 license=('custom')
-depends=('libusb' 'lib32-glibc' 'python3' 'vim' 'git' 'perl-archive-zip')
-install=neopo-git.install
-
-# To get debugger working in Workbench:
-# gpg --keyserver hkp://keys.gnupg.net:80 --recv-keys C52048C0C0748FEE227D47A2702353E0F7E48EDB
-# yay -S lib32-ncurses5-compat-libs
-
-validpgpkeys=('C52048C0C0748FEE227D47A2702353E0F7E48EDB')
 provides=('neopo')
-
+install=neopo-git.install
 source=('git+https://github.com/nrobinson2000/neopo.git')
 md5sums=('SKIP')
+
+## On x86_64
+depends=('libusb' 'lib32-glibc' 'python3' 'vim' 'git' 'perl-archive-zip')
+## On aarch64
+# depends=('libusb' python3' 'vim' 'git' 'perl-archive-zip' 'dfu-util' 'node')
 
 package() {
     cd $_gitname
@@ -27,3 +24,14 @@ package() {
     install -Dm 644 "neopo/neopo-completion" "$pkgdir/usr/share/bash-completion/completions/neopo"
     install -Dm 644 "LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }
+
+# To get debugger working in Workbench:
+
+# gpg --keyserver hkp://keys.gnupg.net:80 --recv-keys C52048C0C0748FEE227D47A2702353E0F7E48EDB
+# yay -S lib32-ncurses5-compat-libs
+
+# Also on aarch64, the node executable provided by particle-cli wrapper is actually armv7l
+# Hack! Create a link to the current installed version of node:
+
+# mv ~/.particle/node-v12*/bin/node ~/.particle/node-v12*/bin/node.old
+# ln -s $(which node) ~/.particle/node-v12*/bin/node
