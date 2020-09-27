@@ -28,8 +28,8 @@ SCRIPTS_DIR = os.path.join(NEOPO_DEPS, "scripts")
 ARM_GCC_ARM = {
     "aarch64": {
         "5.3.1": {
-            "url": "gcc-arm-v5.3.1-aarch64.tar.gz",
-            "sha256": "STILL COMPILING"
+            "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.3/gcc-arm-v5.3.1-aarch64.tar.gz",
+            "sha256": "06a392fb34103b0202cee65a7cae0e1a02b3e6e775c3d0d4b2111c631efbc303"
         },
 
         "9.2.1": {
