@@ -41,7 +41,7 @@ ARM_GCC_ARM = {
     "armv7l": {
         "5.3.1": {
             "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.1/gcc-arm-v5.3.1-raspberry-pi.tar.gz",
-            "sha256": "5ff9b9406da9be17c17e0ec475f092b211cd158d826423d17c9fe6d1215db301"
+            "sha256": "dc5570abe2b4742a70dba06f59bf18bd1354107a879ce68029da29539113e3b0"
         },
         "9.2.1": {
             "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.2/gcc-arm-v9.2.1-raspberry-pi.tar.gz",
