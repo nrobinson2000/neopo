@@ -34,9 +34,13 @@ Linux)
 
     # Manjaro / Arch
     elif hash pacman >/dev/null 2>&1; then
-        $SUDO pacman -S --needed libusb lib32-glibc python3 vim yay git
-        gpg --keyserver hkp://keys.gnupg.net:80 --recv-keys C52048C0C0748FEE227D47A2702353E0F7E48EDB
-        yay -S --needed perl-archive-zip lib32-ncurses5-compat-libs
+        $SUDO pacman -S --needed base-devel
+        TEMPDIR="$(mktemp -d)"
+        cd "$TEMPDIR"
+        git clone https://github.com/nrobinson2000/packages
+        cd packages
+        ./install-pkg neopo
+        exit
     fi
 ;;
 
