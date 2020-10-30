@@ -1,5 +1,5 @@
-# neopo: A lightweight solution for local Particle development.
-# Copyright (c) 2020 Nathan Robinson.
+# Provides access to using neopo as a module:
+# import neopo
 
 # General options
 from .neopo import help, install, upgrade, uninstall, versions, create, particle
