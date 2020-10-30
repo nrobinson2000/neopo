@@ -80,4 +80,5 @@ fi
 # Install neopo as python module (experimental)
 TEMPDIR="$(mktemp -d)"
 git clone https://github.com/nrobinson2000/neopo "$TEMPDIR/neopo"
-$SUDO python3 "$TEMPDIR/neopo/setup.py" install --optimize=1
+cd "$TEMPDIR/neopo"
+$SUDO python3 setup.py install --optimize=1
