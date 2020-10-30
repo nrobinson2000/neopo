@@ -81,4 +81,5 @@ fi
 TEMPDIR="$(mktemp -d)"
 git clone https://github.com/nrobinson2000/neopo "$TEMPDIR/neopo"
 cd "$TEMPDIR/neopo"
-$SUDO python3 setup.py install --optimize=1
+#$SUDO python3 setup.py install --optimize=1
+$SUDO python3 -m pip install .
