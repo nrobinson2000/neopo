@@ -27,6 +27,7 @@ def main():
 
     if BEST_PATH in paths:
         install = os.path.join(BEST_PATH, binary)
+        chosen = True
     else:
         for path in paths:
             if os.access(path, os.W_OK):
