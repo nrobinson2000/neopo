@@ -9,6 +9,10 @@ install:
   - source travis.sh
   - neopo install
 script:
+  # Regular neopo tests
   - neopo help
   - neopo load travisTests
   - neopo script travisTests
+  # Python tests
+  - python3 -m pip install .
+  - python3 test/travis-neopo.py
