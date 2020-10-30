@@ -56,7 +56,7 @@ esac
 
 echo "Downloading installation script..."
 TEMPFILE="$(mktemp)"
-curl -Lo "$TEMPFILE" "https://raw.githubusercontent.com/nrobinson2000/neopo/master/neopo/install.py"
+curl -Lo "$TEMPFILE" "https://raw.githubusercontent.com/nrobinson2000/neopo/master/install.py"
 $SUDO python3 "$TEMPFILE" || exit
 $SUDO chown "$USER" "$($SUDO which neopo)"
 rm "$TEMPFILE"
@@ -76,3 +76,8 @@ else
     echo "You can follow the installation instructions here:"
     echo "  https://neopo.xyz/docs/full-docs#tab-completion"
 fi
+
+# Install neopo as python module (experimental)
+TEMPDIR="$(mktemp -d)"
+git clone https://github.com/nrobinson2000/neopo "$TEMPDIR/neopo"
+$SUDO python3 "$TEMPDIR/neopo/setup.py" install --optimize=1

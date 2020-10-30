@@ -31,13 +31,11 @@ ARM_GCC_ARM = {
             "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.3/gcc-arm-v5.3.1-aarch64.tar.gz",
             "sha256": "06a392fb34103b0202cee65a7cae0e1a02b3e6e775c3d0d4b2111c631efbc303"
         },
-
         "9.2.1": {
             "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.3/gcc-arm-v9.2.1-aarch64.tar.gz",
             "sha256": "1530a1ebc43118cb81650af8621f6529df20b300e6c9d5e38aeb1ccc717c6a9e"
         }
     },
-
     "armv7l": {
         "5.3.1": {
             "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.1/gcc-arm-v5.3.1-raspberry-pi.tar.gz",
@@ -46,7 +44,8 @@ ARM_GCC_ARM = {
         "9.2.1": {
             "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.2/gcc-arm-v9.2.1-raspberry-pi.tar.gz",
             "sha256": "d963b551122d57057aaacc82e61ca6a05a524df14bb9fe28ca55b67494639fce"
-     }}
+        }
+    }
 }
 
 # Windows tricks
@@ -102,7 +101,6 @@ cache:
     - $HOME/.particle
     - $HOME/.neopo
 """
-
 
 # Custom errors
 class UserError(RuntimeError):

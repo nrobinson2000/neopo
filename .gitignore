@@ -7,3 +7,6 @@ gcc-arm*
 extensions
 .vscode
 aur
+build
+dist
+neopo.egg-info

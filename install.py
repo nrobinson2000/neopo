@@ -8,6 +8,8 @@ import stat
 import urllib.request
 import sys
 
+BEST_PATH="/usr/local/bin"
+
 def main():
     try:
         confirm = sys.argv[1] != "-y"
@@ -23,15 +25,18 @@ def main():
     paths = os.environ["PATH"].split(":")
     #paths.reverse()
 
-    for path in paths:
-        if os.access(path, os.W_OK):
-            install = os.path.join(path, binary)
-            if confirm:
-                print("Would you like to install to " + install + "?")
-                answer = input("(Y/N): ")
-                if answer.lower() == "y":
-                    chosen = True
-                    break
+    if BEST_PATH in paths:
+        install = os.path.join(BEST_PATH, binary)
+    else:
+        for path in paths:
+            if os.access(path, os.W_OK):
+                install = os.path.join(path, binary)
+                if confirm:
+                    print("Would you like to install to " + install + "?")
+                    answer = input("(Y/N): ")
+                    if answer.lower() == "y":
+                        chosen = True
+                        break
 
     if not chosen:
         print("No path was chosen. Exiting...")
