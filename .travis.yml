@@ -6,7 +6,7 @@ os:
   - osx
 language: shell
 install:
-  - source travis.sh
+  - source tests/travis.sh
   - neopo install
 script:
   # Regular neopo tests
