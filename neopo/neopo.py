@@ -394,14 +394,10 @@ def uninstall_command(args):
 
 # Create a Particle project and copy in Workbench settings
 def create_project(path, name):
-    tempEnv = os.environ.copy()
-    addToPath(tempEnv, NEOPO_DEPS)
     projectPath = os.path.join(path, name)
-
     # Use particle-cli to create the project
     returncode = subprocess.run(
-        ["particle", "project", "create", path, "--name", name],
-        env=tempEnv,
+        [particle_cli, "project", "create", path, "--name", name],
         shell=running_on_windows).returncode
     if returncode:
         raise ProcessError("Failed with code " + str(returncode))
