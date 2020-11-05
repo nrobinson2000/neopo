@@ -639,20 +639,25 @@ def libraries_command(args):
 def addToPath(environment, path):
     environment["PATH"] += os.pathsep + path
 
+# Add buildtools to PATH
+def addBuildtools(environment, version=None):
+    toolsVersion = version if version else loadManifest(False)['buildtools']
+    toolpath = os.path.join(PARTICLE_DEPS, "buildtools", toolsVersion)
+    toolpath = os.path.join(toolpath, "bin") if running_on_windows else toolpath
+    addToPath(environment, toolpath)
+
 # Use the Makefile to build the specified target
 def build_project(projectPath, command, helpOnly, verbosity):
     compilerVersion, scriptVersion, toolsVersion, firmwareVersion = loadManifest(True)
     tempEnv = os.environ.copy()
+    addBuildtools(tempEnv, toolsVersion)
 
     # Windows compatibility modifications
     particle = particle_cli
     if running_on_windows:
-        addToPath(tempEnv, os.path.join(PARTICLE_DEPS, "buildtools", toolsVersion, "bin"))
         particle = particle.replace("C:\\", "/cygdrive/c/")
         particle = particle.replace("\\", "/")
         projectPath = projectPath.replace("\\", "\\\\")
-    else:
-        addToPath(tempEnv, os.path.join(PARTICLE_DEPS, "buildtools", toolsVersion))
 
     # Command used to invoke the Workbench makefile
     process = [
@@ -994,9 +999,14 @@ def upgrade_command(args):
 
 # Wrapper for [particle]
 def particle_command(args):
+    # Add build tools to env
+    tempEnv = os.environ.copy()
+    addBuildtools(tempEnv)
+
     process = [particle_cli, *args[2:]]
+
     try:
-        returncode = subprocess.run(process).returncode
+        returncode = subprocess.run(process, env=tempEnv, shell=running_on_windows).returncode
     # Return cleanly if ^C was pressed
     except KeyboardInterrupt:
         return
