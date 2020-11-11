@@ -23,6 +23,7 @@ jobs:
           source tests/github.sh
           neopo install
           neopo help
+          neopo particle
     - name: Test (python)
       run: |
           python tests/github-neopo.py
