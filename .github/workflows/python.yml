@@ -26,7 +26,7 @@ jobs:
     - name: Test (python)
       run: |
           python tests/github-neopo.py
-# - name: Test neopo (bash)
-#   run: |
-#       neopo load tests/travisTests
-#       neopo script travisTests
+    - name: Test neopo (bash)
+      run: |
+          neopo load tests/travisTests
+          neopo script travisTests
