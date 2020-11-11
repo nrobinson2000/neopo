@@ -14,5 +14,5 @@ script:
   - neopo load tests/travisTests
   - neopo script travisTests
   # Python tests
-  - python3 -m pip install .
+  - python3 setup.py install
   - python3 tests/travis-neopo.py
