@@ -20,12 +20,13 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-          sudo pip3 install wheel
-          source tests/travis.sh
+          source tests/github.sh
           neopo install
-    - name: Test neopo
-      run: |
           neopo help
+    - name: Test (python)
+      run: |
+          python tests/travis-neopo.py
+    - name: Test neopo (bash)
+      run: |
           neopo load tests/travisTests
           neopo script travisTests
-          python tests/travis-neopo.py
