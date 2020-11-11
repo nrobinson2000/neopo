@@ -8,8 +8,8 @@ VERSION = "%s.%s" % (count, commit)
 # print(VERSION)
 
 share_files = [
-   ('usr/share/bash-completion/completions', ['neopo/neopo-completion']),
-   ('usr/share/licenses/neopo', ['LICENSE'])]
+   ('/usr/share/bash-completion/completions', ['neopo/neopo-completion']),
+   ('/usr/share/licenses/neopo', ['LICENSE'])]
 
 script_files = ['neopo/neopo']
 
