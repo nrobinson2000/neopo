@@ -16,20 +16,20 @@ Linux)
         if [ "$(uname -m)" == "x86_64" ]; then
             $SUDO dpkg --add-architecture i386
             $SUDO apt update
-            $SUDO apt install libarchive-zip-perl libc6-i386 python3 git vim libncurses5:i386 python3-setuptools
+            $SUDO apt install libarchive-zip-perl libc6-i386 python3 git vim libncurses5:i386 libncurses5 python3-setuptools
         fi
         # Raspbian
         if [ "$(uname -m)" == "armv7l" ]; then
-            $SUDO apt install libarchive-zip-perl libusb-1.0-0-dev dfu-util libudev-dev libisl15 libfl-dev python3 git vim python3-setuptools
+            $SUDO apt install libarchive-zip-perl libusb-1.0-0-dev dfu-util libudev-dev libisl15 libfl-dev python3 git vim python3-setuptools libncurses5
         fi
 
     # Fedora
     elif hash yum >/dev/null 2>&1; then
-        $SUDO yum install glibc.i686 perl-Archive-Zip python3 vim git ncurses-compat-libs python3-setuptools
+        $SUDO yum install glibc.i686 perl-Archive-Zip python3 vim git ncurses-compat-libs python3-setuptools ncurses-libs
     
     # Void Linux
     elif hash xbps-install >/dev/null 2>&1; then
-        $SUDO xbps-install -S dfu-util python3 git vim perl-Archive-Zip void-repo-multilib bash-completion python3-setuptools
+        $SUDO xbps-install -S dfu-util python3 git vim perl-Archive-Zip void-repo-multilib bash-completion python3-setuptools ncurses-libs
         $SUDO xbps-install -S glibc-32bit ncurses-libs-32bit
 
     # Manjaro / Arch
