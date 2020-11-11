@@ -10,6 +10,5 @@ aur
 build
 dist
 neopo.egg-info
-neopo/neopo
 neopo/neopo.c
 Makefile
