@@ -6,6 +6,7 @@
 # Docker/root compatiblity
 if [ "$EUID" -ne 0 ]; then
     SUDO="sudo"
+    SUDOPY="sudo -H"
 fi
 
 # Install additional dependencies for Linux
@@ -63,7 +64,7 @@ esac
 TEMPDIR="$(mktemp -d)"
 git clone https://github.com/nrobinson2000/neopo "$TEMPDIR/neopo"
 cd "$TEMPDIR/neopo"
-$SUDO python3 -m pip install .
+$SUDOPY python3 -m pip install .
 
 # Run the neopo installer
 neopo install
