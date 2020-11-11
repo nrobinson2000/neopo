@@ -1,4 +1,4 @@
-name: Test neopo python package
+name: python-pip
 
 on: push
 

@@ -22,5 +22,5 @@ setup(
    url='https://github.com/nrobinson2000/neopo',
    packages=['neopo'],
    data_files=share_files,
-   scripts = script_files
+   scripts=script_files
 )
