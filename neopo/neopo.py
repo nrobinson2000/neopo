@@ -499,7 +499,7 @@ def configure_project(projectPath, platform, firmwareVersion):
     writeSettings(projectPath, platform, firmwareVersion)
     print("Configured project %s:" % projectPath)
     print("\tparticle.targetPlatform: %s" % platform)
-    print("\tparticle.firmwareVersion:%s" % firmwareVersion)
+    print("\tparticle.firmwareVersion: %s" % firmwareVersion)
 
 # Load Workbench settings from a project
 def getSettings(projectPath):
