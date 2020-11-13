@@ -793,7 +793,7 @@ def settings_command(args):
         print("Configuration for project %s:" % projectPath)
         print("\tparticle.targetPlatform: %s" % settings[0])
         print("\tparticle.firmwareVersion: %s"% settings[1])
-        print("\tEXTRA_CFLAGS: %s" % flags if flags else "<not set>")
+        print("\tEXTRA_CFLAGS: %s" % (flags if flags else "<not set>"))
         print()
     except FileNotFoundError:
         raise UserError("%s is not a Particle project!" % projectPath)
