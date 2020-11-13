@@ -28,6 +28,7 @@ Install from [AUR](https://aur.archlinux.org/packages/neopo-git/):
 
 ```bash
 $ yay -S neopo-git
+$ neopo install
 ```
 
 Install from source (pip):
@@ -36,6 +37,7 @@ Install from source (pip):
 $ git clone https://github.com/nrobinson2000/neopo
 $ cd neopo
 $ sudo python3 -m pip install .
+$ neopo install
 ```
 
 For more installation information, please refer to the [Installation tutorial.](https://neopo.xyz/tutorials/install)

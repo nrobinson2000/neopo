@@ -88,13 +88,9 @@ TRAVIS_YML = """# Build a neopo project with Travis CI
 os: linux
 language: shell
 install:
-  - export PATH="$PATH:$PWD"
-  - sudo apt update
-  - sudo apt install libarchive-zip-perl libc6-i386
-  - curl -LO https://raw.githubusercontent.com/nrobinson2000/neopo/master/bin/neopo
-  - chmod +x neopo
-  - neopo install
+  - bash <(curl -sL https://raw.githubusercontent.com/nrobinson2000/neopo/master/install.sh)
 script:
+  - neopo libs
   - neopo build
 cache:
   directories:
@@ -155,7 +151,7 @@ def downloadDep(dep, updateManifest, checkHash):
     if updateManifest: writeManifest(dep)
 
     name, version, url, sha256 = dep["name"], dep["version"], dep["url"], dep["sha256"]
-    print("Downloading dependency", name, "version", version + "...")
+    print("Downloading dependency %s@%s..." % (name, version))
 
     try:
         with urllib.request.urlopen(url) as response:
@@ -168,8 +164,8 @@ def downloadDep(dep, updateManifest, checkHash):
         content_sha256 = hashlib.sha256(content).hexdigest()
         if content_sha256 != sha256:
             print("SHA256 mismatch!")
-            print("Expected: ", sha256)
-            print("Actual: ", content_sha256)
+            print("Expected: %s" % sha256)
+            print("Actual: %s" % content_sha256)
             print()
             print("Would you like to proceed anyway?")
             if input("(Y/N): ").lower() != "y":
@@ -180,7 +176,7 @@ def downloadDep(dep, updateManifest, checkHash):
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
     # Write the archive to a file to save RAM
-    fileName = os.path.join(path, name + "-v" + version + ".tar.gz")
+    fileName = os.path.join(path, "%s-v%s.tar.gz" % (name, version))
     with open(fileName, "wb") as gzFile:
         gzFile.write(content)
 
@@ -288,13 +284,13 @@ def attemptDownload(firmware):
         downloadDep(firmware, False, True)
         return
     except urllib.error.URLError:
-        raise DependencyError("DeviceOS version " + firmware["version"] + " not found!")
+        raise DependencyError("DeviceOS version %s not found!" % firmware["version"])
 
 # Attempt to download deviceOS version not specified in manifest (experimental)
 def downloadUnlisted(version):
     # Minimum information for a firmware dependency
     firmware = {"name": "deviceOS", "version": version,
-        "url": "https://binaries.particle.io/device-os/v" + version + ".tar.gz"}
+        "url": "https://binaries.particle.io/device-os/v%s.tar.gz" % version}
 
     try:
         # Attempt to download from Particle's download mirror
@@ -302,7 +298,7 @@ def downloadUnlisted(version):
         attemptDownload(firmware)
     except DependencyError:
         # Try to download from github
-        firmware["url"] = "https://github.com/particle-iot/device-os/archive/v" + version + ".tar.gz"
+        firmware["url"] = "https://github.com/particle-iot/device-os/archive/v%s.tar.gz" % version
         print("Trying github.com/particle-iot/device-os...")
         attemptDownload(firmware)
     
@@ -316,7 +312,7 @@ def downloadUnlisted_command(args):
 # Download a specific deviceOS version
 def downloadFirmware(version):
     if not downloadDep(getFirmwareData(version), False, True):
-        print("Could not download deviceOS version", version + "!")
+        print("Could not download deviceOS version %s!" % version)
 
 # Install or update neopo dependencies (not the neopo script)
 def installOrUpdate(install, force):    
@@ -361,11 +357,9 @@ def installOrUpdate(install, force):
         if skippedDeps:
             print()
             print("Skipped previously installed dependencies:")
-            print(*[dep["name"]+"@"+dep["version"] for dep in skippedDeps], sep=", ")
+            print(*["%s@%s" % (dep["name"], dep["version"]) for dep in skippedDeps], sep=", ")
         
         print()
-        # [neopo install] finishes here.
-        # In the [install.sh] script additional steps are done afterwards. 
         
     else:
         # Load in dependency manifest, and only install a dependency if newer
@@ -377,9 +371,10 @@ def installOrUpdate(install, force):
         print("Dependencies are up to date!")
 
 # Delete the neopo script from the system
+#TODO: Enforce package manager instead
 def uninstall_command(args):
     execpath = args[0]
-    print("Are you sure you want to uninstall neopo at", execpath + "?")
+    print("Are you sure you want to uninstall neopo at %s?" % execpath)
 
     # Ask for confirmation
     if input("(Y/N): ").lower() != "y":
@@ -390,7 +385,7 @@ def uninstall_command(args):
         print("Uninstalled neopo.")
         print("Note: The .particle directory may still exist (remove it with `rm -rf ~/.particle`)")
     except PermissionError:
-        raise ProcessError("Could not delete " + execpath + "\n" + "Try running with sudo.")
+        raise ProcessError("Could not delete %s\nTry running with sudo." % execpath)
 
 # Create a Particle project and copy in Workbench settings
 def create_project(path, name):
@@ -400,7 +395,7 @@ def create_project(path, name):
         [particle_cli, "project", "create", path, "--name", name],
         shell=running_on_windows).returncode
     if returncode:
-        raise ProcessError("Failed with code " + str(returncode))
+        raise ProcessError("Failed with code %s" % returncode)
 
     # If git is installed, initialize project as git repo
     if shutil.which("git"):
@@ -412,7 +407,7 @@ def create_project(path, name):
 
     # Add buttons to README.md
     travisButton = "[![](https://api.travis-ci.org/yourUser/yourRepo.svg?branch=master)](https://travis-ci.org/yourUser/yourRepo)"
-    neopoButton = "[![](https://img.shields.io/badge/built_with-neopo-informational)](https://nrobinson2000.github.io/neopo)"
+    neopoButton = "[![](https://img.shields.io/badge/built_with-neopo-informational)](https://neopo.xyz)"
     readmePath = os.path.join(projectPath, "README.md")
     with open(readmePath, "r") as file:
         readme = file.readlines()
@@ -425,8 +420,8 @@ def create_project(path, name):
     # Change name/src/name.ino to name/src/name.cpp
     # Add #include "Particle.h"
     include = '#include "Particle.h"\n'
-    src = os.path.join(projectPath, "src", name + ".ino")
-    dst = os.path.join(projectPath, "src", name + ".cpp")
+    src = os.path.join(projectPath, "src", "%s.ino" % name)
+    dst = os.path.join(projectPath, "src", "%s.cpp" % name)
     shutil.move(src, dst)
     with open(dst, "r") as original:
         data = original.read()
@@ -458,7 +453,7 @@ def platformConvert(data, key1, key2):
 def getSupportedPlatforms(version):
     with open(jsonFiles["toolchains"], "r") as toolchainsFile:
         for toolchain in json.load(toolchainsFile):
-            if toolchain["firmware"] == "deviceOS@" + version:
+            if toolchain["firmware"] == "deviceOS@%s" % version:
                 return toolchain["platforms"]
         return False
 
@@ -469,13 +464,13 @@ def checkFirmwareVersion(platform, version):
 
     # Check that platform and firmware are compatible
     if not platformID:
-        print("Invalid platform", platform + "!")
+        print("Invalid platform %s!" % platform)
         return False
     if not firmware:
-        print("Invalid deviceOS version", version + "!")
+        print("Invalid deviceOS version %s!" % version)
         return False
     if not platformID in getSupportedPlatforms(version):
-        print("Platform", platform, " is not supported in deviceOS version", version + "!")
+        print("Platform %s is not supported in deviceOS version %s!" % (platform, version))
         return False
 
     # If required firmware is not installed, download it
@@ -492,7 +487,7 @@ def configure_project(projectPath, platform, firmwareVersion):
     
     # Ensure that a valid project was selected
     if not os.path.isfile(os.path.join(projectPath, projectFiles["properties"])):
-        raise ProjectError(projectPath + " is not a Particle project!")
+        raise ProjectError("%s is not a Particle project!" % projectPath)
     
     # Upgrade a CLI project to Workbench format if required
     if not os.path.isfile(os.path.join(projectPath, projectFiles["settings"])):
@@ -502,9 +497,9 @@ def configure_project(projectPath, platform, firmwareVersion):
 
     # Apply configuration to project
     writeSettings(projectPath, platform, firmwareVersion)
-    print("Configured project", projectPath + ":")
-    print("\tparticle.targetPlatform:", platform)
-    print("\tparticle.firmwareVersion:", firmwareVersion)
+    print("Configured project %s:" % projectPath)
+    print("\tparticle.targetPlatform: %s" % platform)
+    print("\tparticle.firmwareVersion:%s" % firmwareVersion)
 
 # Load Workbench settings from a project
 def getSettings(projectPath):
@@ -529,8 +524,8 @@ def build_help():
 # Create the path string for a given deviceOS version
 def getFirmwarePath(version):
     deviceOSPath = os.path.join(PARTICLE_DEPS, "deviceOS", version)
-    legacy = os.path.join(deviceOSPath, "firmware-" + version)
-    github = os.path.join(deviceOSPath, "device-os-" + version)
+    legacy = os.path.join(deviceOSPath, "firmware-%s" % version)
+    github = os.path.join(deviceOSPath, "device-os-%s" % version)
     return legacy if os.path.isdir(legacy) else github if os.path.isdir(github) else deviceOSPath
 
 # For a given firmware version return the appropriate compiler version
@@ -538,7 +533,7 @@ def getCompiler(firmwareVersion):
     with open(jsonFiles["toolchains"]) as file:
         data = json.load(file)
         for toolchain in data:
-            if toolchain["firmware"] == "deviceOS@" + firmwareVersion:
+            if toolchain["firmware"] == "deviceOS@%s" % firmwareVersion:
                 return toolchain["compilers"].split("@")[1]
         raise DependencyError("Invalid firmware version!")
 
@@ -578,7 +573,7 @@ def loadProperties(propertiesPath):
 
 # Download a library using particle-cli
 def downloadLibrary(library, version):
-    process = [particle_cli, "library", "copy", library + "@" + version]
+    process = [particle_cli, "library", "copy", "%s@%s" % (library, version)]
     returncode = subprocess.run(process, shell=running_on_windows).returncode
     if returncode != 0:
         raise ProcessError
@@ -591,23 +586,25 @@ def checkLogin():
     return returncode == 0
 
 # Ensure that specified libraries are downloaded, otherwise install them
-def checkLibraries(projectPath):
+def checkLibraries(projectPath, active):
     try:
         properties = loadProperties(os.path.join(projectPath, projectFiles["properties"]))
         libraries = [key.split(".")[1] for key in properties.keys() if key.startswith("dependencies")]
     except FileNotFoundError:
-        raise ProjectError(projectPath + " is not a Particle Project!")
+        raise ProjectError("%s is not a Particle Project!" % projectPath)
     
     # Ensure that the user is signed into particle
-    if not checkLogin():
+    if active and not checkLogin():
         raise ProcessError("Please log into Particle CLI!\n\tneopo particle login")
 
     # pushd like behavior
     oldCWD = os.getcwd()
     os.chdir(projectPath)
 
+    librariesIntact = True
+
     for library in libraries:
-        requestedVersion = properties["dependencies." + library]
+        requestedVersion = properties["dependencies.%s" % library]
         try:
             libProperties = loadProperties(os.path.join("lib", library, "library.properties"))
             actualVersion = libProperties["version"]
@@ -615,9 +612,14 @@ def checkLibraries(projectPath):
             actualVersion = None
         try:
             if requestedVersion != actualVersion:
-                downloadLibrary(library, requestedVersion)
+                if active:
+                    downloadLibrary(library, requestedVersion)
+                else:
+                    print("WARNING: library %s@%s not found locally." % (library, requestedVersion))
+                    librariesIntact = False
             else:
-                print("Library", library, requestedVersion, "is already installed.")
+                if active:
+                    print("Library %s@%s is already installed." % (library, requestedVersion))
         except ProcessError:
             # Restore CWD
             os.chdir(oldCWD)
@@ -626,10 +628,13 @@ def checkLibraries(projectPath):
     # Restore current working directory
     os.chdir(oldCWD)
 
+    # Return whether all libraries were present
+    return librariesIntact
+
 # Wrapper for [libs]
 def libraries_command(args):
     projectPath = args[2] if len(args) >= 3 else os.getcwd()
-    checkLibraries(projectPath)
+    checkLibraries(projectPath, True)
 
 # Add a path to an environment
 def addToPath(environment, path):
@@ -677,13 +682,14 @@ def build_project(projectPath, command, helpOnly, verbosity):
             if not checkCompiler(compilerVersion):
                 raise ProjectError("Compiler related error!")
 
-            # TODO: Suggest using [neopo libs] if libraries are not downloaded
+            if not checkLibraries(projectPath, False):
+                print("To install libraries run: $ neopo libs [project]")
 
         except (FileNotFoundError, KeyError):
             if os.path.isfile(os.path.join(projectPath, projectFiles["properties"])):
-                raise ProjectError("Project not configured!" + "\n" + "Use: neopo configure <platform> <version> <project>")
+                raise ProjectError("Project not configured!\nUse: neopo configure <platform> <version> <project>")
             else:
-                raise ProjectError(projectPath + " is not a Particle project!")
+                raise ProjectError("%s is not a Particle project!" % projectPath)
         
         # Add compiler to path
         addToPath(tempEnv, os.path.join(PARTICLE_DEPS, "gcc-arm", compilerVersion, "bin"))
@@ -691,14 +697,11 @@ def build_project(projectPath, command, helpOnly, verbosity):
         # Set additional variables for make
         deviceOSPath = getFirmwarePath(firmwareVersion)
         extraCompilerFlags = getFlags(projectPath)
-        process.append("APPDIR=" + projectPath)
-        process.append("DEVICE_OS_PATH=" + deviceOSPath)
-        process.append("PLATFORM=" + devicePlatform)
-        process.append("EXTRA_CFLAGS=" + extraCompilerFlags)
+        process.append("APPDIR=%s" % projectPath)
+        process.append("DEVICE_OS_PATH=%s" % deviceOSPath)
+        process.append("PLATFORM=%s" % devicePlatform)
+        process.append("EXTRA_CFLAGS=%s" % extraCompilerFlags)
         process.append(command)
-
-    # DEBUG: Confirm we are using correct compiler
-    # print(shutil.which(cmd="arm-none-eabi-gcc", path=tempEnv["PATH"]))
 
     # Run makefile with given verbosity
     returncode = subprocess.run(process, env=tempEnv,
@@ -707,7 +710,7 @@ def build_project(projectPath, command, helpOnly, verbosity):
                                 stderr= subprocess.PIPE if verbosity == -1 else None
                                 ).returncode
     if returncode:
-        raise ProcessError("Failed with code " + str(returncode))
+        raise ProcessError("Failed with code %s" % returncode)
 
 # Parse the project path from the specified index and run a Makefile target
 def buildCommand(command, index, args):
@@ -763,12 +766,12 @@ def getMakefileTargets(args):
 
 # Print available versions and platforms
 def versions_command(args):
-    print("Available deviceOS versions:\n")
     with open(jsonFiles["firmware"], "r") as firmwareFile:
+        print("Available deviceOS versions:\n")
         for entry in reversed(json.load(firmwareFile)):
             version = entry["version"]
             devicesStr = ", ".join([platformConvert(platform, "id", "name") for platform in getSupportedPlatforms(version)])
-            print("  ", version + "\t", "[", devicesStr, "]")
+            print("   %s\t [ %s ]" % (version, devicesStr))
 
         print("\nTo configure a project use:")
         print("\tneopo configure <platform> <version> <project>")
@@ -787,13 +790,13 @@ def settings_command(args):
         projectPath = args[2] if len(args) >= 3 else os.getcwd()
         settings = getSettings(projectPath)
         flags = getFlags(projectPath)
-        print("Configuration for project", projectPath + ":")
-        print("\tparticle.targetPlatform:", settings[0])
-        print("\tparticle.firmwareVersion:", settings[1])
-        print("\tEXTRA_CFLAGS:", flags if flags else "<not set>")
+        print("Configuration for project %s:" % projectPath)
+        print("\tparticle.targetPlatform: %s" % settings[0])
+        print("\tparticle.firmwareVersion: %s"% settings[1])
+        print("\tEXTRA_CFLAGS: %s" % flags if flags else "<not set>")
         print()
     except FileNotFoundError:
-        raise UserError(projectPath + " is not a Particle project!")
+        raise UserError("%s is not a Particle project!" % projectPath)
 
 # Wrapper for [run]
 def run_command(args):
@@ -866,15 +869,26 @@ def load_command(args):
     try:
         scriptPath = args[2]
         shutil.copyfile(scriptPath, os.path.join(SCRIPTS_DIR, os.path.basename(scriptPath)))
-        print("Copied", scriptPath, "into", SCRIPTS_DIR)
+        print("Copied %s into %s" % (scriptPath, SCRIPTS_DIR))
     except IndexError:
         raise UserError("You must specify a script file!")
+    except FileNotFoundError:
+        raise UserError("Could not find script %s!" % scriptPath)
+
+# List available scripts
+def listScriptsMsg():
+    (_, _, scripts) = next(os.walk(SCRIPTS_DIR))
+    if scripts:
+        print("Available scripts:")
+        print(*scripts, sep=", ")
+        print()
 
 # Wrapper for [script]
 def script_command(args):
     try:
         name = args[2]
     except IndexError:
+        listScriptsMsg()
         raise UserError("You must supply a script name!")
 
     scriptPath = os.path.join(SCRIPTS_DIR, name)
@@ -893,7 +907,7 @@ def script_command(args):
                     # Run the process just like a regular invocation
                     main(process)
     except FileNotFoundError:
-        raise ProcessError("Could find script!")
+        raise ProcessError("Could not find script %s!" % name)
 
 # Print all iterable options (for completion)
 def iterate_options(args):
@@ -931,7 +945,7 @@ def iterate_command(args):
         raise UserError("You must supply a command to iterate with!")
 
     for device in devices:
-        print("DeviceID:", device)
+        print("DeviceID: %s" % device)
         # Put device into DFU mode
         process = [particle_cli, "usb", "dfu", device]
         subprocess.run(process, stderr=subprocess.PIPE,
@@ -973,6 +987,7 @@ def flags_command(args):
     setFlags(project, makeFlags)
 
 # Wrapper for [upgrade]
+# TODO: Deprecate, since using pip/pacman
 def upgrade_command(args):
     # This is a primitive upgrade function. Releases will be used in future.
     url = "https://raw.githubusercontent.com/nrobinson2000/neopo/master/neopo/neopo.py"
@@ -1007,7 +1022,7 @@ def particle_command(args):
     except KeyboardInterrupt:
         return
     if returncode:
-        raise ProcessError("Particle CLI exited with code " + str(returncode))
+        raise ProcessError("Particle CLI exited with code %s" % returncode)
             
 # Print help information about the program
 def print_help(args):
@@ -1100,23 +1115,44 @@ commands = {
 def main(args):
     if len(args) == 1:
         help()
+        # print("ayy lmao")
     elif args[1] in commands:
         try:
             commands[args[1]](args)
+        except FileNotFoundError as e:
+            file = e.filename
+            if responsible(file):
+                print("Error: file %s not found." % file)
+                print("Please ensure that you have installed the dependencies:")
+                print("\t$ neopo install")
+            else:
+                unexpectedError()
         except RuntimeError as e:
             print(e)
             exit(1)
         except Exception as e:
-            traceback.print_exc()
-            print("An unexpected error occurred!")
-            print("To report this error on GitHub, please open an issue:")
-            print("https://github.com/nrobinson2000/neopo/issues")
+            unexpectedError()
             exit(2)
     else:
         print_help(args)
         print("Invalid command!")
         print()
         exit(3)
+
+# Print traceback and message for unhandled exceptions
+def unexpectedError():
+    traceback.print_exc()
+    print("An unexpected error occurred!")
+    print("To report this error on GitHub, please open an issue:")
+    print("https://github.com/nrobinson2000/neopo/issues")
+
+# Check if neopo is responsible for given file
+def responsible(file):
+    dirs = [PARTICLE_DEPS, NEOPO_DEPS, CACHE_DIR, SCRIPTS_DIR]
+    for dir in dirs:
+        if file.startswith(dir):
+            return True
+    return False
 
 ### MODULE API
 
