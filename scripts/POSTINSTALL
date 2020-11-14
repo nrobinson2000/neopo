@@ -1,0 +1,29 @@
+#!/bin/bash
+
+ARCH="$(uname -m)"
+
+# Get debugger working in Workbench:
+if [[ "$ARCH" == "x86_64" ]]; then
+    sudo pacman -S --needed yay
+    gpg --keyserver hkp://keys.gnupg.net:80 --recv-keys C52048C0C0748FEE227D47A2702353E0F7E48EDB
+    yay -S --needed lib32-ncurses5-compat-libs ncurses5-compat-libs
+fi
+
+# Install particle packages
+neopo install
+
+# Fix and install particle-cli
+if [[ "$ARCH" == "aarch64" ]]; then
+    export GODE_DEBUG=info  # This is optional
+    neopo particle # This will fail
+
+    # Replace node executable
+    NODE_BINARY="$(find $HOME/.particle/node-v*/bin/node)"
+    mv "$NODE_BINARY" "${NODE_BINARY}.old"
+    ln -s $(which node) "$NODE_BINARY"
+fi
+
+# Complete particle-cli install and setup non-root USB access
+neopo particle configure usb
+
+# Create plugdev group and add USER

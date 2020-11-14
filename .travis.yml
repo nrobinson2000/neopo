@@ -6,12 +6,12 @@ os:
   - osx
 language: shell
 install:
-  - source tests/travis.sh
+  - source ci/travis.sh
   - neopo install
 script:
   # Regular neopo tests
   - neopo help
-  - neopo load tests/travisTests
+  - neopo load ci/travisTests
   - neopo script travisTests
   # Python tests
-  - python3 tests/travis-neopo.py
+  - python3 ci/travis-neopo.py
