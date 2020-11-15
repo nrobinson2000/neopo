@@ -1,0 +1,2 @@
+#!/bin/bash
+roff2html neopo.1 > neopo.html

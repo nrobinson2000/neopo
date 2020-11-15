@@ -1,0 +1,391 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Sun Nov 15 13:54:52 2020 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>NEOPO</title>
+
+</head>
+<body>
+
+<h1 align="center">NEOPO</h1>
+
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#OPTIONS">OPTIONS</a><br>
+<a href="#AUTHOR">AUTHOR</a><br>
+<a href="#COPYRIGHT">COPYRIGHT</a><br>
+<a href="#REPORTING BUGS">REPORTING BUGS</a><br>
+<a href="#SEE ALSO">SEE ALSO</a><br>
+<a href="#NOTES">NOTES</a><br>
+
+<hr>
+
+
+<h2>NAME
+<a name="NAME"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><i>neopo</i>
+&minus; A lightweight solution for local Particle
+development</p>
+
+<h2>SYNOPSIS
+<a name="SYNOPSIS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>neopo</b>
+[OPTIONS] [PROJECT] [-v/q] <b><br>
+neopo</b> build [project] [-v/q] <b><br>
+neopo</b> particle [OPTIONS] <b><br>
+neopo</b> script [file]</p>
+
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Neopo is a
+Particle development management utility that simplifies the
+installation and usage of Particle&rsquo;s toolchains on a
+variety on distributions. It features options to build or
+flash projects, a scripting interface, iterable commands,
+and Particle Workbench/CLI compatibility. On Linux, several
+packages required for Workbench to operate sucessfully are
+installed as dependencies for neopo, providing incredible
+value to Workbench users, even if they do not choose to use
+neopo&rsquo;s interfaces.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Neopo can
+additionally be used as a Python module, providing methods
+to use local Particle development toolchains from within
+Python.</p>
+
+<h2>OPTIONS
+<a name="OPTIONS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>GENERAL
+OPTIONS</b></p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="6%">
+
+
+<p><b>help</b></p></td>
+<td width="5%"></td>
+<td width="78%">
+
+
+<p>When neopo runs without arguments, or with <b>help,</b>
+brief documentation for all user-accessible commands is
+displayed.</p> </td></tr>
+</table>
+
+<p style="margin-left:11%;"><b>install [-f]</b></p>
+
+<p style="margin-left:22%;">Install Particle toolchains and
+setup the neopo environment. It takes an optional parameter
+of <b>-f,</b> which can force toolchains to be reinstalled,
+rather than skipped if the latest versions are already
+installed.</p>
+
+<p style="margin-left:11%;"><b>versions</b></p>
+
+<p style="margin-left:22%;">List all known versions of
+Device OS and supported platforms available to neopo. To
+refresh, run <b>update.</b></p>
+
+<p style="margin-left:11%;"><b>create
+&lt;project&gt;</b></p>
+
+<p style="margin-left:22%;">Create a new Particle project
+at the specified project path. The created project is
+compatible with neopo, Particle Workbench, and Particle CLI.
+If <b>git</b> is installed, the project is additionally
+initialized as a repository with support for TravisCI.</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>update</b></p></td>
+<td width="2%"></td>
+<td width="78%">
+
+
+<p>Refresh the Workbench cache and download Particle
+toolchains if there are newer versions available.</p></td></tr>
+</table>
+
+<p style="margin-left:11%;"><b>get &lt;version&gt;</b></p>
+
+<p style="margin-left:22%;">Download a specified Device OS
+version for later use. Handy for situations when you need to
+download firmware in advance.</p>
+
+<p style="margin-left:11%;"><b>particle [OPTIONS]</b></p>
+
+<p style="margin-left:22%;">Access the Particle CLI
+distribution used internally by neopo. By using the <b>neopo
+particle</b> prefix, any Particle CLI command can be
+accessed. For convenience, creating an alias for particle is
+recommended:</p>
+
+<p style="margin-left:22%; margin-top: 1em"><b>alias
+particle=&quot;neopo particle&quot;</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>BUILD
+OPTIONS <br>
+compile/build [project] [-v/q]</b></p>
+
+<p style="margin-left:22%;">Compile the application
+firmware of a given Particle project, or the current
+directory if it&rsquo;s a project. Settings applied using
+<b>configure</b> will be passed on to the compiler. The
+verbosity of the output can be increased with the -v flag,
+or the output can be quieted with the -q flag.</p>
+
+<p style="margin-left:11%;"><b>flash [project]
+[-v/q]</b></p>
+
+<p style="margin-left:22%;">Compile application firmware
+and flash to a connected device using DFU.</p>
+
+<p style="margin-left:11%;"><b>flash-all [project]
+[-v/q]</b></p>
+
+<p style="margin-left:22%;">Compile application and system
+firmware and flash all parts to a connected device using
+DFU.</p>
+
+<p style="margin-left:11%;"><b>clean [project]
+[-v/q]</b></p>
+
+<p style="margin-left:22%;">Clean application firmware.
+Usually unnecessary but can eliminate some build errors.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>SPECIAL
+OPTIONS <br>
+run &lt;target&gt; [project] [-v/q]</b></p>
+
+<p style="margin-left:22%;">Run a specified makefile target
+for a project. Includes common targets presented in <b>BUILD
+OPTIONS</b> in addition to other, less frequently used
+targets. The -v and -q flags are supported. Running without
+arguments will list available targets.</p>
+
+<p style="margin-left:11%;"><b>configure &lt;platform&gt;
+&lt;version&gt; [project]</b></p>
+
+<p style="margin-left:22%;">Configure the device platform
+and Device OS version a project should use. The platform and
+version are checked for compatibility and the specified
+version of Device OS will be downloaded if it&rsquo;s not
+already installed.</p>
+
+<p style="margin-left:22%; margin-top: 1em">To find Device
+OS versions and their supported platforms use
+<b>versions.</b> The tab completion function is especially
+handy since it can fill in platforms and versions for this
+command.</p>
+
+<p style="margin-left:11%;"><b>flags &lt;string&gt;
+[project]</b></p>
+
+<p style="margin-left:22%;">Set the EXTRA_CFLAGS variable
+to be used during compilation of a project.</p>
+
+<p style="margin-left:11%;"><b>settings [project]</b></p>
+
+<p style="margin-left:22%;">View configured settings for a
+project. The device platform, Device OS version, and
+EXTRA_CFLAGS will be printed.</p>
+
+<p style="margin-left:11%;"><b>libs [project]</b></p>
+
+<p style="margin-left:22%;">Verify or install Particle
+libraries specified in <b>project.properties</b> for a
+project. This command is useful when working with projects
+that use the cloud compiler because it allows you to quickly
+download the same libraries locally.</p>
+
+<p style="margin-left:11%;"><b>iterate &lt;command&gt;
+[OPTIONS] [-v/q]</b></p>
+
+<p style="margin-left:22%;">An advanced command used to run
+an iterable command for all connected devices. For each
+connected device, the deviceID is printed, the device is put
+into DFU mode, and the specified iterable command is
+executed. This command was designed for quickly flashing
+multiple connected devices, but there are many ways it can
+be used.</p>
+
+<p style="margin-left:22%; margin-top: 1em">The following
+commands are iterable: <b>compile, build, flash, flash-all,
+clean, run, script.</b></p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>SCRIPT
+INTERFACE</b> <br>
+One of the powerful features of neopo is the scripting
+interface. Neopo scripts are a list of commands to run
+sequentially, with each command placed on its own line.
+Empty lines and lines starting with # are skipped. Any neopo
+command can be used in a neopo script, <b>even Particle
+commands. <br>
+script [file]</b></p>
+
+<p style="margin-left:22%;">Execute a script with neopo. If
+no file is provided, neopo will accept a script piped in
+through standard input.</p>
+
+<p style="margin-left:22%; margin-top: 1em"><b>$ cat myFile
+| neopo script</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">To relay
+information to the user, the <b>print</b> command can be
+used, and to wait for user interaction or acknowledgement,
+the <b>wait</b> command can be used.</p>
+
+<p style="margin-left:22%; margin-top: 1em">Here is an
+example neopo script:</p>
+
+<p style="margin-left:22%; margin-top: 1em"># Configure the
+current project <br>
+configure argon 1.5.2</p>
+
+<p style="margin-left:22%; margin-top: 1em"># Prompt the
+user to plug in a device <br>
+print &quot;Please plug in your device.&quot; <br>
+wait</p>
+
+<p style="margin-left:22%; margin-top: 1em"># Flash
+firmware to the device <br>
+flash</p>
+
+<p style="margin-left:22%; margin-top: 1em"># Prompt the
+user to wait for the device to connect <br>
+print &quot;Please wait for your device to connect to the
+cloud.&quot; <br>
+wait</p>
+
+<p style="margin-left:22%; margin-top: 1em"># Subscribe to
+incoming messages <br>
+particle subscribe</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>PYTHON
+INTERFACE</b> <br>
+Neopo is distributed as a Python module. After installation,
+not only will neopo be available as a command-line program,
+but it will additionally be accessible within Python. Users
+are encouraged to experiment with neopo in Python scripts or
+the REPL.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Here is the
+script example implemented in Python:</p>
+
+<p style="margin-left:11%; margin-top: 1em">import neopo
+<br>
+neopo.configure(&quot;argon&quot;, &quot;1.5.2&quot;,
+&quot;myProject&quot;) <br>
+print(&quot;Please plug in your device.&quot;) <br>
+neopo.script_wait() <br>
+neopo.flash(&quot;myProject&quot;)</p>
+
+
+<p style="margin-left:11%; margin-top: 1em">print(&quot;Please
+wait for your device to connect to the cloud.&quot;) <br>
+neopo.script_wait() <br>
+neopo.particle(&quot;subscribe&quot;)</p>
+
+<p style="margin-left:11%; margin-top: 1em">To just use
+Particle CLI within Python, one can explicity import the
+<b>particle</b> function:</p>
+
+<p style="margin-left:11%; margin-top: 1em">from neopo
+import particle <br>
+particle(&quot;help&quot;) <br>
+particle(&quot;serial monitor&quot;)</p>
+
+<p style="margin-left:11%; margin-top: 1em">device =
+&quot;myFooMachine&quot; <br>
+function = &quot;myBarFunction&quot; <br>
+particle([&quot;call&quot;, device, function])</p>
+
+<h2>AUTHOR
+<a name="AUTHOR"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Nathan Robinson
+&lt;nrobinson2000@me.com&gt;</p>
+
+<h2>COPYRIGHT
+<a name="COPYRIGHT"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Copyright (c)
+2020 - Nathan Robinson. MIT License: All rights
+reserved.</p>
+
+<h2>REPORTING BUGS
+<a name="REPORTING BUGS"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em">nrobinson2000/neopo
+on GitHub:
+&lt;https://github.com/nrobinson2000/neopo&gt;</p>
+
+<h2>SEE ALSO
+<a name="SEE ALSO"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Online
+Documentation: &lt;https://neopo.xyz/docs/full-docs&gt; <br>
+Particle Developer Forum:
+&lt;https://community.particle.io&gt; <br>
+Workbench Documentation:
+&lt;https://docs.particle.io/workbench&gt; <br>
+Particle CLI Documentation:
+&lt;https://docs.particle.io/reference/developer-tools/cli&gt;</p>
+
+<h2>NOTES
+<a name="NOTES"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">On Manjaro/Arch
+running on x86_64 or aarch64 there are several optional
+tweaks required to complete the installation of neopo. On
+x86_64, this consists of installing the ncurses packages
+from the AUR to support use of the Particle Debugger in
+Workbench. On aarch64, this consists of replacing the armv7l
+Nodejs distribution with an aarch64 Nodejs distribution.
+&lt;https://github.com/nrobinson2000/neopo/scripts/POSTINSTALL&gt;</p>
+<hr>
+</body>
+</html>

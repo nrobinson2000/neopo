@@ -9,7 +9,7 @@
 [OPTIONS] [PROJECT] [-v/q]
 .br
 .B neopo
-build [project]
+build [project] [-v/q]
 .br
 .B neopo
 particle [OPTIONS]
@@ -19,9 +19,9 @@ script [file]
 
 .SH DESCRIPTION
 .P
-Neopo is a Particle development management utility that simplifies the installation and usage of Particle's toolchains on a variety on distributions. It features options to build or flash projects, a scripting interface, iterable commands, and Particle Workbench/CLI compatibility. On Linux, several packages required for Workbench to operate sucessfully are installed as dependencies for neopo, providing incredible value to Workbench users, even if they do not use the neopo interface.
+Neopo is a Particle development management utility that simplifies the installation and usage of Particle's toolchains on a variety on distributions. It features options to build or flash projects, a scripting interface, iterable commands, and Particle Workbench/CLI compatibility. On Linux, several packages required for Workbench to operate sucessfully are installed as dependencies for neopo, providing incredible value to Workbench users, even if they do not choose to use neopo's interfaces.
 
-Neopo can additionally be used as a Python module, providing an interface to use local Particle development toolchains from within Python.
+Neopo can additionally be used as a Python module, providing methods to use local Particle development toolchains from within Python.
 
 .SH OPTIONS
 
@@ -59,7 +59,7 @@ List all known versions of Device OS and supported platforms available to neopo.
 .B create <project>
 Create a new Particle project at the specified project path. The created project is compatible with neopo, Particle Workbench, and Particle CLI. If
 .B git
-is installed on your system, the project is additionally initialized as a repository and support for TravisCI is added.
+is installed, the project is additionally initialized as a repository with support for TravisCI.
 
 .TP
 .B update
@@ -100,9 +100,9 @@ Clean application firmware. Usually unnecessary but can eliminate some build err
 .SS SPECIAL OPTIONS
 .TP
 .B run <target> [project] [-v/q]
-Run a specified makefile target for a project. Includes common targets used by
+Run a specified makefile target for a project. Includes common targets presented in
 .B BUILD OPTIONS
-and other targets. The -v and -q flags are supported. Running without arguments will list available targets.
+in addition to other, less frequently used targets. The -v and -q flags are supported. Running without arguments will list available targets.
 
 .TP
 .B configure <platform> <version> [project]
@@ -118,7 +118,7 @@ Set the EXTRA_CFLAGS variable to be used during compilation of a project.
 
 .TP
 .B settings [project]
-View configured settings for a project. The device platform, Device OS version, and EXTRA_CFLAGS will be printed out.
+View configured settings for a project. The device platform, Device OS version, and EXTRA_CFLAGS will be printed.
 
 .TP
 .B libs [project]
@@ -130,7 +130,7 @@ for a project. This command is useful when working with projects that use the cl
 .B iterate <command> [OPTIONS] [-v/q]
 An advanced command used to run an iterable command for all connected devices. For each connected device, the deviceID is printed, the device is put into DFU mode, and the specified iterable command is executed. This command was designed for quickly flashing multiple connected devices, but there are many ways it can be used.
 
-The following commands are supported:
+The following commands are iterable:
 .B compile,
 .B build,
 .B flash,
@@ -184,7 +184,7 @@ particle subscribe
 
 .SS PYTHON INTERFACE
 
-Neopo is distributed as a Python module. After installation, not only will neopo be available as a command-line program, but it will additionally be accessible from within Python. Users are encouraged to experiment with neopo in Python scripts or the REPL.
+Neopo is distributed as a Python module. After installation, not only will neopo be available as a command-line program, but it will additionally be accessible within Python. Users are encouraged to experiment with neopo in Python scripts or the REPL.
 
 Here is the script example implemented in Python:
 
@@ -204,7 +204,9 @@ neopo.script_wait()
 .br
 neopo.particle("subscribe")
 
-If users just want a way to use Particle CLI from within Python, they can explicity import the particle function:
+To just use Particle CLI within Python, one can explicity import the
+.B particle
+function:
 
 from neopo import particle
 .br
@@ -222,16 +224,15 @@ particle(["call", device, function])
 .P
 Nathan Robinson <nrobinson2000@me.com>
 
-.SH REPORTING BUGS
-.P
-nrobinson2000/neopo on GitHub: <https://github.com/nrobinson2000/neopo>
-
 .SH COPYRIGHT
 .P
 Copyright (c) 2020 - Nathan Robinson. MIT License: All rights reserved.
 
-.\" TODO: Update online docs to match manpage edits better
+.SH REPORTING BUGS
+.P
+nrobinson2000/neopo on GitHub: <https://github.com/nrobinson2000/neopo>
 
+.\" TODO: Update online docs to match manpage edits better, use ./make-html
 .SH SEE ALSO
 Online Documentation: <https://neopo.xyz/docs/full-docs>
 .br
