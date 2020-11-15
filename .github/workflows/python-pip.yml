@@ -25,8 +25,7 @@ jobs:
           neopo particle
     - name: Test neopo (bash)
       run: |
-          neopo load ci/travisTests
-          neopo script travisTests
+          neopo script ci/travisTests
     # - name: Test (python)
     #   run: |
     #       python ci/github-neopo.py

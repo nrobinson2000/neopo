@@ -2,6 +2,7 @@
 
 # neopo: A lightweight solution for local Particle development.
 # Copyright (c) 2020 Nathan Robinson.
+# https://neopo.xyz
 
 import io
 import os
@@ -22,7 +23,6 @@ import urllib.request
 PARTICLE_DEPS = os.path.join(os.path.expanduser("~"), ".particle", "toolchains")
 NEOPO_DEPS = os.path.join(os.path.expanduser("~"), ".neopo")
 CACHE_DIR = os.path.join(NEOPO_DEPS, "cache")
-SCRIPTS_DIR = os.path.join(NEOPO_DEPS, "scripts")
 
 # Precompiled gcc-arm for ARM platforms
 ARM_GCC_ARM = {
@@ -202,9 +202,8 @@ def writeExecutable(content, path):
 
 # Download extension manifest and simple dependencies
 def getDeps():
-    # Ensure that cache and scripts directories exist
+    # Ensure that cache directory exists
     pathlib.Path(CACHE_DIR).mkdir(parents=True, exist_ok=True)
-    pathlib.Path(SCRIPTS_DIR).mkdir(parents=True, exist_ok=True)
 
     # Download and extract VSIX, and obtain dependency manifest
     extension = getExtension(getExtensionURL())
@@ -369,23 +368,6 @@ def installOrUpdate(install, force):
             old = int(manifest[dep["name"]].split("-")[0].replace(".", ""))
             if new > old: downloadDep(dep, True, True)
         print("Dependencies are up to date!")
-
-# Delete the neopo script from the system
-#TODO: Enforce package manager instead
-def uninstall_command(args):
-    execpath = args[0]
-    print("Are you sure you want to uninstall neopo at %s?" % execpath)
-
-    # Ask for confirmation
-    if input("(Y/N): ").lower() != "y":
-        raise UserError("Aborted.")
-    try:
-        #TODO: the ~/.neopo directory should get deleted too
-        os.remove(execpath)
-        print("Uninstalled neopo.")
-        print("Note: The .particle directory may still exist (remove it with `rm -rf ~/.particle`)")
-    except PermissionError:
-        raise ProcessError("Could not delete %s\nTry running with sudo." % execpath)
 
 # Create a Particle project and copy in Workbench settings
 def create_project(path, name):
@@ -848,7 +830,7 @@ def update_command(args):
     installOrUpdate(False, force)
 
 # Wait for user to press enter [for scripting]
-def script_wait(args):
+def script_wait(args = None):
     input("Press Enter to continue...")
 
 # Print a message to the console [for scripting]
@@ -859,55 +841,29 @@ def script_print(args):
         message = ""
     print(*message)
 
-# List all scripts installed (for completion)
-def listScripts(args):
-    (_, _, files) = next(os.walk(SCRIPTS_DIR))
-    print(*files)
-
-# Copy a script file into the scripts directory
-def load_command(args):
-    try:
-        scriptPath = args[2]
-        shutil.copyfile(scriptPath, os.path.join(SCRIPTS_DIR, os.path.basename(scriptPath)))
-        print("Copied %s into %s" % (scriptPath, SCRIPTS_DIR))
-    except IndexError:
-        raise UserError("You must specify a script file!")
-    except FileNotFoundError:
-        raise UserError("Could not find script %s!" % scriptPath)
-
-# List available scripts
-def listScriptsMsg():
-    (_, _, scripts) = next(os.walk(SCRIPTS_DIR))
-    if scripts:
-        print("Available scripts:")
-        print(*scripts, sep=", ")
-        print()
-
 # Wrapper for [script]
 def script_command(args):
     try:
         name = args[2]
+        script = open(name, "r")
     except IndexError:
-        listScriptsMsg()
-        raise UserError("You must supply a script name!")
-
-    scriptPath = os.path.join(SCRIPTS_DIR, name)
-
-    try:
-        # Open the script and execute each line
-        with open(scriptPath, "r") as script:
-            for line in script.readlines():
-                # Skip comments
-                if line.startswith("#"):
-                    continue
-                # Skip empty lines
-                process = [args[0], *line.split()]
-                if len(process) > 1:
-                    print(process)
-                    # Run the process just like a regular invocation
-                    main(process)
+        script = sys.stdin
+        if script.isatty():
+            raise ProcessError("Usage:\n\t$ neopo script <file>\n\t$ <another process> | neopo script")
     except FileNotFoundError:
         raise ProcessError("Could not find script %s!" % name)
+
+    # Open the script and execute each line
+    for line in script.readlines():
+        line = line.rstrip()
+        # Skip comments
+        if line.startswith("#"):
+            continue
+        
+        # Run the process just like a regular invocation, skip empty lines
+        process = [args[0], *line.split()]
+        if len(process) > 1:
+            main(process)
 
 # Print all iterable options (for completion)
 def iterate_options(args):
@@ -1008,6 +964,23 @@ def upgrade_command(args):
     else:
         raise ProcessError("Neopo was not run absolutely, not upgrading.")
 
+# Delete the neopo script from the system
+#TODO: Enforce package manager instead
+def uninstall_command(args):
+    execpath = args[0]
+    print("Are you sure you want to uninstall neopo at %s?" % execpath)
+
+    # Ask for confirmation
+    if input("(Y/N): ").lower() != "y":
+        raise UserError("Aborted.")
+    try:
+        #TODO: the ~/.neopo directory should get deleted too
+        os.remove(execpath)
+        print("Uninstalled neopo.")
+        print("Note: The .particle directory may still exist (remove it with `rm -rf ~/.particle`)")
+    except PermissionError:
+        raise ProcessError("Could not delete %s\nTry running with sudo." % execpath)
+
 # Wrapper for [particle]
 def particle_command(args):
     # Add build tools to env
@@ -1028,14 +1001,19 @@ def particle_command(args):
 def print_help(args):
     print_logo()
     print("""Usage: neopo [OPTIONS] [PROJECT] [-v/q]
+    
+Refer to the manual for more detailed help: 
+$ man neopo
 
 Options:
     General Options:
         help                    # Show this help information
         install [-f]            # Install dependencies (-f to force)
-        upgrade                 # Upgrade neopo
-        uninstall               # Uninstall neopo
+        update                  # Update neopo dependencies
+        upgrade                 # Upgrade neopo   (Deprecated)
+        uninstall               # Uninstall neopo (Deprecated)
         versions                # List available versions and platforms
+        get <version>           # Download a specific deviceOS version
         create <project>        # Create a Workbench/neopo project
         particle [OPTIONS]      # Use the encapsulated Particle CLI
 
@@ -1054,12 +1032,9 @@ Options:
         iterate <command> [OPTIONS] [-v/q]        # Put devices into DFU mode
                                                   # and run commands on them
     Script Options:
-        script <script name>    # Execute a script in ~/.neopo/scripts
-        load <script name>      # Copy a script into ~/.neopo/scripts
-
-    Dependency Options:
-        update                  # Update neopo dependencies
-        get <version>           # Download a specific deviceOS version
+        script [file]       # Execute a script or read a script from stdin
+        print [message]     # Print a message to the console
+        wait                # Wait for the user to press ENTER
         """)
 
 def print_logo():
@@ -1098,8 +1073,6 @@ commands = {
     "options": options,
     "download-unlisted": downloadUnlisted_command,
     "script": script_command,
-    "list-scripts": listScripts,
-    "load": load_command,
     "iterate": iterate_command,
     "options-iterable": iterate_options,
     "flags": flags_command,
@@ -1148,7 +1121,7 @@ def unexpectedError():
 
 # Check if neopo is responsible for given file
 def responsible(file):
-    dirs = [PARTICLE_DEPS, NEOPO_DEPS, CACHE_DIR, SCRIPTS_DIR]
+    dirs = [PARTICLE_DEPS, NEOPO_DEPS, CACHE_DIR]
     for dir in dirs:
         if file.startswith(dir):
             return True
@@ -1189,7 +1162,9 @@ def versions():
 def create(projectPath = os.getcwd()):
     create_command([None, None, projectPath])
 
-def particle(args):
+def particle(args = []):
+    if isinstance(args, str):
+        args = args.split()
     particle_command([None, None, *args])
 
 ### Build options
@@ -1230,9 +1205,6 @@ def iterate(args, verbosity = ""):
 
 def script(scriptName):
     script_command([None, None, scriptName])
-
-def load(scriptPath):
-    load_command([None, None, scriptPath])
 
 ### Dependency options
 

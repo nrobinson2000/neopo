@@ -15,11 +15,11 @@ build [project]
 particle [OPTIONS]
 .br
 .B neopo
-script <script name>
+script [file]
 
 .SH DESCRIPTION
 .P
-Neopo is a Particle development management utility that simplifies the installation and usage of Particle's toolchains on a variety on distributions. It features options to build or flash projects, a scripting interface, iterable commands, and Particle Workbench/CLI compatibility. On Linux, several packages required for Workbench to operate sucessfully are listed as dependencies. Neopo provides incredible value to Workbench users, even if they do not use the neopo interface.
+Neopo is a Particle development management utility that simplifies the installation and usage of Particle's toolchains on a variety on distributions. It features options to build or flash projects, a scripting interface, iterable commands, and Particle Workbench/CLI compatibility. On Linux, several packages required for Workbench to operate sucessfully are installed as dependencies for neopo, providing incredible value to Workbench users, even if they do not use the neopo interface.
 
 Neopo can additionally be used as a Python module, providing an interface to use local Particle development toolchains from within Python.
 
@@ -35,19 +35,24 @@ brief documentation for all user-accessible commands is displayed.
 
 .TP
 .B install [-f]
-Install Particle dependencies and setup the neopo environment. It takes an optional parameter of -f, which is used to force dependencies to be reinstalled, rather than skipped if already installed.
+Install Particle toolchains and setup the neopo environment. It takes an optional parameter of
+.B -f,
+which can force toolchains to be reinstalled, rather than skipped if the latest versions are already installed.
 
-.TP
-.B upgrade
-Upgrade the neopo utility to the latest version available on GitHub. TODO: use package manager
 
-.TP
-.B uninstall
-Uninstall neopo from the system. TODO: use package manager
+.\" TODO: Deprecate `upgrade` and `uninstall`
+
+.\" .TP
+.\" .B upgrade
+.\" Upgrade the neopo utility to the latest version available on GitHub. TODO: use package manager
+
+.\" .TP
+.\" .B uninstall
+.\" Uninstall neopo from the system. TODO: use package manager
 
 .TP
 .B versions
-List all known versions and platforms available to neopo. To refresh, run
+List all known versions of Device OS and supported platforms available to neopo. To refresh, run
 .B update.
 
 .TP
@@ -57,10 +62,20 @@ Create a new Particle project at the specified project path. The created project
 is installed on your system, the project is additionally initialized as a repository and support for TravisCI is added.
 
 .TP
+.B update
+Refresh the Workbench cache and download Particle toolchains if there are newer versions available.
+
+.TP
+.B get <version>
+Download a specified Device OS version for later use. Handy for situations when you need to download firmware in advance.
+
+.TP
 .B particle [OPTIONS]
-Access the Particle CLI executable used internally by neopo. By prefixing any Particle CLI command with
-.B neopo particle,
-Particle CLI can be accessed easily.
+Access the Particle CLI distribution used internally by neopo. By using the
+.B neopo particle
+prefix, any Particle CLI command can be accessed. For convenience, creating an alias for particle is recommended:
+
+.B alias particle="neopo particle"
 
 .SS BUILD OPTIONS
 
@@ -68,15 +83,15 @@ Particle CLI can be accessed easily.
 .B compile/build [project] [-v/q]
 Compile the application firmware of a given Particle project, or the current directory if it's a project. Settings applied using
 .B configure
-will be passed to the compiler. The verbosity of the output can be increased with the -v flag, or the output can be quieted with the -q flag.
+will be passed on to the compiler. The verbosity of the output can be increased with the -v flag, or the output can be quieted with the -q flag.
 
 .TP
 .B flash [project] [-v/q]
-Compile application firmware and then flash the firmware to a connected device using DFU.
+Compile application firmware and flash to a connected device using DFU.
 
 .TP
 .B flash-all [project] [-v/q]
-Compile application and system firmware and then flash all parts to a connected device using DFU.
+Compile application and system firmware and flash all parts to a connected device using DFU.
 
 .TP
 .B clean [project] [-v/q]
@@ -87,33 +102,33 @@ Clean application firmware. Usually unnecessary but can eliminate some build err
 .B run <target> [project] [-v/q]
 Run a specified makefile target for a project. Includes common targets used by
 .B BUILD OPTIONS
-and other targets. The -v and -q flags are supported.
+and other targets. The -v and -q flags are supported. Running without arguments will list available targets.
 
 .TP
 .B configure <platform> <version> [project]
-Configure the device platform and deviceOS version a project should use. The platform and version are checked for compatibility and the specified version of deviceOS will be downloaded if it's not already installed.
+Configure the device platform and Device OS version a project should use. The platform and version are checked for compatibility and the specified version of Device OS will be downloaded if it's not already installed.
 
-To find deviceOS versions and their supported platforms use
+To find Device OS versions and their supported platforms use
 .B versions.
-The tab completion function is especially handy here since it can fill in platforms and versions.
+The tab completion function is especially handy since it can fill in platforms and versions for this command.
 
 .TP
 .B flags <string> [project]
-Set the EXTRA_CFLAGS variable for a project to be used during compilation.
+Set the EXTRA_CFLAGS variable to be used during compilation of a project.
 
 .TP
 .B settings [project]
-View configured settings for a project. The device platform, deviceOS version, and EXTRA_CFLAGS will be printed out.
+View configured settings for a project. The device platform, Device OS version, and EXTRA_CFLAGS will be printed out.
 
 .TP
 .B libs [project]
-Verify or install the specified Particle libraries in
+Verify or install Particle libraries specified in
 .B project.properties
-for a project. This command is useful when working with a project that uses the cloud compiler because this allows you to quickly download the same libraries locally in a project.
+for a project. This command is useful when working with projects that use the cloud compiler because it allows you to quickly download the same libraries locally.
 
 .TP
 .B iterate <command> [OPTIONS] [-v/q]
-An advanced command used to run a supported command iteratively for all connected devices. For each connected device, the deviceID is printed, the device is put into DFU mode, and the specified iteration command is executed. This command was designed for quickly flashing to multiple connected devices, but there are many other ways this command can be used.
+An advanced command used to run an iterable command for all connected devices. For each connected device, the deviceID is printed, the device is put into DFU mode, and the specified iterable command is executed. This command was designed for quickly flashing multiple connected devices, but there are many ways it can be used.
 
 The following commands are supported:
 .B compile,
@@ -124,31 +139,84 @@ The following commands are supported:
 .B run,
 .B script.
 
-The -v and -q flags can be passed if the iterated command supports them.
+.SS SCRIPT INTERFACE
 
-.SS SCRIPT OPTIONS
-
-One of the most powerful features of neopo is the scripting interface. Neopo scripts are a list of commands to run sequentially. Each command should be placed on its own line. Empty lines and lines starting with # are skipped. Any neopo command can be used in a neopo script,
+One of the powerful features of neopo is the scripting interface. Neopo scripts are a list of commands to run sequentially, with each command placed on its own line. Empty lines and lines starting with # are skipped. Any neopo command can be used in a neopo script,
 .B even Particle commands.
 
-Neopo scripts are plaintext and do not require an extension.
-
 .TP
-.B script <script name>
-Execute a script in ~/.neopo/scripts
+.B script [file]
+Execute a script with neopo. If no file is provided, neopo will accept a script piped in through standard input.
 
-.TP
-.B load <script name>
-Copy a script into ~/.neopo/scripts
+.B $ cat myFile | neopo script
 
-.SS DEPENDENCY OPTIONS:
-.TP
-.B update
-Refresh the Workbench manifest and download Particle dependencies if there are newer versions available.
+To relay information to the user, the
+.B print
+command can be used, and to wait for user interaction or acknowledgement, the
+.B wait
+command can be used. 
 
-.TP
-.B get <version>
-Download a specified deviceOS version for later use. Handy for situations when you need to download firmware in advance.
+Here is an example neopo script:
+
+# Configure the current project
+.br
+configure argon 1.5.2
+
+# Prompt the user to plug in a device
+.br
+print "Please plug in your device."
+.br
+wait
+
+# Flash firmware to the device
+.br
+flash
+
+# Prompt the user to wait for the device to connect
+.br
+print "Please wait for your device to connect to the cloud."
+.br
+wait
+
+# Subscribe to incoming messages
+.br
+particle subscribe
+
+.SS PYTHON INTERFACE
+
+Neopo is distributed as a Python module. After installation, not only will neopo be available as a command-line program, but it will additionally be accessible from within Python. Users are encouraged to experiment with neopo in Python scripts or the REPL.
+
+Here is the script example implemented in Python:
+
+import neopo
+.br
+neopo.configure("argon", "1.5.2", "myProject")
+.br
+print("Please plug in your device.")
+.br
+neopo.script_wait()
+.br
+neopo.flash("myProject")
+
+print("Please wait for your device to connect to the cloud.")
+.br
+neopo.script_wait()
+.br
+neopo.particle("subscribe")
+
+If users just want a way to use Particle CLI from within Python, they can explicity import the particle function:
+
+from neopo import particle
+.br
+particle("help")
+.br
+particle("serial monitor")
+
+device = "myFooMachine"
+.br
+function = "myBarFunction"
+.br
+particle(["call", device, function])
 
 .SH AUTHOR
 .P
@@ -162,6 +230,8 @@ nrobinson2000/neopo on GitHub: <https://github.com/nrobinson2000/neopo>
 .P
 Copyright (c) 2020 - Nathan Robinson. MIT License: All rights reserved.
 
+.\" TODO: Update online docs to match manpage edits better
+
 .SH SEE ALSO
 Online Documentation: <https://neopo.xyz/docs/full-docs>
 .br
@@ -173,6 +243,4 @@ Particle CLI Documentation: <https://docs.particle.io/reference/developer-tools/
 
 .SH NOTES
 
-On Manjaro/Arch running on x86_64 or aarch64 there are several tweaks required to complete the installation of neopo. These are described in the following script:
-.br
-<https://github.com/nrobinson2000/neopo/scripts/POSTINSTALL>
+On Manjaro/Arch running on x86_64 or aarch64 there are several optional tweaks required to complete the installation of neopo. On x86_64, this consists of installing the ncurses packages from the AUR to support use of the Particle Debugger in Workbench. On aarch64, this consists of replacing the armv7l Nodejs distribution with an aarch64 Nodejs distribution. <https://github.com/nrobinson2000/neopo/scripts/POSTINSTALL>

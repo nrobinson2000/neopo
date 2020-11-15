@@ -17,12 +17,6 @@ _get-versions() {
     COMPREPLY=($(compgen -W  "$_versions" -- "$cur"))
 }
 
-_get-scripts() {
-    local _scripts
-    _scripts=$($1 list-scripts)
-    COMPREPLY=($(compgen -W  "$_scripts" -- "$cur"))
-}
-
 _run() {
     local _targets
     _targets=$($1 targets)
@@ -78,7 +72,7 @@ _neopo() {
     get)
         _get-versions $_executable;;
     script)
-        _get-scripts $_executable;;
+        COMPREPLY=($(compgen -f -- "$cur"));;
     iterate)
         COMPREPLY=($(compgen -W "$_iterable" -- "$cur"));;
     esac
