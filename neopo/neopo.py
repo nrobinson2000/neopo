@@ -945,41 +945,17 @@ def flags_command(args):
 # Wrapper for [upgrade]
 # TODO: Deprecate, since using pip/pacman
 def upgrade_command(args):
-    # This is a primitive upgrade function. Releases will be used in future.
-    url = "https://raw.githubusercontent.com/nrobinson2000/neopo/master/neopo/neopo.py"
-    execPath = args[0]
+    print("This command is deprecated because neopo is now installed using pip or the AUR.")
+    print("To upgrade neopo, either rerun the universal installer, or follow distribution\nspecific instructions.")
 
-    # Ensure that we are calling neopo absolutely (to prevent overwriting dev)
-    # execPath may be root owned!
-    if execPath == os.path.abspath(execPath):
-        print("Upgrading neopo...")
-        try:
-            with urllib.request.urlopen(url) as response, open(execPath, "w") as file:
-                content = response.read().decode("utf-8")
-                file.write(content)
-        except urllib.error.URLError:
-            raise ProcessError("Failed to download upgrade!")
-        except PermissionError:
-            raise ProcessError("Failed to apply upgrade!\nTry running with sudo.")
-    else:
-        raise ProcessError("Neopo was not run absolutely, not upgrading.")
-
-# Delete the neopo script from the system
-#TODO: Enforce package manager instead
+# Provide information for how to uninstall neopo
 def uninstall_command(args):
-    execpath = args[0]
-    print("Are you sure you want to uninstall neopo at %s?" % execpath)
-
-    # Ask for confirmation
-    if input("(Y/N): ").lower() != "y":
-        raise UserError("Aborted.")
-    try:
-        #TODO: the ~/.neopo directory should get deleted too
-        os.remove(execpath)
-        print("Uninstalled neopo.")
-        print("Note: The .particle directory may still exist (remove it with `rm -rf ~/.particle`)")
-    except PermissionError:
-        raise ProcessError("Could not delete %s\nTry running with sudo." % execpath)
+    print("This command is deprecated because neopo is now installed using pip or the AUR.")
+    print("To uninstall neopo from your system run:")
+    print("\t$ sudo pip3 uninstall neopo")
+    print()
+    print("If you want to delete the neopo and particle directories you can do so with:")
+    print("\t$ rm -rf ~/.neopo ~/.particle")
 
 # Wrapper for [particle]
 def particle_command(args):

@@ -19,7 +19,7 @@ script [file]
 
 .SH DESCRIPTION
 .P
-Neopo is a Particle development management utility that simplifies the installation and usage of Particle's toolchains on a variety on distributions. It features options to build or flash projects, a scripting interface, iterable commands, and Particle Workbench/CLI compatibility. On Linux, several packages required for Workbench to operate sucessfully are installed as dependencies for neopo, providing incredible value to Workbench users, even if they do not choose to use neopo's interfaces.
+Neopo is a Particle development management utility that simplifies the installation and usage of Particle's toolchains on a variety on distributions. It features options to build or flash projects, iterable commands, a scripting interface, and Particle Workbench/CLI compatibility. On Linux, several packages required for Workbench to operate sucessfully are installed as dependencies for neopo, providing incredible value to Workbench users, even if they do not choose to use neopo's interfaces.
 
 Neopo can additionally be used as a Python module, providing methods to use local Particle development toolchains from within Python.
 
@@ -39,16 +39,19 @@ Install Particle toolchains and setup the neopo environment. It takes an optiona
 .B -f,
 which can force toolchains to be reinstalled, rather than skipped if the latest versions are already installed.
 
+.TP
+.B upgrade
+Upgrade the neopo utility to the latest version available on GitHub. (Deprecated)
 
-.\" TODO: Deprecate `upgrade` and `uninstall`
+.TP
+.B uninstall
+Uninstall neopo from the system. (Deprecated)
 
-.\" .TP
-.\" .B upgrade
-.\" Upgrade the neopo utility to the latest version available on GitHub. TODO: use package manager
-
-.\" .TP
-.\" .B uninstall
-.\" Uninstall neopo from the system. TODO: use package manager
+The
+.B upgrade
+and
+.B uninstall
+commands are deprecated since neopo is installed with pip or from the AUR. Running them will provide information regarding how to upgrade or uninstall neopo.
 
 .TP
 .B versions
