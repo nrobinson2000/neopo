@@ -108,6 +108,8 @@ class ProcessError(RuntimeError):
 class ProjectError(RuntimeError):
     pass
 
+# </common>
+
 # Find the Workbench extension URL from the Visual Studio Marketplace
 def getExtensionURL():
     print("Finding Workbench extension URL...")
