@@ -1,7 +1,6 @@
 import io
 import os
 import json
-import stat
 import zipfile
 import tarfile
 import hashlib
@@ -11,12 +10,14 @@ import urllib.request
 
 
 # Local imports
-from common import DependencyError
-from common import PARTICLE_DEPS, CACHE_DIR
-from common import extensionFiles, vscodeFiles
-from common import particle_cli, running_on_windows
+from .common import DependencyError
+from .common import PARTICLE_DEPS, CACHE_DIR, ARM_GCC_ARM
+from .common import extensionFiles, vscodeFiles, jsonFiles
+from .common import particle_cli, running_on_windows
 
-# from manifest import 
+from .utility import writeFile, writeExecutable
+
+from .manifest import writeManifest, createManifest, loadManifest
 
 # Find the Workbench extension URL from the Visual Studio Marketplace
 def getExtensionURL():
@@ -50,9 +51,6 @@ def getExtension(url):
     except urllib.error.URLError:
         raise DependencyError("Failed to download extension!")
     return zipfile.ZipFile(io.BytesIO(content), "r")
-
-
-
 
 # Load a file from a ZIP
 def getFile(file, path):
@@ -101,18 +99,6 @@ def downloadDep(dep, updateManifest, checkHash):
     os.remove(fileName)
     return True
 
-# Write data to a file
-def writeFile(content, path, mode):
-    with open(path, mode) as file:
-        file.write(content)
-
-# Write an executable dependency to a file
-def writeExecutable(content, path):
-    with open(path, "wb") as file:
-        file.write(content)
-        st = os.stat(file.name)
-        os.chmod(file.name, st.st_mode | stat.S_IEXEC)
-
 # Download extension manifest and simple dependencies
 def getDeps():
     # Ensure that cache directory exists
@@ -142,3 +128,73 @@ def getDeps():
     # Ensure that manifest file exists and return manifest content
     createManifest()
     return json.loads(manifest.decode("utf-8"))
+
+# Write an object to JSON cache file
+def writeJSONcache(data, key):
+    with open(jsonFiles[key], "w") as file:
+        keyData = data[key]
+        json.dump(keyData, file, indent=4)
+
+# Install or update neopo dependencies (not the neopo script)
+def installOrUpdate(install, force):    
+    print("Installing neopo..." if install else "Updating dependencies...")
+
+    # Dependencies we wish to install and caches we will create
+    dependencies = ["compilers", "tools", "scripts", "debuggers"]
+    caches = ["firmware", "platforms", "toolchains", "compilers"]
+
+    # Download dependency data and create list of installables
+    data = getDeps()
+    depJSON = [data["firmware"][0]]
+
+    # Append dependencies to list
+    system = platform.system().lower()
+    for dep in dependencies: depJSON.append(data[dep][system]["x64"][0])
+
+    # Use my precompiled gcc-arm for ARM
+    installPlatform = platform.machine()
+    if installPlatform != "x86_64":
+        for dep in depJSON:
+            if dep["name"] == "gcc-arm":
+                dep["url"] = ARM_GCC_ARM[installPlatform][dep["version"]]["url"]
+                dep["sha256"] = ARM_GCC_ARM[installPlatform][dep["version"]]["sha256"]
+                break
+    
+    # Update JSON cache files
+    for key in caches: writeJSONcache(data, key)
+
+    # Either install or update
+    if install:
+        skippedDeps = []
+        for dep in depJSON:
+            # Install dependency if not currently installed, or forced, otherwise skip
+            installed = os.path.isdir(os.path.join(PARTICLE_DEPS, dep["name"], dep["version"]))
+            downloadDep(dep, True, True) if not installed or force else skippedDeps.append(dep)
+
+        # Put skippedDeps in manifest.json. Fixes: nrobinson2000/neopo/issues/8
+        for dep in skippedDeps: writeManifest(dep)
+
+        # Notify user of dependencies skipped to save bandwidth and time
+        if skippedDeps:
+            print()
+            print("Skipped previously installed dependencies:")
+            print(*["%s@%s" % (dep["name"], dep["version"]) for dep in skippedDeps], sep=", ")
+        
+        print()
+        
+    else:
+        # Load in dependency manifest, and only install a dependency if newer
+        manifest = loadManifest(False)
+        for dep in depJSON:
+            new = int(dep["version"].split("-")[0].replace(".", ""))
+            old = int(manifest[dep["name"]].split("-")[0].replace(".", ""))
+            if new > old: downloadDep(dep, True, True)
+        print("Dependencies are up to date!")
+
+# Try to download given firmware
+def attemptDownload(firmware):
+    try:
+        downloadDep(firmware, False, True)
+        return
+    except urllib.error.URLError:
+        raise DependencyError("DeviceOS version %s not found!" % firmware["version"])
