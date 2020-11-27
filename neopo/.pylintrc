@@ -1,6 +1,8 @@
 [MESSAGES CONTROL]
 disable=
     import-error,
+    relative-beyond-top-level,
+    wrong-import-position,
 
     missing-module-docstring,
     missing-function-docstring,
@@ -11,9 +13,6 @@ disable=
     broad-except,
     unused-argument,
     consider-iterating-dictionary,
-
-    relative-beyond-top-level,
-    wrong-import-position,
 
     too-many-branches,
     too-many-locals,
