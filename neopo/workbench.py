@@ -14,7 +14,7 @@ from .common import PARTICLE_DEPS, CACHE_DIR, ARM_GCC_ARM
 from .common import extensionFiles, vscodeFiles, jsonFiles
 from .common import particle_cli, running_on_windows
 from .utility import write_file, write_executable
-from .manifest import write_manifest, create_manifest, load_manifest
+from .manifest import write_manifest, create_manifest, get_manifest_value
 
 # Find the Workbench extension URL from the Visual Studio Marketplace
 def get_extension_url():
@@ -191,11 +191,10 @@ def install_or_update(install, force):
         print()
 
     else:
-        # Load in dependency manifest, and only install a dependency if newer
-        manifest = load_manifest()
+        # Only install a dependency if newer
         for dep in dep_json:
             new = int(dep["version"].split("-")[0].replace(".", ""))
-            old = int(manifest[dep["name"]].split("-")[0].replace(".", ""))
+            old = int(get_manifest_value(dep["name"]).split("-")[0].replace(".", ""))
             if new > old:
                 download_dep(dep, True, True)
         print("Dependencies are up to date!")
