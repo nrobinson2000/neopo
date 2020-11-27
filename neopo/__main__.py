@@ -1,8 +1,9 @@
-# Provides access to using neopo with:
-# python -m neopo
+# neopo: A lightweight solution for local Particle development.
+# Copyright (c) 2020 Nathan Robinson.
+# https://neopo.xyz
 
 import sys
-from .neopo import main
+from .command import main
 
 if __name__ == "__main__":
     main(sys.argv)

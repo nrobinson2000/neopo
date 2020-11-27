@@ -1,0 +1,22 @@
+[MESSAGES CONTROL]
+disable=
+    import-error,
+    relative-beyond-top-level,
+    wrong-import-position,
+
+    missing-module-docstring,
+    missing-function-docstring,
+    missing-class-docstring,
+
+    line-too-long,
+    broad-except,
+    unused-argument,
+    consider-iterating-dictionary,
+
+    too-many-branches,
+    too-many-locals,
+    no-else-raise,
+    fixme,
+
+[MASTER]
+init-hook="from pylint.config import find_pylintrc;import os, sys; sys.path.append(os.path.dirname(find_pylintrc()))"
