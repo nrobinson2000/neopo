@@ -1,6 +1,4 @@
 # Paths, dictionaries, and errors used by other modules
-
-
 import os
 import platform
 

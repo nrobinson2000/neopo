@@ -2,26 +2,18 @@
 # Copyright (c) 2020 Nathan Robinson.
 # https://neopo.xyz
 
+import os
 
-# Disable RuntimeWarning when using modules from packages
-# Example:
-# python3 -m neopo.particle
+# Disable RuntimeWarning for neopo.particle and neopo.script
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-import os
-
 # Local imports
-from .utility import print_help, responsible, unexpected_error
-from .workbench import install_or_update
-from .toolchain import versions_command, get_command, download_unlisted_command
-from .project import create_command, configure_command, flags_command, settings_command, libraries_command
-from .build import compile_command, flash_command, flash_all_command, clean_command, run_command
-from .completion import versions_compressed, platforms_command, find_valid_projects, get_makefile_targets
-from .iterate import iterate_command, iterate_options
-from .particle import particle_command
-from .script import script_command
-from .command import commands, upgrade_command, uninstall_command
+from .command import commands, print_help, install_or_update, upgrade_command
+from .command import uninstall_command, versions_command, create_command, particle_command
+from .command import compile_command, flash_command, flash_all_command, clean_command, run_command
+from .command import configure_command, flags_command, settings_command, libraries_command
+from .command import iterate_command, script_command, get_command
 
 # Main API for using neopo as a module
 def main(args):

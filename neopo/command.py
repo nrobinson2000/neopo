@@ -65,7 +65,10 @@ def script_command(args):
     except IndexError as error:
         script = sys.stdin
         if script.isatty():
-            raise ProcessError("Usage:\n\t$ neopo script <file>\n\t$ <another process> | neopo script") from error
+            # Correct message depending on invocation
+            exec_name = args[1]
+            exec_name = "neopo-script" if exec_name.endswith("script.py") else "neopo script"
+            raise ProcessError("Usage:\n\t$ %s <file>\n\t$ <another process> | %s" % (exec_name, exec_name)) from error
     except FileNotFoundError as error:
         raise ProcessError("Could not find script %s!" % name) from error
 

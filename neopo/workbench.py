@@ -8,15 +8,12 @@ import pathlib
 import platform
 import urllib.request
 
-
 # Local imports
 from .common import DependencyError
 from .common import PARTICLE_DEPS, CACHE_DIR, ARM_GCC_ARM
 from .common import extensionFiles, vscodeFiles, jsonFiles
 from .common import particle_cli, running_on_windows
-
 from .utility import write_file, write_executable
-
 from .manifest import write_manifest, create_manifest, load_manifest
 
 # Find the Workbench extension URL from the Visual Studio Marketplace

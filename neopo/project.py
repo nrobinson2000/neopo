@@ -9,13 +9,9 @@ from .common import TRAVIS_YML
 from .common import particle_cli, running_on_windows
 from .common import ProcessError, ProjectError, UserError
 from .common import projectFiles, vscodeFiles
-
 from .utility import write_file, check_login, download_library
-
 from .manifest import get_manifest_value
-
 from .toolchain import check_firmware_version
-
 
 # Create a Particle project and copy in Workbench settings
 def create_project(path, name):

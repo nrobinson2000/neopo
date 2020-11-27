@@ -1,6 +1,7 @@
 import os
 import json
 
+# Local imports
 from .common import jsonFiles, projectFiles, PARTICLE_DEPS
 
 # Print available versions compressed (for completion)

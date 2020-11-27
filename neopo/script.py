@@ -3,6 +3,7 @@ Frontend for neopo scripting interface.
 """
 
 import sys
+
 # Local imports
 from .common import ProcessError
 from .command import script_command

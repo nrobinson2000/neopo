@@ -1,10 +1,9 @@
 import subprocess
 
+# Local imports
 from .common import ProcessError, UserError
 from .common import particle_cli, running_on_windows
-
 from .build import compile_command, flash_command, flash_all_command, clean_command, run_command
-# from script import script_command
 
 # Available options for iterate
 iterable_commands = {
@@ -16,6 +15,8 @@ iterable_commands = {
     "run": run_command,
     # "script": script_command
 }
+
+#TODO: Script in iterate?
 
 # Iterate through all connected devices and run a command
 def iterate_command(args):

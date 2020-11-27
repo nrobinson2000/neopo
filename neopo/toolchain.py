@@ -6,7 +6,6 @@ import platform
 from .common import jsonFiles, PARTICLE_DEPS, ARM_GCC_ARM, DependencyError, UserError
 from .workbench import download_dep, attempt_download
 
-
 # Get a deviceOS dependency from a version
 def get_firmware_data(version):
     with open(jsonFiles["firmware"], "r") as firmware:

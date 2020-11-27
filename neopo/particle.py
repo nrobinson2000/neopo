@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 
+# Local imports
 from .build import add_build_tools
 from .common import particle_cli, running_on_windows, ProcessError
 

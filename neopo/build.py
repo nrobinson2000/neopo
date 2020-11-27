@@ -1,19 +1,12 @@
 import os
 import subprocess
 
-
-
 # Local imports
 from .common import PARTICLE_DEPS, running_on_windows, particle_cli, projectFiles
 from .common import ProcessError, ProjectError, UserError
-
 from .manifest import load_manifest, get_manifest_value
-
 from .project import get_settings, check_libraries, get_flags
-
 from .toolchain import get_compiler, check_firmware_version, check_compiler, get_firmware_path
-
-
 
 # Add a path to an environment
 def add_to_path(environment, path):
