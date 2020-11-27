@@ -4,7 +4,7 @@ import subprocess
 
 # Local imports
 from .build import add_build_tools
-from .common import particle_cli, running_on_windows, ProcessError
+from .common import particle_cli, running_on_windows
 
 # Wrapper for [particle]
 def particle_command(args):
@@ -15,13 +15,12 @@ def particle_command(args):
     process = [particle_cli, *args[2:]]
 
     try:
-        returncode = subprocess.run(
-            process, env=temp_env, shell=running_on_windows, check=True).returncode
+        subprocess.run(process, env=temp_env, shell=running_on_windows, check=True)
     # Return cleanly if ^C was pressed
     except KeyboardInterrupt:
         return
-    if returncode:
-        raise ProcessError("Particle CLI exited with code %s" % returncode)
+    except subprocess.CalledProcessError:
+        return
 
 if __name__ == "__main__":
     particle_args = sys.argv[1:]

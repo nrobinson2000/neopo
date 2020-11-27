@@ -17,11 +17,11 @@ from .toolchain import check_firmware_version
 def create_project(path, name):
     project_path = os.path.join(path, name)
     # Use particle-cli to create the project
-    returncode = subprocess.run(
-        [particle_cli, "project", "create", path, "--name", name],
-        shell=running_on_windows, check=True).returncode
-    if returncode:
-        raise ProcessError("Failed with code %s" % returncode)
+    try:
+        subprocess.run([particle_cli, "project", "create", path, "--name", name],
+            shell=running_on_windows, check=True)
+    except subprocess.CalledProcessError as error:
+        raise ProcessError("Failed to create project %s!" % name) from error
 
     # If git is installed, initialize project as git repo
     if shutil.which("git"):

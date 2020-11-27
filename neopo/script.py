@@ -6,9 +6,11 @@ import sys
 from .common import ProcessError
 from .command import script_command
 
-if __name__ == "__main__":
+def main():
     try:
         script_command([None, *sys.argv])
     except ProcessError as error:
         print(error)
-        sys.exit(1)
+
+if __name__ == "__main__":
+    main()

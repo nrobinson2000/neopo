@@ -80,14 +80,12 @@ def build_project(project_path, command, help_only, verbosity):
         process.append(command)
 
     # Run makefile with given verbosity
-    returncode = subprocess.run(process, env=temp_env,
-                                shell=running_on_windows,
-                                stdout=subprocess.PIPE if verbosity == -1 else None,
-                                stderr=subprocess.PIPE if verbosity == -1 else None,
-                                check=True
-                                ).returncode
-    if returncode:
-        raise ProcessError("Failed with code %s" % returncode)
+    try:
+        subprocess.run(process, env=temp_env, shell=running_on_windows, check=True,
+                        stdout=subprocess.PIPE if verbosity == -1 else None,
+                        stderr=subprocess.PIPE if verbosity == -1 else None)
+    except subprocess.CalledProcessError as error:
+        raise ProcessError("\n*** %s FAILED ***\n" % command.upper()) from error
 
 # Parse the project path from the specified index and run a Makefile target
 def build_command(command, index, args):

@@ -22,18 +22,20 @@ def write_executable(content, path):
 # Ensure that the user is logged into particle-cli
 def check_login():
     process = [particle_cli, "whoami"]
-    returncode = subprocess.run(process, shell=running_on_windows,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE, check=True).returncode
-    return returncode == 0
+    try:
+        subprocess.run(process, shell=running_on_windows,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+    except subprocess.CalledProcessError:
+        return False
+    return True
 
 # Download a library using particle-cli
 def download_library(library, version):
     process = [particle_cli, "library", "copy", "%s@%s" % (library, version)]
-    returncode = subprocess.run(
-        process, shell=running_on_windows, check=True).returncode
-    if returncode != 0:
-        raise ProcessError
+    try:
+        subprocess.run(process, shell=running_on_windows, check=True)
+    except subprocess.CalledProcessError as error:
+        raise ProcessError("Failed to download library %s@%s!" % (library, version)) from error
 
 # Print help information about the program
 def print_help(args):
