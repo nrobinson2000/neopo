@@ -1,6 +1,4 @@
-"""
-Frontend for neopo scripting interface.
-"""
+# Frontend for neopo scripting interface
 
 import sys
 

@@ -43,7 +43,8 @@ def check_firmware_version(device_platform, version):
         print("Invalid deviceOS version %s!" % version)
         return False
     if platform_id not in get_supported_platforms(version):
-        print("Platform %s is not supported in deviceOS version %s!" % (device_platform, version))
+        print("Platform %s is not supported in deviceOS version %s!" %
+              (device_platform, version))
         return False
 
     # If required firmware is not installed, download it
@@ -98,7 +99,8 @@ def versions_command(args):
         print("Available deviceOS versions:\n")
         for entry in reversed(json.load(firmware_file)):
             version = entry["version"]
-            devices = ", ".join([platform_convert(platform, "id", "name") for platform in get_supported_platforms(version)])
+            devices = ", ".join([platform_convert(platform, "id", "name")
+                                 for platform in get_supported_platforms(version)])
             print("   %s\t [ %s ]" % (version, devices))
 
         print("\nTo configure a project use:")
@@ -120,7 +122,7 @@ def download_firmware(version):
 def download_unlisted(version):
     # Minimum information for a firmware dependency
     firmware = {"name": "deviceOS", "version": version,
-        "url": "https://binaries.particle.io/device-os/v%s.tar.gz" % version}
+                "url": "https://binaries.particle.io/device-os/v%s.tar.gz" % version}
 
     try:
         # Attempt to download from Particle's download mirror

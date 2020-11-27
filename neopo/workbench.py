@@ -111,12 +111,15 @@ def get_deps():
     # Attempt to pull particle-cli executable from VSIX
     try:
         os_platform = platform.system().lower()
-        os_arch = platform.machine().lower() if running_on_windows else "amd64" if platform.machine() == "x86_64" else "arm"
+        os_arch = platform.machine().lower(
+        ) if running_on_windows else "amd64" if platform.machine() == "x86_64" else "arm"
         particle_bin = os.path.basename(particle_cli)
-        particle = get_file(extension, "/".join([extensionFiles["bin"], os_platform, os_arch, particle_bin]))
+        particle = get_file(
+            extension, "/".join([extensionFiles["bin"], os_platform, os_arch, particle_bin]))
         write_executable(particle, particle_cli)
     except KeyError as error:
-        raise DependencyError("Failed to download particle executable from extension!") from error
+        raise DependencyError(
+            "Failed to download particle executable from extension!") from error
 
     # Create launch.json and settings.json project template files
     launch = get_file(extension, extensionFiles["launch"])
@@ -168,7 +171,8 @@ def install_or_update(install, force):
         skipped_deps = []
         for dep in dep_json:
             # Install dependency if not currently installed, or forced, otherwise skip
-            installed = os.path.isdir(os.path.join(PARTICLE_DEPS, dep["name"], dep["version"]))
+            installed = os.path.isdir(os.path.join(
+                PARTICLE_DEPS, dep["name"], dep["version"]))
             if not installed or force:
                 download_dep(dep, True, True)
             else:
@@ -182,7 +186,8 @@ def install_or_update(install, force):
         if skipped_deps:
             print()
             print("Skipped previously installed dependencies:")
-            print(*["%s@%s" % (dep["name"], dep["version"]) for dep in skipped_deps], sep=", ")
+            print(*["%s@%s" % (dep["name"], dep["version"])
+                    for dep in skipped_deps], sep=", ")
         print()
 
     else:
@@ -201,4 +206,5 @@ def attempt_download(firmware):
         download_dep(firmware, False, True)
         return
     except urllib.error.URLError as error:
-        raise DependencyError("DeviceOS version %s not found!" % firmware["version"]) from error
+        raise DependencyError("DeviceOS version %s not found!" %
+                              firmware["version"]) from error

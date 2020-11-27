@@ -23,13 +23,15 @@ def write_executable(content, path):
 def check_login():
     process = [particle_cli, "whoami"]
     returncode = subprocess.run(process, shell=running_on_windows,
-            stdout= subprocess.PIPE, stderr= subprocess.PIPE, check=True).returncode
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, check=True).returncode
     return returncode == 0
 
 # Download a library using particle-cli
 def download_library(library, version):
     process = [particle_cli, "library", "copy", "%s@%s" % (library, version)]
-    returncode = subprocess.run(process, shell=running_on_windows, check=True).returncode
+    returncode = subprocess.run(
+        process, shell=running_on_windows, check=True).returncode
     if returncode != 0:
         raise ProcessError
 
@@ -73,9 +75,10 @@ Options:
         wait                # Wait for the user to press ENTER
         """)
 
+
 def print_logo():
     print(
-r"""    ____  ___  ____  ____  ____
+        r"""    ____  ___  ____  ____  ____
    / __ \/ _ \/ __ \/ __ \/ __ \    A lightweight solution for
   / / / /  __/ /_/ / /_/ / /_/ /    local Particle development.
  /_/ /_/\___/\____/ ____/\____/

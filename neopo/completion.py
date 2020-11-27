@@ -17,11 +17,13 @@ def platforms_command(args):
 # Find all valid projects in PWD (for completion)
 def find_valid_projects(args):
     (_, dirs, _) = next(os.walk(os.getcwd()))
-    print(*[dir for dir in dirs if os.access(os.path.join(dir, projectFiles["properties"]), os.R_OK)])
+    print(*[dir for dir in dirs
+        if os.access(os.path.join(dir, projectFiles["properties"]), os.R_OK)])
 
 # Find all makefile targets (for completion)
 def get_makefile_targets(args):
     with open(jsonFiles["manifest"], "r") as manifest:
         with open(os.path.join(PARTICLE_DEPS, "buildscripts", json.load(manifest)["buildscripts"], "Makefile")) as makefile:
             sep = ".PHONY: "
-            print(*[line.partition(sep)[2].strip("\n") for line in makefile.readlines() if line.startswith(sep)])
+            print(*[line.partition(sep)[2].strip("\n")
+                    for line in makefile.readlines() if line.startswith(sep)])

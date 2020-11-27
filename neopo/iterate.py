@@ -16,15 +16,16 @@ iterable_commands = {
     # "script": script_command
 }
 
-#TODO: Script in iterate?
+# TODO: Script in iterate?
 
 # Iterate through all connected devices and run a command
 def iterate_command(args):
     # Find Particle deviceIDs connected via USB
     process = [particle_cli, "serial", "list"]
     particle = subprocess.run(process, stdout=subprocess.PIPE,
-                                        shell=running_on_windows, check=True)
-    devices = [line.decode("utf-8").split()[-1] for line in particle.stdout.splitlines()[1:]]
+                              shell=running_on_windows, check=True)
+    devices = [line.decode("utf-8").split()[-1]
+               for line in particle.stdout.splitlines()[1:]]
 
     if not devices:
         raise ProcessError("No devices found!")
@@ -36,15 +37,16 @@ def iterate_command(args):
         if not args[1] in iterable_commands.keys():
             raise UserError("Invalid command!")
     except IndexError as error:
-        raise UserError("You must supply a command to iterate with!") from error
+        raise UserError(
+            "You must supply a command to iterate with!") from error
 
     for device in devices:
         print("DeviceID: %s" % device)
         # Put device into DFU mode
         process = [particle_cli, "usb", "dfu", device]
         subprocess.run(process, stderr=subprocess.PIPE,
-                                stdout=subprocess.PIPE,
-                                shell=running_on_windows, check=True)
+                       stdout=subprocess.PIPE,
+                       shell=running_on_windows, check=True)
         # Run the iterable command
         iterable_commands[args[1]](args)
 

@@ -46,7 +46,7 @@ def uninstall_command(args):
     print("\t$ rm -rf ~/.neopo ~/.particle")
 
 # Wait for user to press enter [for scripting]
-def script_wait(args = None):
+def script_wait(args=None):
     input("Press Enter to continue...")
 
 # Print a message to the console [for scripting]
@@ -67,8 +67,10 @@ def script_command(args):
         if script.isatty():
             # Correct message depending on invocation
             exec_name = args[1]
-            exec_name = "neopo-script" if exec_name.endswith("script.py") else "neopo script"
-            raise ProcessError("Usage:\n\t$ %s <file>\n\t$ <another process> | %s" % (exec_name, exec_name)) from error
+            exec_name = "neopo-script" if exec_name.endswith(
+                "script.py") else "neopo script"
+            raise ProcessError("Usage:\n\t$ %s <file>\n\t$ <another process> | %s" % (
+                exec_name, exec_name)) from error
     except FileNotFoundError as error:
         raise ProcessError("Could not find script %s!" % name) from error
 

@@ -33,7 +33,8 @@ ARM_GCC_ARM = {
 
 # Windows tricks
 running_on_windows = platform.system() == "Windows"
-particle_cli = os.path.join(NEOPO_DEPS, "particle.exe") if running_on_windows else os.path.join(NEOPO_DEPS, "particle")
+particle_cli = os.path.join(
+    NEOPO_DEPS, "particle.exe") if running_on_windows else os.path.join(NEOPO_DEPS, "particle")
 
 # JSON cache files
 jsonFiles = {
@@ -84,9 +85,12 @@ cache:
 # Custom errors
 class UserError(RuntimeError):
     pass
+
 class DependencyError(RuntimeError):
     pass
+
 class ProcessError(RuntimeError):
     pass
+
 class ProjectError(RuntimeError):
     pass

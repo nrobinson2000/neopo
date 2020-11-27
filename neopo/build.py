@@ -14,7 +14,7 @@ def add_to_path(environment, path):
 
 # Add buildtools to PATH
 def add_build_tools(environment, version=None):
-    tools_version = version if version else get_manifest_value('buildtools')
+    tools_version = version if version else get_manifest_value("buildtools")
     toolpath = os.path.join(PARTICLE_DEPS, "buildtools", tools_version)
     toolpath = os.path.join(toolpath, "bin") if running_on_windows else toolpath
     add_to_path(environment, toolpath)
@@ -34,7 +34,8 @@ def build_project(project_path, command, help_only, verbosity):
 
     # Command used to invoke the Workbench makefile
     process = [
-        "make", "-f", os.path.join(PARTICLE_DEPS, "buildscripts", script_version, "Makefile"),
+        "make", "-f", os.path.join(PARTICLE_DEPS,
+                                   "buildscripts", script_version, "Makefile"),
         "PARTICLE_CLI_PATH=" + particle
     ]
 
@@ -60,12 +61,14 @@ def build_project(project_path, command, help_only, verbosity):
 
         except (FileNotFoundError, KeyError) as error:
             if os.path.isfile(os.path.join(project_path, projectFiles["properties"])):
-                raise ProjectError("Project not configured!\nUse: neopo configure <platform> <version> <project>") from error
+                raise ProjectError(
+                    "Project not configured!\nUse: neopo configure <platform> <version> <project>") from error
             else:
                 raise UserError("%s is not a Particle project!" % project_path) from error
 
         # Add compiler to path
-        add_to_path(temp_env, os.path.join(PARTICLE_DEPS, "gcc-arm", compiler_version, "bin"))
+        add_to_path(temp_env, os.path.join(
+            PARTICLE_DEPS, "gcc-arm", compiler_version, "bin"))
 
         # Set additional variables for make
         device_os_path = get_firmware_path(firmware_version)
@@ -79,8 +82,8 @@ def build_project(project_path, command, help_only, verbosity):
     # Run makefile with given verbosity
     returncode = subprocess.run(process, env=temp_env,
                                 shell=running_on_windows,
-                                stdout= subprocess.PIPE if verbosity == -1 else None,
-                                stderr= subprocess.PIPE if verbosity == -1 else None,
+                                stdout=subprocess.PIPE if verbosity == -1 else None,
+                                stderr=subprocess.PIPE if verbosity == -1 else None,
                                 check=True
                                 ).returncode
     if returncode:
@@ -131,9 +134,12 @@ def run_command(args):
 # Wrappers for commands that build
 def flash_command(args):
     build_command("flash-user", 2, args)
+
 def compile_command(args):
     build_command("compile-user", 2, args)
+
 def flash_all_command(args):
     build_command("flash-all", 2, args)
+
 def clean_command(args):
     build_command("clean-user", 2, args)
