@@ -35,9 +35,9 @@ def getExtensionURL():
     try:
         with urllib.request.urlopen(request) as response:
             content = response.read()
-    except urllib.error.URLError:
-        raise DependencyError("Failed to get extension URL!")
-    
+    except urllib.error.URLError as e:
+        raise DependencyError("Failed to get extension URL!") from e
+
     # Parse response and extract the URL of the VSIX
     data = json.loads(content.decode("utf-8"))
     return data["results"][0]["extensions"][0]["versions"][0]["files"][-1]["source"]
@@ -48,8 +48,8 @@ def getExtension(url):
     try:
         with urllib.request.urlopen(url) as response:
             content = response.read()
-    except urllib.error.URLError:
-        raise DependencyError("Failed to download extension!")
+    except urllib.error.URLError as e:
+        raise DependencyError("Failed to download extension!") from e
     return zipfile.ZipFile(io.BytesIO(content), "r")
 
 # Load a file from a ZIP
@@ -58,8 +58,10 @@ def getFile(file, path):
 
 # Download the specified dependency
 def downloadDep(dep, updateManifest, checkHash):
-    if not dep: return False
-    if updateManifest: writeManifest(dep)
+    if not dep:
+        return False
+    if updateManifest:
+        writeManifest(dep)
 
     name, version, url, sha256 = dep["name"], dep["version"], dep["url"], dep["sha256"]
     print("Downloading dependency %s@%s..." % (name, version))
@@ -67,8 +69,8 @@ def downloadDep(dep, updateManifest, checkHash):
     try:
         with urllib.request.urlopen(url) as response:
             content = response.read()
-    except urllib.error.URLError:
-        raise DependencyError("Failed to download dependency!")
+    except urllib.error.URLError as e:
+        raise DependencyError("Failed to download dependency!") from e
 
     # Verify that the sha256 matches
     if checkHash:
@@ -116,9 +118,9 @@ def getDeps():
         particle_bin = os.path.basename(particle_cli)
         particle = getFile(extension, "/".join([extensionFiles["bin"], osPlatform, osArch, particle_bin]))
         writeExecutable(particle, particle_cli)
-    except KeyError:
-        raise DependencyError("Failed to download particle executable from extension!")
-    
+    except KeyError as e:
+        raise DependencyError("Failed to download particle executable from extension!") from e
+
     # Create launch.json and settings.json project template files
     launch = getFile(extension, extensionFiles["launch"])
     settings = getFile(extension, extensionFiles["settings"])
@@ -130,13 +132,14 @@ def getDeps():
     return json.loads(manifest.decode("utf-8"))
 
 # Write an object to JSON cache file
-def writeJSONcache(data, key):
-    with open(jsonFiles[key], "w") as file:
-        keyData = data[key]
-        json.dump(keyData, file, indent=4)
+def writeJSONcaches(data, keys):
+    for key in keys:
+        with open(jsonFiles[key], "w") as file:
+            keyData = data[key]
+            json.dump(keyData, file, indent=4)
 
 # Install or update neopo dependencies (not the neopo script)
-def installOrUpdate(install, force):    
+def installOrUpdate(install, force):
     print("Installing neopo..." if install else "Updating dependencies...")
 
     # Dependencies we wish to install and caches we will create
@@ -149,7 +152,7 @@ def installOrUpdate(install, force):
 
     # Append dependencies to list
     system = platform.system().lower()
-    for dep in dependencies: depJSON.append(data[dep][system]["x64"][0])
+    depJSON.extend([data[dep][system]["x64"][0] for dep in dependencies])
 
     # Use my precompiled gcc-arm for ARM
     installPlatform = platform.machine()
@@ -159,9 +162,9 @@ def installOrUpdate(install, force):
                 dep["url"] = ARM_GCC_ARM[installPlatform][dep["version"]]["url"]
                 dep["sha256"] = ARM_GCC_ARM[installPlatform][dep["version"]]["sha256"]
                 break
-    
+
     # Update JSON cache files
-    for key in caches: writeJSONcache(data, key)
+    writeJSONcaches(data, caches)
 
     # Either install or update
     if install:
@@ -169,26 +172,30 @@ def installOrUpdate(install, force):
         for dep in depJSON:
             # Install dependency if not currently installed, or forced, otherwise skip
             installed = os.path.isdir(os.path.join(PARTICLE_DEPS, dep["name"], dep["version"]))
-            downloadDep(dep, True, True) if not installed or force else skippedDeps.append(dep)
+            if not installed or force:
+                downloadDep(dep, True, True)
+            else:
+                skippedDeps.append(dep)
 
         # Put skippedDeps in manifest.json. Fixes: nrobinson2000/neopo/issues/8
-        for dep in skippedDeps: writeManifest(dep)
+        for dep in skippedDeps:
+            writeManifest(dep)
 
         # Notify user of dependencies skipped to save bandwidth and time
         if skippedDeps:
             print()
             print("Skipped previously installed dependencies:")
             print(*["%s@%s" % (dep["name"], dep["version"]) for dep in skippedDeps], sep=", ")
-        
         print()
-        
+
     else:
         # Load in dependency manifest, and only install a dependency if newer
-        manifest = loadManifest(False)
+        manifest = loadManifest()
         for dep in depJSON:
             new = int(dep["version"].split("-")[0].replace(".", ""))
             old = int(manifest[dep["name"]].split("-")[0].replace(".", ""))
-            if new > old: downloadDep(dep, True, True)
+            if new > old:
+                downloadDep(dep, True, True)
         print("Dependencies are up to date!")
 
 # Try to download given firmware
@@ -196,5 +203,5 @@ def attemptDownload(firmware):
     try:
         downloadDep(firmware, False, True)
         return
-    except urllib.error.URLError:
-        raise DependencyError("DeviceOS version %s not found!" % firmware["version"])
+    except urllib.error.URLError as e:
+        raise DependencyError("DeviceOS version %s not found!" % firmware["version"]) from e

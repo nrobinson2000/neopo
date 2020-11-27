@@ -7,7 +7,7 @@ import subprocess
 from .common import PARTICLE_DEPS, running_on_windows, particle_cli, projectFiles
 from .common import ProcessError, ProjectError, UserError
 
-from .manifest import loadManifest
+from .manifest import loadManifest, loadManifestKey
 
 from .project import getSettings, checkLibraries, getFlags
 
@@ -21,14 +21,14 @@ def addToPath(environment, path):
 
 # Add buildtools to PATH
 def addBuildtools(environment, version=None):
-    toolsVersion = version if version else loadManifest(False)['buildtools']
+    toolsVersion = version if version else loadManifestKey('buildtools')
     toolpath = os.path.join(PARTICLE_DEPS, "buildtools", toolsVersion)
     toolpath = os.path.join(toolpath, "bin") if running_on_windows else toolpath
     addToPath(environment, toolpath)
 
 # Use the Makefile to build the specified target
 def build_project(projectPath, command, helpOnly, verbosity):
-    compilerVersion, scriptVersion, toolsVersion, firmwareVersion = loadManifest(True)
+    compilerVersion, scriptVersion, toolsVersion, firmwareVersion = loadManifest()
     tempEnv = os.environ.copy()
     addBuildtools(tempEnv, toolsVersion)
 
@@ -46,7 +46,8 @@ def build_project(projectPath, command, helpOnly, verbosity):
     ]
 
     # Add [-s] flag to make to silence output
-    verbosity == 0 and process.append("-s")
+    if verbosity == 0:
+        process.append("-s")
 
     if helpOnly:
         process.append("help")
@@ -64,12 +65,12 @@ def build_project(projectPath, command, helpOnly, verbosity):
             if not checkLibraries(projectPath, False):
                 print("To install libraries run: $ neopo libs [project]")
 
-        except (FileNotFoundError, KeyError):
+        except (FileNotFoundError, KeyError) as e:
             if os.path.isfile(os.path.join(projectPath, projectFiles["properties"])):
-                raise ProjectError("Project not configured!\nUse: neopo configure <platform> <version> <project>")
+                raise ProjectError("Project not configured!\nUse: neopo configure <platform> <version> <project>") from e
             else:
-                raise ProjectError("%s is not a Particle project!" % projectPath)
-        
+                raise UserError("%s is not a Particle project!" % projectPath) from e
+
         # Add compiler to path
         addToPath(tempEnv, os.path.join(PARTICLE_DEPS, "gcc-arm", compilerVersion, "bin"))
 
@@ -86,7 +87,8 @@ def build_project(projectPath, command, helpOnly, verbosity):
     returncode = subprocess.run(process, env=tempEnv,
                                 shell=running_on_windows,
                                 stdout= subprocess.PIPE if verbosity == -1 else None,
-                                stderr= subprocess.PIPE if verbosity == -1 else None
+                                stderr= subprocess.PIPE if verbosity == -1 else None,
+                                check=True
                                 ).returncode
     if returncode:
         raise ProcessError("Failed with code %s" % returncode)
@@ -115,8 +117,8 @@ def buildCommand(command, index, args):
     except IndexError:
         # Verbosity not specified, use default
         verbosity = 0
-    except KeyError:
-        raise UserError("Invalid verbosity!")
+    except KeyError as e:
+        raise UserError("Invalid verbosity!") from e
 
     # Build the given project with a command and verbosity
     build_project(project, command, False, verbosity)
@@ -141,9 +143,9 @@ def build_help():
 def run_command(args):
     try:
         buildCommand(args[2], 3, args)
-    except IndexError:
+    except IndexError as e:
         build_help()
-        raise UserError("You must supply a Makefile target!")
+        raise UserError("You must supply a Makefile target!") from e
 
 # Wrappers for commands that build
 def flash_command(args):

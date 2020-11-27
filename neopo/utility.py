@@ -22,13 +22,13 @@ def writeExecutable(content, path):
 def checkLogin():
     process = [particle_cli, "whoami"]
     returncode = subprocess.run(process, shell=running_on_windows,
-            stdout= subprocess.PIPE, stderr= subprocess.PIPE).returncode
+            stdout= subprocess.PIPE, stderr= subprocess.PIPE, check=True).returncode
     return returncode == 0
 
 # Download a library using particle-cli
 def downloadLibrary(library, version):
     process = [particle_cli, "library", "copy", "%s@%s" % (library, version)]
-    returncode = subprocess.run(process, shell=running_on_windows).returncode
+    returncode = subprocess.run(process, shell=running_on_windows, check=True).returncode
     if returncode != 0:
         raise ProcessError
 
@@ -77,7 +77,7 @@ def print_logo():
 r"""    ____  ___  ____  ____  ____
    / __ \/ _ \/ __ \/ __ \/ __ \    A lightweight solution for
   / / / /  __/ /_/ / /_/ / /_/ /    local Particle development.
- /_/ /_/\___/\____/ ____/\____/ 
+ /_/ /_/\___/\____/ ____/\____/
                  /_/      .xyz      Copyright (c) 2020 Nathan Robinson
     """)
 
@@ -91,7 +91,7 @@ def unexpectedError():
 # Check if neopo is responsible for given file
 def responsible(file):
     dirs = [PARTICLE_DEPS, NEOPO_DEPS, CACHE_DIR]
-    for dir in dirs:
-        if file.startswith(dir):
+    for directory in dirs:
+        if file.startswith(directory):
             return True
     return False

@@ -23,13 +23,13 @@ def create_project(path, name):
     # Use particle-cli to create the project
     returncode = subprocess.run(
         [particle_cli, "project", "create", path, "--name", name],
-        shell=running_on_windows).returncode
+        shell=running_on_windows, check=True).returncode
     if returncode:
         raise ProcessError("Failed with code %s" % returncode)
 
     # If git is installed, initialize project as git repo
     if shutil.which("git"):
-        subprocess.run(["git", "init", projectPath])
+        subprocess.run(["git", "init", projectPath], check=True)
         # Add .travis.yml to project
         writeFile(TRAVIS_YML, os.path.join(projectPath, ".travis.yml"), "w")
         # Add .gitignore to project
@@ -69,11 +69,11 @@ def configure_project(projectPath, platform, firmwareVersion):
     # Download requested version if required
     if not checkFirmwareVersion(platform, firmwareVersion):
         raise ProjectError("Firmware related error!")
-    
+
     # Ensure that a valid project was selected
     if not os.path.isfile(os.path.join(projectPath, projectFiles["properties"])):
         raise ProjectError("%s is not a Particle project!" % projectPath)
-    
+
     # Upgrade a CLI project to Workbench format if required
     if not os.path.isfile(os.path.join(projectPath, projectFiles["settings"])):
         pathlib.Path(os.path.join(projectPath, ".vscode")).mkdir(parents=True, exist_ok=True)
@@ -118,9 +118,9 @@ def checkLibraries(projectPath, active):
     try:
         properties = loadProperties(os.path.join(projectPath, projectFiles["properties"]))
         libraries = [key.split(".")[1] for key in properties.keys() if key.startswith("dependencies")]
-    except FileNotFoundError:
-        raise ProjectError("%s is not a Particle Project!" % projectPath)
-    
+    except FileNotFoundError as e:
+        raise ProjectError("%s is not a Particle Project!" % projectPath) from e
+
     # Ensure that the user is signed into particle
     if active and not checkLogin():
         raise ProcessError("Please log into Particle CLI!\n\tneopo particle login")
@@ -148,10 +148,10 @@ def checkLibraries(projectPath, active):
             else:
                 if active:
                     print("Library %s@%s is already installed." % (library, requestedVersion))
-        except ProcessError:
+        except ProcessError as e:
             # Restore CWD
             os.chdir(oldCWD)
-            raise ProjectError("Failed to download library!")
+            raise ProjectError("Failed to download library!") from e
 
     # Restore current working directory
     os.chdir(oldCWD)
@@ -166,7 +166,7 @@ def getFlags(projectPath):
         with open(settingsPath, "r") as file:
             settings = json.load(file)
         return settings["EXTRA_CFLAGS"]
-    except:
+    except (FileNotFoundError, KeyError):
         return ""
 
 # Set EXTRA_CFLAGS for a project
@@ -183,23 +183,23 @@ def create_command(args):
     try:
         projectPath = os.path.abspath(args[2])
         create_project(os.path.dirname(projectPath), os.path.basename(projectPath))
-    except IndexError:
-        raise UserError("You must supply a path for the project!")
+    except IndexError as e:
+        raise UserError("You must supply a path for the project!") from e
 
 # Wrapper for [config/configure]
 def configure_command(args):
     try:
         projectPath = args[4] if len(args) >= 5 else os.getcwd()
         configure_project(projectPath, args[2], args[3])
-    except IndexError:
-        raise UserError("You must supply platform and deviceOS version!")
+    except IndexError as e:
+        raise UserError("You must supply platform and deviceOS version!") from e
 
 # Wrapper for [flags]
 def flags_command(args):
     try:
         makeFlags = args[2]
-    except IndexError:
-        raise UserError("You must provide the flags as one (quoted) string!")    
+    except IndexError as e:
+        raise UserError("You must provide the flags as one (quoted) string!") from e
     try:
         project = os.path.abspath(args[3])
     except IndexError:
@@ -218,8 +218,8 @@ def settings_command(args):
         print("\tparticle.firmwareVersion: %s"% settings[1])
         print("\tEXTRA_CFLAGS: %s" % (flags if flags else "<not set>"))
         print()
-    except FileNotFoundError:
-        raise UserError("%s is not a Particle project!" % projectPath)
+    except FileNotFoundError as e:
+        raise UserError("%s is not a Particle project!" % projectPath) from e
 
 # Wrapper for [libs]
 def libraries_command(args):

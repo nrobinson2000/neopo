@@ -18,9 +18,9 @@ def getFirmwareData(version):
 # Convert between platform IDs and device names
 def platformConvert(data, key1, key2):
     with open(jsonFiles["platforms"], "r") as platformFile:
-        for platform in json.load(platformFile):
-            if platform[key1] == data:
-                return platform[key2]
+        for devicePlatform in json.load(platformFile):
+            if devicePlatform[key1] == data:
+                return devicePlatform[key2]
         return False
 
 # List the supported platform IDs for a given version
@@ -32,24 +32,25 @@ def getSupportedPlatforms(version):
         return False
 
 # Verify platform and deviceOS version and download deviceOS dependency if required
-def checkFirmwareVersion(platform, version):
+def checkFirmwareVersion(devicePlatform, version):
     firmware = getFirmwareData(version)
-    platformID = platformConvert(platform, "name", "id")
+    platformID = platformConvert(devicePlatform, "name", "id")
 
     # Check that platform and firmware are compatible
     if not platformID:
-        print("Invalid platform %s!" % platform)
+        print("Invalid platform %s!" % devicePlatform)
         return False
     if not firmware:
         print("Invalid deviceOS version %s!" % version)
         return False
-    if not platformID in getSupportedPlatforms(version):
-        print("Platform %s is not supported in deviceOS version %s!" % (platform, version))
+    if platformID not in getSupportedPlatforms(version):
+        print("Platform %s is not supported in deviceOS version %s!" % (devicePlatform, version))
         return False
 
     # If required firmware is not installed, download it
     path = os.path.join(PARTICLE_DEPS, "deviceOS", version)
-    os.path.isdir(path) or downloadDep(firmware, False, True)
+    if not os.path.isdir(path):
+        downloadDep(firmware, False, True)
     return True
 
 # Create the path string for a given deviceOS version
@@ -88,7 +89,8 @@ def getCompilerData(version):
 def checkCompiler(compilerVersion):
     # If required compiler is not installed, download it
     path = os.path.join(PARTICLE_DEPS, "gcc-arm", compilerVersion)
-    os.path.isdir(path) or downloadDep(getCompilerData(compilerVersion), False, True)
+    if not os.path.isdir(path):
+        downloadDep(getCompilerData(compilerVersion), False, True)
     return True
 
 # Print available versions and platforms
@@ -107,8 +109,8 @@ def versions_command(args):
 def get_command(args):
     try:
         downloadFirmware(args[2])
-    except IndexError:
-        raise UserError("You must specify a deviceOS version!")
+    except IndexError as e:
+        raise UserError("You must specify a deviceOS version!") from e
 
 # Download a specific deviceOS version
 def downloadFirmware(version):
@@ -130,10 +132,10 @@ def downloadUnlisted(version):
         firmware["url"] = "https://github.com/particle-iot/device-os/archive/v%s.tar.gz" % version
         print("Trying github.com/particle-iot/device-os...")
         attemptDownload(firmware)
-    
+
 # Wrapper for [download-unlisted]
 def downloadUnlisted_command(args):
     try:
         downloadUnlisted(args[2])
-    except IndexError:
-        raise UserError("You must specify a deviceOS version!")
+    except IndexError as e:
+        raise UserError("You must specify a deviceOS version!") from e

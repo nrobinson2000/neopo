@@ -14,7 +14,7 @@ def particle_command(args):
     process = [particle_cli, *args[2:]]
 
     try:
-        returncode = subprocess.run(process, env=tempEnv, shell=running_on_windows).returncode
+        returncode = subprocess.run(process, env=tempEnv, shell=running_on_windows, check=True).returncode
     # Return cleanly if ^C was pressed
     except KeyboardInterrupt:
         return
@@ -22,5 +22,5 @@ def particle_command(args):
         raise ProcessError("Particle CLI exited with code %s" % returncode)
 
 if __name__ == "__main__":
-    args = sys.argv[1:]
-    particle_command([None, None, *args])
+    particle_args = sys.argv[1:]
+    particle_command([None, None, *particle_args])

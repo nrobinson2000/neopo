@@ -1,14 +1,13 @@
+import sys
 
 # Local imports
+from .common import ProcessError
 from .utility import print_help, responsible, unexpectedError
 from .workbench import installOrUpdate
 from .toolchain import versions_command, get_command, downloadUnlisted_command
 from .project import create_command, configure_command, flags_command, settings_command, libraries_command
 from .build import compile_command, flash_command, flash_all_command, clean_command, run_command
 from .completion import versions_compressed, platforms_command, findValidProjects, getMakefileTargets
-
-# from script import script_command, script_print, script_wait
-
 from .iterate import iterate_command, iterate_options
 from .particle import particle_command
 
@@ -33,7 +32,6 @@ def update_command(args):
     installOrUpdate(False, force)
 
 # Wrapper for [upgrade]
-# TODO: Deprecate, since using pip/pacman
 def upgrade_command(args):
     print("This command is deprecated because neopo is now installed using pip or the AUR.")
     print("To upgrade neopo, either rerun the universal installer, or follow distribution\nspecific instructions.")
@@ -47,6 +45,41 @@ def uninstall_command(args):
     print("If you want to delete the neopo and particle directories you can do so with:")
     print("\t$ rm -rf ~/.neopo ~/.particle")
 
+# Wait for user to press enter [for scripting]
+def script_wait(args = None):
+    input("Press Enter to continue...")
+
+# Print a message to the console [for scripting]
+def script_print(args):
+    try:
+        message = args[2:]
+    except IndexError:
+        message = ""
+    print(*message)
+
+# Wrapper for [script]
+def script_command(args):
+    try:
+        name = args[2]
+        script = open(name, "r")
+    except IndexError as e:
+        script = sys.stdin
+        if script.isatty():
+            raise ProcessError("Usage:\n\t$ neopo script <file>\n\t$ <another process> | neopo script") from e
+    except FileNotFoundError as e:
+        raise ProcessError("Could not find script %s!" % name) from e
+
+    # Open the script and execute each line
+    for line in script.readlines():
+        line = line.rstrip()
+        # Skip comments
+        if line.startswith("#"):
+            continue
+
+        # Run the process just like a regular invocation, skip empty lines
+        process = [args[0], *line.split()]
+        if len(process) > 1:
+            main(process)
 
 # Available options
 commands = {
@@ -70,14 +103,14 @@ commands = {
     "targets": getMakefileTargets,
     "options": options,
     "download-unlisted": downloadUnlisted_command,
-    # "script": script_command,
+    "script": script_command,
     "iterate": iterate_command,
     "options-iterable": iterate_options,
     "flags": flags_command,
     "upgrade": upgrade_command,
     "particle": particle_command,
-    # "wait": script_wait,
-    # "print": script_print,
+    "wait": script_wait,
+    "print": script_print,
     "settings": settings_command,
     "libs": libraries_command
 }
@@ -99,12 +132,12 @@ def main(args):
                 unexpectedError()
         except RuntimeError as e:
             print(e)
-            exit(1)
+            sys.exit(1)
         except Exception as e:
             unexpectedError()
-            exit(2)
+            sys.exit(2)
     else:
         print_help(args)
         print("Invalid command!")
         print()
-        exit(3)
+        sys.exit(3)

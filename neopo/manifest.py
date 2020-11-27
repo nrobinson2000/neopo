@@ -22,25 +22,24 @@ def createManifest():
     if not os.path.isfile(jsonFiles["manifest"]):
         open(jsonFiles["manifest"], "w")
 
-# Load settings from the dependency mainfest JSON file
-def loadManifest(tupleOrDict):
+def getManifestKey(key):
     with open(jsonFiles["manifest"], "r") as file:
         try:
             data = json.load(file)
         except json.decoder.JSONDecodeError:
             return None
-        if tupleOrDict:
-            return (
-                data["gcc-arm"],
-                data["buildscripts"],
-                data["buildtools"],
-                data["deviceOS"]
-            )
-        else:
-            return {
-                "gcc-arm": data["gcc-arm"],
-                "buildscripts": data["buildscripts"],
-                "buildtools": data["buildtools"],
-                "deviceOS": data["deviceOS"],
-                "openocd": data["openocd"]
-            }
+        return data[key]
+
+# Load settings from the dependency mainfest JSON file
+def loadManifest():
+    with open(jsonFiles["manifest"], "r") as file:
+        try:
+            data = json.load(file)
+        except json.decoder.JSONDecodeError:
+            return None
+        return (
+            data["gcc-arm"],
+            data["buildscripts"],
+            data["buildtools"],
+            data["deviceOS"]
+        )

@@ -3,9 +3,6 @@ import json
 
 from .common import jsonFiles, projectFiles, PARTICLE_DEPS
 
-#TODO: iterable_commands, commands
-
-
 # Print available versions compressed (for completion)
 def versions_compressed(args):
     with open(jsonFiles["firmware"], "r") as firmwareFile:
