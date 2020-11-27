@@ -12,7 +12,7 @@ from .common import projectFiles, vscodeFiles
 
 from .utility import writeFile, checkLogin, downloadLibrary
 
-from .manifest import loadManifest
+from .manifest import loadManifestKey
 
 from .toolchain import checkFirmwareVersion
 
@@ -60,7 +60,7 @@ def create_project(path, name):
 
     #TODO: Default device in manifest.json
     device = "argon"
-    version = loadManifest(False)["deviceOS"]
+    version = loadManifestKey("deviceOS")
     configure_project(projectPath, device, version)
 
 # Modify Workbench settings in a project (platform, firmwareVersion)
