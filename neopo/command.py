@@ -2,12 +2,12 @@ import sys
 
 # Local imports
 from .common import ProcessError
-from .utility import print_help, responsible, unexpectedError
-from .workbench import installOrUpdate
-from .toolchain import versions_command, get_command, downloadUnlisted_command
+from .utility import print_help, responsible, unexpected_error
+from .workbench import install_or_update
+from .toolchain import versions_command, get_command, download_unlisted_command
 from .project import create_command, configure_command, flags_command, settings_command, libraries_command
 from .build import compile_command, flash_command, flash_all_command, clean_command, run_command
-from .completion import versions_compressed, platforms_command, findValidProjects, getMakefileTargets
+from .completion import versions_compressed, platforms_command, find_valid_projects, get_makefile_targets
 from .iterate import iterate_command, iterate_options
 from .particle import particle_command
 
@@ -21,7 +21,7 @@ def install_command(args):
         force = args[2] == "-f"
     except IndexError:
         force = None
-    installOrUpdate(True, force)
+    install_or_update(True, force)
 
 # Wrapper for [update]
 def update_command(args):
@@ -29,7 +29,7 @@ def update_command(args):
         force = args[2] == "-f"
     except IndexError:
         force = None
-    installOrUpdate(False, force)
+    install_or_update(False, force)
 
 # Wrapper for [upgrade]
 def upgrade_command(args):
@@ -62,12 +62,12 @@ def script_command(args):
     try:
         name = args[2]
         script = open(name, "r")
-    except IndexError as e:
+    except IndexError as error:
         script = sys.stdin
         if script.isatty():
-            raise ProcessError("Usage:\n\t$ neopo script <file>\n\t$ <another process> | neopo script") from e
-    except FileNotFoundError as e:
-        raise ProcessError("Could not find script %s!" % name) from e
+            raise ProcessError("Usage:\n\t$ neopo script <file>\n\t$ <another process> | neopo script") from error
+    except FileNotFoundError as error:
+        raise ProcessError("Could not find script %s!" % name) from error
 
     # Open the script and execute each line
     for line in script.readlines():
@@ -99,10 +99,10 @@ commands = {
     "get": get_command,
     "list-versions": versions_compressed,
     "platforms": platforms_command,
-    "projects": findValidProjects,
-    "targets": getMakefileTargets,
+    "projects": find_valid_projects,
+    "targets": get_makefile_targets,
     "options": options,
-    "download-unlisted": downloadUnlisted_command,
+    "download-unlisted": download_unlisted_command,
     "script": script_command,
     "iterate": iterate_command,
     "options-iterable": iterate_options,
@@ -122,19 +122,19 @@ def main(args):
     elif args[1] in commands:
         try:
             commands[args[1]](args)
-        except FileNotFoundError as e:
-            file = e.filename
+        except FileNotFoundError as error:
+            file = error.filename
             if responsible(file):
                 print("Error: file %s not found." % file)
                 print("Please ensure that you have installed the dependencies:")
                 print("\t$ neopo install")
             else:
-                unexpectedError()
-        except RuntimeError as e:
-            print(e)
+                unexpected_error()
+        except RuntimeError as error:
+            print(error)
             sys.exit(1)
-        except Exception as e:
-            unexpectedError()
+        except Exception as error:
+            unexpected_error()
             sys.exit(2)
     else:
         print_help(args)

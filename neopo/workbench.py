@@ -15,12 +15,12 @@ from .common import PARTICLE_DEPS, CACHE_DIR, ARM_GCC_ARM
 from .common import extensionFiles, vscodeFiles, jsonFiles
 from .common import particle_cli, running_on_windows
 
-from .utility import writeFile, writeExecutable
+from .utility import write_file, write_executable
 
-from .manifest import writeManifest, createManifest, loadManifest
+from .manifest import write_manifest, create_manifest, load_manifest
 
 # Find the Workbench extension URL from the Visual Studio Marketplace
-def getExtensionURL():
+def get_extension_url():
     print("Finding Workbench extension URL...")
     payload = '{"assetTypes":null,"filters":[{"criteria":[{"filterType":7,"value":"particle.particle-vscode-core"}],"direction":2,"pageSize":100,"pageNumber":1,"sortBy":0,"sortOrder":0,"pagingToken":null}],"flags":103}'
 
@@ -35,33 +35,33 @@ def getExtensionURL():
     try:
         with urllib.request.urlopen(request) as response:
             content = response.read()
-    except urllib.error.URLError as e:
-        raise DependencyError("Failed to get extension URL!") from e
+    except urllib.error.URLError as error:
+        raise DependencyError("Failed to get extension URL!") from error
 
     # Parse response and extract the URL of the VSIX
     data = json.loads(content.decode("utf-8"))
     return data["results"][0]["extensions"][0]["versions"][0]["files"][-1]["source"]
 
 # Download the the Workbench extension from the URL and return it in ZIP format
-def getExtension(url):
+def get_extension(url):
     print("Downloading Workbench extension...")
     try:
         with urllib.request.urlopen(url) as response:
             content = response.read()
-    except urllib.error.URLError as e:
-        raise DependencyError("Failed to download extension!") from e
+    except urllib.error.URLError as error:
+        raise DependencyError("Failed to download extension!") from error
     return zipfile.ZipFile(io.BytesIO(content), "r")
 
 # Load a file from a ZIP
-def getFile(file, path):
+def get_file(file, path):
     return file.read(path)
 
 # Download the specified dependency
-def downloadDep(dep, updateManifest, checkHash):
+def download_dep(dep, update_manifest, check_hash):
     if not dep:
         return False
-    if updateManifest:
-        writeManifest(dep)
+    if update_manifest:
+        write_manifest(dep)
 
     name, version, url, sha256 = dep["name"], dep["version"], dep["url"], dep["sha256"]
     print("Downloading dependency %s@%s..." % (name, version))
@@ -69,11 +69,11 @@ def downloadDep(dep, updateManifest, checkHash):
     try:
         with urllib.request.urlopen(url) as response:
             content = response.read()
-    except urllib.error.URLError as e:
-        raise DependencyError("Failed to download dependency!") from e
+    except urllib.error.URLError as error:
+        raise DependencyError("Failed to download dependency!") from error
 
     # Verify that the sha256 matches
-    if checkHash:
+    if check_hash:
         content_sha256 = hashlib.sha256(content).hexdigest()
         if content_sha256 != sha256:
             print("SHA256 mismatch!")
@@ -89,57 +89,57 @@ def downloadDep(dep, updateManifest, checkHash):
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
     # Write the archive to a file to save RAM
-    fileName = os.path.join(path, "%s-v%s.tar.gz" % (name, version))
-    with open(fileName, "wb") as gzFile:
-        gzFile.write(content)
+    archive = os.path.join(path, "%s-v%s.tar.gz" % (name, version))
+    with open(archive, "wb") as gz_file:
+        gz_file.write(content)
 
     # Extract the archive
-    with tarfile.open(fileName, "r:gz") as file:
+    with tarfile.open(archive, "r:gz") as file:
         file.extractall(path)
 
     # Delete the temporary archive
-    os.remove(fileName)
+    os.remove(archive)
     return True
 
 # Download extension manifest and simple dependencies
-def getDeps():
+def get_deps():
     # Ensure that cache directory exists
     pathlib.Path(CACHE_DIR).mkdir(parents=True, exist_ok=True)
 
     # Download and extract VSIX, and obtain dependency manifest
-    extension = getExtension(getExtensionURL())
+    extension = get_extension(get_extension_url())
     pathlib.Path(vscodeFiles["dir"]).mkdir(parents=True, exist_ok=True)
-    manifest = getFile(extension, extensionFiles["manifest"])
+    manifest = get_file(extension, extensionFiles["manifest"])
 
     # Attempt to pull particle-cli executable from VSIX
     try:
-        osPlatform = platform.system().lower()
-        osArch = platform.machine().lower() if running_on_windows else "amd64" if platform.machine() == "x86_64" else "arm"
+        os_platform = platform.system().lower()
+        os_arch = platform.machine().lower() if running_on_windows else "amd64" if platform.machine() == "x86_64" else "arm"
         particle_bin = os.path.basename(particle_cli)
-        particle = getFile(extension, "/".join([extensionFiles["bin"], osPlatform, osArch, particle_bin]))
-        writeExecutable(particle, particle_cli)
-    except KeyError as e:
-        raise DependencyError("Failed to download particle executable from extension!") from e
+        particle = get_file(extension, "/".join([extensionFiles["bin"], os_platform, os_arch, particle_bin]))
+        write_executable(particle, particle_cli)
+    except KeyError as error:
+        raise DependencyError("Failed to download particle executable from extension!") from error
 
     # Create launch.json and settings.json project template files
-    launch = getFile(extension, extensionFiles["launch"])
-    settings = getFile(extension, extensionFiles["settings"])
-    writeFile(launch, vscodeFiles["launch"], "wb")
-    writeFile(settings, vscodeFiles["settings"], "wb")
+    launch = get_file(extension, extensionFiles["launch"])
+    settings = get_file(extension, extensionFiles["settings"])
+    write_file(launch, vscodeFiles["launch"], "wb")
+    write_file(settings, vscodeFiles["settings"], "wb")
 
     # Ensure that manifest file exists and return manifest content
-    createManifest()
+    create_manifest()
     return json.loads(manifest.decode("utf-8"))
 
 # Write an object to JSON cache file
-def writeJSONcaches(data, keys):
+def write_json_caches(data, keys):
     for key in keys:
         with open(jsonFiles[key], "w") as file:
-            keyData = data[key]
-            json.dump(keyData, file, indent=4)
+            key_data = data[key]
+            json.dump(key_data, file, indent=4)
 
 # Install or update neopo dependencies (not the neopo script)
-def installOrUpdate(install, force):
+def install_or_update(install, force):
     print("Installing neopo..." if install else "Updating dependencies...")
 
     # Dependencies we wish to install and caches we will create
@@ -147,61 +147,61 @@ def installOrUpdate(install, force):
     caches = ["firmware", "platforms", "toolchains", "compilers"]
 
     # Download dependency data and create list of installables
-    data = getDeps()
-    depJSON = [data["firmware"][0]]
+    data = get_deps()
+    dep_json = [data["firmware"][0]]
 
     # Append dependencies to list
     system = platform.system().lower()
-    depJSON.extend([data[dep][system]["x64"][0] for dep in dependencies])
+    dep_json.extend([data[dep][system]["x64"][0] for dep in dependencies])
 
     # Use my precompiled gcc-arm for ARM
-    installPlatform = platform.machine()
-    if installPlatform != "x86_64":
-        for dep in depJSON:
+    install_platform = platform.machine()
+    if install_platform != "x86_64":
+        for dep in dep_json:
             if dep["name"] == "gcc-arm":
-                dep["url"] = ARM_GCC_ARM[installPlatform][dep["version"]]["url"]
-                dep["sha256"] = ARM_GCC_ARM[installPlatform][dep["version"]]["sha256"]
+                dep["url"] = ARM_GCC_ARM[install_platform][dep["version"]]["url"]
+                dep["sha256"] = ARM_GCC_ARM[install_platform][dep["version"]]["sha256"]
                 break
 
     # Update JSON cache files
-    writeJSONcaches(data, caches)
+    write_json_caches(data, caches)
 
     # Either install or update
     if install:
-        skippedDeps = []
-        for dep in depJSON:
+        skipped_deps = []
+        for dep in dep_json:
             # Install dependency if not currently installed, or forced, otherwise skip
             installed = os.path.isdir(os.path.join(PARTICLE_DEPS, dep["name"], dep["version"]))
             if not installed or force:
-                downloadDep(dep, True, True)
+                download_dep(dep, True, True)
             else:
-                skippedDeps.append(dep)
+                skipped_deps.append(dep)
 
         # Put skippedDeps in manifest.json. Fixes: nrobinson2000/neopo/issues/8
-        for dep in skippedDeps:
-            writeManifest(dep)
+        for dep in skipped_deps:
+            write_manifest(dep)
 
         # Notify user of dependencies skipped to save bandwidth and time
-        if skippedDeps:
+        if skipped_deps:
             print()
             print("Skipped previously installed dependencies:")
-            print(*["%s@%s" % (dep["name"], dep["version"]) for dep in skippedDeps], sep=", ")
+            print(*["%s@%s" % (dep["name"], dep["version"]) for dep in skipped_deps], sep=", ")
         print()
 
     else:
         # Load in dependency manifest, and only install a dependency if newer
-        manifest = loadManifest()
-        for dep in depJSON:
+        manifest = load_manifest()
+        for dep in dep_json:
             new = int(dep["version"].split("-")[0].replace(".", ""))
             old = int(manifest[dep["name"]].split("-")[0].replace(".", ""))
             if new > old:
-                downloadDep(dep, True, True)
+                download_dep(dep, True, True)
         print("Dependencies are up to date!")
 
 # Try to download given firmware
-def attemptDownload(firmware):
+def attempt_download(firmware):
     try:
-        downloadDep(firmware, False, True)
+        download_dep(firmware, False, True)
         return
-    except urllib.error.URLError as e:
-        raise DependencyError("DeviceOS version %s not found!" % firmware["version"]) from e
+    except urllib.error.URLError as error:
+        raise DependencyError("DeviceOS version %s not found!" % firmware["version"]) from error

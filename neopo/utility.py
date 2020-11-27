@@ -7,26 +7,26 @@ from .common import particle_cli, running_on_windows, ProcessError
 from .common import PARTICLE_DEPS, NEOPO_DEPS, CACHE_DIR
 
 # Write data to a file
-def writeFile(content, path, mode):
+def write_file(content, path, mode):
     with open(path, mode) as file:
         file.write(content)
 
 # Write an executable dependency to a file
-def writeExecutable(content, path):
+def write_executable(content, path):
     with open(path, "wb") as file:
         file.write(content)
-        st = os.stat(file.name)
-        os.chmod(file.name, st.st_mode | stat.S_IEXEC)
+        file_stat = os.stat(file.name)
+        os.chmod(file.name, file_stat.st_mode | stat.S_IEXEC)
 
 # Ensure that the user is logged into particle-cli
-def checkLogin():
+def check_login():
     process = [particle_cli, "whoami"]
     returncode = subprocess.run(process, shell=running_on_windows,
             stdout= subprocess.PIPE, stderr= subprocess.PIPE, check=True).returncode
     return returncode == 0
 
 # Download a library using particle-cli
-def downloadLibrary(library, version):
+def download_library(library, version):
     process = [particle_cli, "library", "copy", "%s@%s" % (library, version)]
     returncode = subprocess.run(process, shell=running_on_windows, check=True).returncode
     if returncode != 0:
@@ -82,7 +82,7 @@ r"""    ____  ___  ____  ____  ____
     """)
 
 # Print traceback and message for unhandled exceptions
-def unexpectedError():
+def unexpected_error():
     traceback.print_exc()
     print("An unexpected error occurred!")
     print("To report this error on GitHub, please open an issue:")

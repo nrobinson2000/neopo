@@ -34,8 +34,8 @@ def iterate_command(args):
     try:
         if not args[1] in iterable_commands.keys():
             raise UserError("Invalid command!")
-    except IndexError as e:
-        raise UserError("You must supply a command to iterate with!") from e
+    except IndexError as error:
+        raise UserError("You must supply a command to iterate with!") from error
 
     for device in devices:
         print("DeviceID: %s" % device)

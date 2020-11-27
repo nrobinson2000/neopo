@@ -7,41 +7,41 @@ import subprocess
 from .common import PARTICLE_DEPS, running_on_windows, particle_cli, projectFiles
 from .common import ProcessError, ProjectError, UserError
 
-from .manifest import loadManifest, loadManifestKey
+from .manifest import load_manifest, get_manifest_value
 
-from .project import getSettings, checkLibraries, getFlags
+from .project import get_settings, check_libraries, get_flags
 
-from .toolchain import getCompiler, checkFirmwareVersion, checkCompiler, getFirmwarePath
+from .toolchain import get_compiler, check_firmware_version, check_compiler, get_firmware_path
 
 
 
 # Add a path to an environment
-def addToPath(environment, path):
+def add_to_path(environment, path):
     environment["PATH"] += os.pathsep + path
 
 # Add buildtools to PATH
-def addBuildtools(environment, version=None):
-    toolsVersion = version if version else loadManifestKey('buildtools')
-    toolpath = os.path.join(PARTICLE_DEPS, "buildtools", toolsVersion)
+def add_build_tools(environment, version=None):
+    tools_version = version if version else get_manifest_value('buildtools')
+    toolpath = os.path.join(PARTICLE_DEPS, "buildtools", tools_version)
     toolpath = os.path.join(toolpath, "bin") if running_on_windows else toolpath
-    addToPath(environment, toolpath)
+    add_to_path(environment, toolpath)
 
 # Use the Makefile to build the specified target
-def build_project(projectPath, command, helpOnly, verbosity):
-    compilerVersion, scriptVersion, toolsVersion, firmwareVersion = loadManifest()
-    tempEnv = os.environ.copy()
-    addBuildtools(tempEnv, toolsVersion)
+def build_project(project_path, command, help_only, verbosity):
+    compiler_version, script_version, tools_version, firmware_version = load_manifest()
+    temp_env = os.environ.copy()
+    add_build_tools(temp_env, tools_version)
 
     # Windows compatibility modifications
     particle = particle_cli
     if running_on_windows:
         particle = particle.replace("C:\\", "/cygdrive/c/")
         particle = particle.replace("\\", "/")
-        projectPath = projectPath.replace("\\", "\\\\")
+        project_path = project_path.replace("\\", "\\\\")
 
     # Command used to invoke the Workbench makefile
     process = [
-        "make", "-f", os.path.join(PARTICLE_DEPS, "buildscripts", scriptVersion, "Makefile"),
+        "make", "-f", os.path.join(PARTICLE_DEPS, "buildscripts", script_version, "Makefile"),
         "PARTICLE_CLI_PATH=" + particle
     ]
 
@@ -49,42 +49,42 @@ def build_project(projectPath, command, helpOnly, verbosity):
     if verbosity == 0:
         process.append("-s")
 
-    if helpOnly:
+    if help_only:
         process.append("help")
     else:
         try:
-            devicePlatform, firmwareVersion = getSettings(projectPath)
-            compilerVersion = getCompiler(firmwareVersion)
+            device_platform, firmware_version = get_settings(project_path)
+            compiler_version = get_compiler(firmware_version)
 
-            if not checkFirmwareVersion(devicePlatform, firmwareVersion):
+            if not check_firmware_version(device_platform, firmware_version):
                 raise ProjectError("Firmware related error!")
 
-            if not checkCompiler(compilerVersion):
+            if not check_compiler(compiler_version):
                 raise ProjectError("Compiler related error!")
 
-            if not checkLibraries(projectPath, False):
+            if not check_libraries(project_path, False):
                 print("To install libraries run: $ neopo libs [project]")
 
-        except (FileNotFoundError, KeyError) as e:
-            if os.path.isfile(os.path.join(projectPath, projectFiles["properties"])):
-                raise ProjectError("Project not configured!\nUse: neopo configure <platform> <version> <project>") from e
+        except (FileNotFoundError, KeyError) as error:
+            if os.path.isfile(os.path.join(project_path, projectFiles["properties"])):
+                raise ProjectError("Project not configured!\nUse: neopo configure <platform> <version> <project>") from error
             else:
-                raise UserError("%s is not a Particle project!" % projectPath) from e
+                raise UserError("%s is not a Particle project!" % project_path) from error
 
         # Add compiler to path
-        addToPath(tempEnv, os.path.join(PARTICLE_DEPS, "gcc-arm", compilerVersion, "bin"))
+        add_to_path(temp_env, os.path.join(PARTICLE_DEPS, "gcc-arm", compiler_version, "bin"))
 
         # Set additional variables for make
-        deviceOSPath = getFirmwarePath(firmwareVersion)
-        extraCompilerFlags = getFlags(projectPath)
-        process.append("APPDIR=%s" % projectPath)
-        process.append("DEVICE_OS_PATH=%s" % deviceOSPath)
-        process.append("PLATFORM=%s" % devicePlatform)
-        process.append("EXTRA_CFLAGS=%s" % extraCompilerFlags)
+        device_os_path = get_firmware_path(firmware_version)
+        extra_compiler_flags = get_flags(project_path)
+        process.append("APPDIR=%s" % project_path)
+        process.append("DEVICE_OS_PATH=%s" % device_os_path)
+        process.append("PLATFORM=%s" % device_platform)
+        process.append("EXTRA_CFLAGS=%s" % extra_compiler_flags)
         process.append(command)
 
     # Run makefile with given verbosity
-    returncode = subprocess.run(process, env=tempEnv,
+    returncode = subprocess.run(process, env=temp_env,
                                 shell=running_on_windows,
                                 stdout= subprocess.PIPE if verbosity == -1 else None,
                                 stderr= subprocess.PIPE if verbosity == -1 else None,
@@ -94,46 +94,34 @@ def build_project(projectPath, command, helpOnly, verbosity):
         raise ProcessError("Failed with code %s" % returncode)
 
 # Parse the project path from the specified index and run a Makefile target
-def buildCommand(command, index, args):
-    verboseIndex = index
+def build_command(command, index, args):
+    verbose_index = index
     project = None
-    verbosityDict = {"": 0, "-v": 1, "-q": -1}
+    verbosity_dict = {"": 0, "-v": 1, "-q": -1}
 
     try:
         # Project specified, verbosity may follow
         if not args[index].startswith("-"):
             project = os.path.abspath(args[index])
-            verboseIndex += 1
+            verbose_index += 1
         else:
             project = os.getcwd()
     except IndexError:
         # Project not specified
         project = os.getcwd()
-        verboseIndex = index
+        verbose_index = index
     try:
         # Parse verbosity to an integer
-        verbosityStr = args[verboseIndex]
-        verbosity = verbosityDict[verbosityStr]
+        verbosity_str = args[verbose_index]
+        verbosity = verbosity_dict[verbosity_str]
     except IndexError:
         # Verbosity not specified, use default
         verbosity = 0
-    except KeyError as e:
-        raise UserError("Invalid verbosity!") from e
+    except KeyError as error:
+        raise UserError("Invalid verbosity!") from error
 
     # Build the given project with a command and verbosity
     build_project(project, command, False, verbosity)
-
-
-# Available options for iterate
-# iterable_commands = {
-#     "compile": compile_command,
-#     "build": compile_command,
-#     "flash": flash_command,
-#     "flash-all": flash_all_command,
-#     "clean": clean_command,
-#     "run": run_command,
-#     "script": script_command
-# }
 
 # Print help information directly from Makefile
 def build_help():
@@ -142,17 +130,17 @@ def build_help():
 # Wrapper for [run]
 def run_command(args):
     try:
-        buildCommand(args[2], 3, args)
-    except IndexError as e:
+        build_command(args[2], 3, args)
+    except IndexError as error:
         build_help()
-        raise UserError("You must supply a Makefile target!") from e
+        raise UserError("You must supply a Makefile target!") from error
 
 # Wrappers for commands that build
 def flash_command(args):
-    buildCommand("flash-user", 2, args)
+    build_command("flash-user", 2, args)
 def compile_command(args):
-    buildCommand("compile-user", 2, args)
+    build_command("compile-user", 2, args)
 def flash_all_command(args):
-    buildCommand("flash-all", 2, args)
+    build_command("flash-all", 2, args)
 def clean_command(args):
-    buildCommand("clean-user", 2, args)
+    build_command("clean-user", 2, args)

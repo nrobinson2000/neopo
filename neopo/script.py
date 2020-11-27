@@ -10,6 +10,6 @@ from .command import script_command
 if __name__ == "__main__":
     try:
         script_command([None, *sys.argv])
-    except ProcessError as e:
-        print(e)
+    except ProcessError as error:
+        print(error)
         sys.exit(1)

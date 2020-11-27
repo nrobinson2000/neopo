@@ -10,16 +10,16 @@ from .common import particle_cli, running_on_windows
 from .common import ProcessError, ProjectError, UserError
 from .common import projectFiles, vscodeFiles
 
-from .utility import writeFile, checkLogin, downloadLibrary
+from .utility import write_file, check_login, download_library
 
-from .manifest import loadManifestKey
+from .manifest import get_manifest_value
 
-from .toolchain import checkFirmwareVersion
+from .toolchain import check_firmware_version
 
 
 # Create a Particle project and copy in Workbench settings
 def create_project(path, name):
-    projectPath = os.path.join(path, name)
+    project_path = os.path.join(path, name)
     # Use particle-cli to create the project
     returncode = subprocess.run(
         [particle_cli, "project", "create", path, "--name", name],
@@ -29,29 +29,29 @@ def create_project(path, name):
 
     # If git is installed, initialize project as git repo
     if shutil.which("git"):
-        subprocess.run(["git", "init", projectPath], check=True)
+        subprocess.run(["git", "init", project_path], check=True)
         # Add .travis.yml to project
-        writeFile(TRAVIS_YML, os.path.join(projectPath, ".travis.yml"), "w")
+        write_file(TRAVIS_YML, os.path.join(project_path, ".travis.yml"), "w")
         # Add .gitignore to project
-        writeFile("target", os.path.join(projectPath, ".gitignore"), "w")
+        write_file("target", os.path.join(project_path, ".gitignore"), "w")
 
     # Add buttons to README.md
-    travisButton = "[![](https://api.travis-ci.org/yourUser/yourRepo.svg?branch=master)](https://travis-ci.org/yourUser/yourRepo)"
-    neopoButton = "[![](https://img.shields.io/badge/built_with-neopo-informational)](https://neopo.xyz)"
-    readmePath = os.path.join(projectPath, "README.md")
-    with open(readmePath, "r") as file:
+    travis_button = "[![](https://api.travis-ci.org/yourUser/yourRepo.svg?branch=master)](https://travis-ci.org/yourUser/yourRepo)"
+    neopo_button = "[![](https://img.shields.io/badge/built_with-neopo-informational)](https://neopo.xyz)"
+    readme_path = os.path.join(project_path, "README.md")
+    with open(readme_path, "r") as file:
         readme = file.readlines()
         readme.insert(0, "\n")
-        readme.insert(0, neopoButton + "\n")
-        readme.insert(0, travisButton + "\n")
-    with open(readmePath, "w") as file:
+        readme.insert(0, neopo_button + "\n")
+        readme.insert(0, travis_button + "\n")
+    with open(readme_path, "w") as file:
         file.writelines(readme)
 
     # Change name/src/name.ino to name/src/name.cpp
     # Add #include "Particle.h"
     include = '#include "Particle.h"\n'
-    src = os.path.join(projectPath, "src", "%s.ino" % name)
-    dst = os.path.join(projectPath, "src", "%s.cpp" % name)
+    src = os.path.join(project_path, "src", "%s.ino" % name)
+    dst = os.path.join(project_path, "src", "%s.cpp" % name)
     shutil.move(src, dst)
     with open(dst, "r") as original:
         data = original.read()
@@ -60,41 +60,41 @@ def create_project(path, name):
 
     #TODO: Default device in manifest.json
     device = "argon"
-    version = loadManifestKey("deviceOS")
-    configure_project(projectPath, device, version)
+    version = get_manifest_value("deviceOS")
+    configure_project(project_path, device, version)
 
 # Modify Workbench settings in a project (platform, firmwareVersion)
-def configure_project(projectPath, platform, firmwareVersion):
+def configure_project(project_path, platform, firmware_version):
     # Ensure that firware is compatible with platform
     # Download requested version if required
-    if not checkFirmwareVersion(platform, firmwareVersion):
+    if not check_firmware_version(platform, firmware_version):
         raise ProjectError("Firmware related error!")
 
     # Ensure that a valid project was selected
-    if not os.path.isfile(os.path.join(projectPath, projectFiles["properties"])):
-        raise ProjectError("%s is not a Particle project!" % projectPath)
+    if not os.path.isfile(os.path.join(project_path, projectFiles["properties"])):
+        raise ProjectError("%s is not a Particle project!" % project_path)
 
     # Upgrade a CLI project to Workbench format if required
-    if not os.path.isfile(os.path.join(projectPath, projectFiles["settings"])):
-        pathlib.Path(os.path.join(projectPath, ".vscode")).mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(vscodeFiles["launch"], os.path.join(projectPath, projectFiles["launch"]))
-        shutil.copyfile(vscodeFiles["settings"], os.path.join(projectPath, projectFiles["settings"]))
+    if not os.path.isfile(os.path.join(project_path, projectFiles["settings"])):
+        pathlib.Path(os.path.join(project_path, ".vscode")).mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(vscodeFiles["launch"], os.path.join(project_path, projectFiles["launch"]))
+        shutil.copyfile(vscodeFiles["settings"], os.path.join(project_path, projectFiles["settings"]))
 
     # Apply configuration to project
-    writeSettings(projectPath, platform, firmwareVersion)
-    print("Configured project %s:" % projectPath)
+    write_settings(project_path, platform, firmware_version)
+    print("Configured project %s:" % project_path)
     print("\tparticle.targetPlatform: %s" % platform)
-    print("\tparticle.firmwareVersion: %s" % firmwareVersion)
+    print("\tparticle.firmwareVersion: %s" % firmware_version)
 
 # Load Workbench settings from a project
-def getSettings(projectPath):
-    with open(os.path.join(projectPath, projectFiles["settings"]), "r") as settings:
+def get_settings(project_path):
+    with open(os.path.join(project_path, projectFiles["settings"]), "r") as settings:
         data = json.loads(settings.read())
         return (data["particle.targetPlatform"], data["particle.firmwareVersion"])
 
 # Update Workbench settings in a project
-def writeSettings(projectPath, platform, version):
-    with open(os.path.join(projectPath, projectFiles["settings"]), "r+") as settings:
+def write_settings(project_path, platform, version):
+    with open(os.path.join(project_path, projectFiles["settings"]), "r+") as settings:
         data = json.loads(settings.read())
         data["particle.targetPlatform"] = platform
         data["particle.firmwareVersion"] = version
@@ -103,9 +103,9 @@ def writeSettings(projectPath, platform, version):
         settings.truncate()
 
 # Create a dictionary from a .properties file
-def loadProperties(propertiesPath):
+def load_properties(properties_path):
     properties = {}
-    with open(propertiesPath, "r") as file:
+    with open(properties_path, "r") as file:
         for line in file.readlines():
             tokens = line.split("=", 1)
             key = tokens[0]
@@ -114,114 +114,114 @@ def loadProperties(propertiesPath):
     return properties
 
 # Ensure that specified libraries are downloaded, otherwise install them
-def checkLibraries(projectPath, active):
+def check_libraries(project_path, active):
     try:
-        properties = loadProperties(os.path.join(projectPath, projectFiles["properties"]))
+        properties = load_properties(os.path.join(project_path, projectFiles["properties"]))
         libraries = [key.split(".")[1] for key in properties.keys() if key.startswith("dependencies")]
-    except FileNotFoundError as e:
-        raise ProjectError("%s is not a Particle Project!" % projectPath) from e
+    except FileNotFoundError as error:
+        raise ProjectError("%s is not a Particle Project!" % project_path) from error
 
     # Ensure that the user is signed into particle
-    if active and not checkLogin():
+    if active and not check_login():
         raise ProcessError("Please log into Particle CLI!\n\tneopo particle login")
 
     # pushd like behavior
-    oldCWD = os.getcwd()
-    os.chdir(projectPath)
+    old_cwd = os.getcwd()
+    os.chdir(project_path)
 
-    librariesIntact = True
+    libraries_intact = True
 
     for library in libraries:
-        requestedVersion = properties["dependencies.%s" % library]
+        requested_version = properties["dependencies.%s" % library]
         try:
-            libProperties = loadProperties(os.path.join("lib", library, "library.properties"))
-            actualVersion = libProperties["version"]
+            lib_properties = load_properties(os.path.join("lib", library, "library.properties"))
+            actual_version = lib_properties["version"]
         except FileNotFoundError:
-            actualVersion = None
+            actual_version = None
         try:
-            if requestedVersion != actualVersion:
+            if requested_version != actual_version:
                 if active:
-                    downloadLibrary(library, requestedVersion)
+                    download_library(library, requested_version)
                 else:
-                    print("WARNING: library %s@%s not found locally." % (library, requestedVersion))
-                    librariesIntact = False
+                    print("WARNING: library %s@%s not found locally." % (library, requested_version))
+                    libraries_intact = False
             else:
                 if active:
-                    print("Library %s@%s is already installed." % (library, requestedVersion))
-        except ProcessError as e:
+                    print("Library %s@%s is already installed." % (library, requested_version))
+        except ProcessError as error:
             # Restore CWD
-            os.chdir(oldCWD)
-            raise ProjectError("Failed to download library!") from e
+            os.chdir(old_cwd)
+            raise ProjectError("Failed to download library!") from error
 
     # Restore current working directory
-    os.chdir(oldCWD)
+    os.chdir(old_cwd)
 
     # Return whether all libraries were present
-    return librariesIntact
+    return libraries_intact
 
 # Get EXTRA_CFLAGS for a project or return empty string
-def getFlags(projectPath):
+def get_flags(project_path):
     try:
-        settingsPath = os.path.join(projectPath, projectFiles["settings"])
-        with open(settingsPath, "r") as file:
+        settings_path = os.path.join(project_path, projectFiles["settings"])
+        with open(settings_path, "r") as file:
             settings = json.load(file)
         return settings["EXTRA_CFLAGS"]
     except (FileNotFoundError, KeyError):
         return ""
 
 # Set EXTRA_CFLAGS for a project
-def setFlags(projectPath, makeFlags):
-    settingsPath = os.path.join(projectPath, projectFiles["settings"])
-    with open(settingsPath, "r") as file:
+def set_flags(project_path, make_flags):
+    settings_path = os.path.join(project_path, projectFiles["settings"])
+    with open(settings_path, "r") as file:
         settings = json.load(file)
-    settings["EXTRA_CFLAGS"] = makeFlags
-    with open(settingsPath, "w") as file:
+    settings["EXTRA_CFLAGS"] = make_flags
+    with open(settings_path, "w") as file:
         json.dump(settings, file, indent=4)
 
 # Wrapper for [create]
 def create_command(args):
     try:
-        projectPath = os.path.abspath(args[2])
-        create_project(os.path.dirname(projectPath), os.path.basename(projectPath))
-    except IndexError as e:
-        raise UserError("You must supply a path for the project!") from e
+        project_path = os.path.abspath(args[2])
+        create_project(os.path.dirname(project_path), os.path.basename(project_path))
+    except IndexError as error:
+        raise UserError("You must supply a path for the project!") from error
 
 # Wrapper for [config/configure]
 def configure_command(args):
     try:
-        projectPath = args[4] if len(args) >= 5 else os.getcwd()
-        configure_project(projectPath, args[2], args[3])
-    except IndexError as e:
-        raise UserError("You must supply platform and deviceOS version!") from e
+        project_path = args[4] if len(args) >= 5 else os.getcwd()
+        configure_project(project_path, args[2], args[3])
+    except IndexError as error:
+        raise UserError("You must supply platform and deviceOS version!") from error
 
 # Wrapper for [flags]
 def flags_command(args):
     try:
-        makeFlags = args[2]
-    except IndexError as e:
-        raise UserError("You must provide the flags as one (quoted) string!") from e
+        make_flags = args[2]
+    except IndexError as error:
+        raise UserError("You must provide the flags as one (quoted) string!") from error
     try:
         project = os.path.abspath(args[3])
     except IndexError:
         project = os.getcwd()
 
-    setFlags(project, makeFlags)
+    set_flags(project, make_flags)
 
 # Wrapper for [settings]
 def settings_command(args):
     try:
-        projectPath = args[2] if len(args) >= 3 else os.getcwd()
-        settings = getSettings(projectPath)
-        flags = getFlags(projectPath)
-        print("Configuration for project %s:" % projectPath)
+        project_path = args[2] if len(args) >= 3 else os.getcwd()
+        settings = get_settings(project_path)
+        flags = get_flags(project_path)
+        print("Configuration for project %s:" % project_path)
         print("\tparticle.targetPlatform: %s" % settings[0])
         print("\tparticle.firmwareVersion: %s"% settings[1])
         print("\tEXTRA_CFLAGS: %s" % (flags if flags else "<not set>"))
         print()
-    except FileNotFoundError as e:
-        raise UserError("%s is not a Particle project!" % projectPath) from e
+    except FileNotFoundError as error:
+        raise UserError("%s is not a Particle project!" % project_path) from error
 
 # Wrapper for [libs]
 def libraries_command(args):
-    projectPath = args[2] if len(args) >= 3 else os.getcwd()
-    checkLibraries(projectPath, True)
+    project_path = args[2] if len(args) >= 3 else os.getcwd()
+    check_libraries(project_path, True)

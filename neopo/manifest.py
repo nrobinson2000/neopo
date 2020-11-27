@@ -5,7 +5,7 @@ import json
 from .common import jsonFiles
 
 # Update the manifest JSON file
-def writeManifest(dep):
+def write_manifest(dep):
     with open(jsonFiles["manifest"], "r+") as file:
         try:
             manifest = json.load(file)
@@ -18,11 +18,11 @@ def writeManifest(dep):
         file.truncate()
 
 # Create the manifest file
-def createManifest():
+def create_manifest():
     if not os.path.isfile(jsonFiles["manifest"]):
         open(jsonFiles["manifest"], "w")
 
-def getManifestKey(key):
+def get_manifest_value(key):
     with open(jsonFiles["manifest"], "r") as file:
         try:
             data = json.load(file)
@@ -31,7 +31,7 @@ def getManifestKey(key):
         return data[key]
 
 # Load settings from the dependency mainfest JSON file
-def loadManifest():
+def load_manifest():
     with open(jsonFiles["manifest"], "r") as file:
         try:
             data = json.load(file)
