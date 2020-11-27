@@ -13,7 +13,7 @@ share_files = [
    ('/usr/share/man/man1', ['man/neopo.1'])
 ]
 
-script_files = ['scripts/neopo']
+script_files = ['scripts/neopo', 'scripts/neopo-script', 'scripts/particle']
 
 setup(
    name='neopo',
