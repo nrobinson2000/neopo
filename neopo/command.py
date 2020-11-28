@@ -1,7 +1,9 @@
+import os
 import sys
 import subprocess
 
 # Local imports
+from .common import NEOPO_DEPS
 from .common import ProcessError, UserError, particle_cli, running_on_windows
 from .utility import print_help, responsible, unexpected_error
 from .workbench import install_or_update
@@ -133,6 +135,33 @@ def iterate_command(args):
 def iterate_options(args):
     print(*iterable_commands)
 
+# Run POSTINSTALL setup script for Manjaro/Arch
+def setup_command(args):
+    # Check for lock file in ~/.neopo to discourage
+    # running setup_command multiple times
+    lock_file = os.path.join(NEOPO_DEPS, ".setupdone")
+    if os.path.isfile(lock_file):
+        print("Setup has already been performed on this system!")
+        return
+
+    with open(lock_file, "w") as lock:
+        lock.writelines([
+        "This file is used internally by neopo to recall if setup has been performed.",
+        "If you delete this file you can reattempt setup with: neopo setup"])
+
+    # Check for POSTINSTALL script
+    post_install = "/usr/share/neopo/scripts/POSTINSTALL"
+    if not os.path.isfile(post_install):
+        print("POSTINSTALL script not found!")
+        return
+
+    # Run the POSTINSTALL script
+    try:
+        process = ["bash", "-x", post_install]
+        subprocess.run(process, check=True)
+    except subprocess.CalledProcessError as error:
+        raise ProcessError("POSTINSTALL failed!") from error
+
 # Available options
 commands = {
     "help": print_help,
@@ -164,7 +193,8 @@ commands = {
     "wait": script_wait,
     "print": script_print,
     "settings": settings_command,
-    "libs": libraries_command
+    "libs": libraries_command,
+    "setup": setup_command
 }
 
 # Evaluate command-line arguments and call necessary functions

@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Exit if not running Manjaro/Arch
+if [[ ! -e /etc/pacman.conf ]]; then
+    echo "Running post-install not required on this system..."
+    echo "Exiting."
+    exit
+fi
+
+# This script is for x86_64 and aarch64
 ARCH="$(uname -m)"
 
 # Get debugger working in Workbench:
@@ -23,7 +31,9 @@ if [[ "$ARCH" == "aarch64" ]]; then
     ln -s $(which node) "$NODE_BINARY"
 fi
 
+# Modify udev rules file to use uucp instead of plugdev
+# https://wiki.archlinux.org/index.php/Users_and_groups#Group_list
+sed -i 's/plugdev/uucp/g' "$HOME/.particle/node_modules/particle-cli/assets/50-particle.rules"
+
 # Complete particle-cli install and setup non-root USB access
 neopo particle configure usb
-
-# Create plugdev group and add USER
