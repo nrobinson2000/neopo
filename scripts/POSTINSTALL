@@ -31,9 +31,12 @@ if [[ "$ARCH" == "aarch64" ]]; then
     ln -s $(which node) "$NODE_BINARY"
 fi
 
+# Complete particle-cli install
+neopo particle
+
 # Modify udev rules file to use uucp instead of plugdev
 # https://wiki.archlinux.org/index.php/Users_and_groups#Group_list
 sed -i 's/plugdev/uucp/g' "$HOME/.particle/node_modules/particle-cli/assets/50-particle.rules"
 
-# Complete particle-cli install and setup non-root USB access
+# Setup non-root USB access
 neopo particle configure usb
