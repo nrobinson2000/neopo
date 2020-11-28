@@ -143,11 +143,11 @@ def setup_command(args):
     if os.path.isfile(lock_file):
         print("Setup has already been performed on this system!")
         return
-
-    with open(lock_file, "w") as lock:
-        lock.writelines([
-        "This file is used internally by neopo to recall if setup has been performed.\n",
-        "If you delete this file you can reattempt setup with: neopo setup\n"])
+    if os.path.isdir(NEOPO_DEPS):
+        with open(lock_file, "w") as lock:
+            lock.writelines([
+            "This file is used internally by neopo to recall if setup has been performed.\n",
+            "If you delete this file you can reattempt setup with: neopo setup\n"])
 
     # Check for POSTINSTALL script
     post_install = "/usr/share/neopo/scripts/POSTINSTALL"
