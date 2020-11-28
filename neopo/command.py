@@ -160,6 +160,7 @@ def setup_command(args):
         process = ["bash", "-x", post_install]
         subprocess.run(process, check=True)
     except subprocess.CalledProcessError as error:
+        os.remove(lock_file)
         raise ProcessError("POSTINSTALL failed!") from error
 
 # Available options
