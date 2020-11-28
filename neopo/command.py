@@ -146,8 +146,8 @@ def setup_command(args):
 
     with open(lock_file, "w") as lock:
         lock.writelines([
-        "This file is used internally by neopo to recall if setup has been performed.",
-        "If you delete this file you can reattempt setup with: neopo setup"])
+        "This file is used internally by neopo to recall if setup has been performed.\n",
+        "If you delete this file you can reattempt setup with: neopo setup\n"])
 
     # Check for POSTINSTALL script
     post_install = "/usr/share/neopo/scripts/POSTINSTALL"
