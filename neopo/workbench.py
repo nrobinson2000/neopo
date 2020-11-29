@@ -182,7 +182,7 @@ def install_or_update(install, force):
 
         # Fix buildtools for ARM
         if install_platform != "x86_64":
-            version = [dep["version"] for dep in dep_json if dep["name"] == "buildtools"]
+            version = [dep["version"] for dep in dep_json if dep["name"] == "buildtools"][0]
             fix_buildtools(version)
 
         # Put skippedDeps in manifest.json. Fixes: nrobinson2000/neopo/issues/8
