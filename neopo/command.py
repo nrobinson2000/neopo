@@ -196,7 +196,7 @@ commands = {
     "settings": settings_command,
     "libs": libraries_command,
     "setup": setup_command,
-    'setup-workbench': workbench_install
+    "setup-workbench": workbench_install
 }
 
 # Evaluate command-line arguments and call necessary functions

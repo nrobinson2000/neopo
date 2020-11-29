@@ -180,6 +180,10 @@ def install_or_update(install, force):
             else:
                 skipped_deps.append(dep)
 
+        # Fix buildtools for ARM
+        if install_platform != "x86_64":
+            fix_buildtools()
+
         # Put skippedDeps in manifest.json. Fixes: nrobinson2000/neopo/issues/8
         for dep in skipped_deps:
             write_manifest(dep)
@@ -210,6 +214,21 @@ def attempt_download(firmware):
         raise DependencyError("DeviceOS version %s not found!" %
                               firmware["version"]) from error
 
+
+# Fix buildtools dependency on aarch64 so Workbench will function
+def fix_buildtools():
+    buildtools = os.path.join(PARTICLE_DEPS, "buildtools")
+    _, buildtools_versions, _ = next(os.walk(buildtools))
+    latest = os.path.join(buildtools, buildtools_versions[-1])
+    binaries = ["make", "dfu-util", "dfu-prefix", "dfu-suffix"]
+
+    # Replace local binaries with ones found in path
+    for command in binaries:
+        file = os.path.join(latest, command)
+        os.remove(file)
+        real = shutil.which(command)
+        shutil.copy(real, file)
+
 # Attempt to install Particle extensions in VSCode
 def workbench_install(args):
     if shutil.which("code"):
@@ -220,3 +239,25 @@ def workbench_install(args):
             raise DependencyError("Failed to install Workbench extensions!") from error
     else:
         raise DependencyError("The `code` command was not found.\nPlease ensure that Visual Studio Code is installed.")
+
+    # Attempt to patch Workbench so that the popup asking to reinstall dependencies never shows
+    extensions = os.path.join(os.path.expanduser("~"), ".vscode/extensions")
+    _, exts, _ = next(os.walk(extensions))
+    particle_ext = [ext for ext in exts if ext.startswith("particle.particle-vscode-core")][0]
+    env_setup = os.path.join(extensions, particle_ext, "src/env-setup.js")
+    line_to_insert = "\t\treturn showWarningMessage('Particle dependencies managed by neopo.xyz.'); // Neopo fix\n"
+
+    content = []
+    with open(env_setup) as original:
+        content = original.readlines()
+
+    for index, line in enumerate(content):
+        if line == line_to_insert:
+            break
+        line_s = line.lstrip()
+        if line_s.startswith("const shouldInstall"):
+            content.insert(index, line_to_insert)
+            break
+
+    with open(env_setup, "w") as modified:
+        modified.writelines(content)
