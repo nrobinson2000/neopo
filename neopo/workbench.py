@@ -182,7 +182,8 @@ def install_or_update(install, force):
 
         # Fix buildtools for ARM
         if install_platform != "x86_64":
-            fix_buildtools()
+            version = [dep["version"] for dep in dep_json if dep["name"] == "buildtools"]
+            fix_buildtools(version)
 
         # Put skippedDeps in manifest.json. Fixes: nrobinson2000/neopo/issues/8
         for dep in skipped_deps:
@@ -216,10 +217,9 @@ def attempt_download(firmware):
 
 
 # Fix buildtools dependency on aarch64 so Workbench will function
-def fix_buildtools():
+def fix_buildtools(version):
     buildtools = os.path.join(PARTICLE_DEPS, "buildtools")
-    _, buildtools_versions, _ = next(os.walk(buildtools))
-    latest = os.path.join(buildtools, buildtools_versions[-1])
+    latest = os.path.join(buildtools, version)
     binaries = ["make", "dfu-util", "dfu-prefix", "dfu-suffix"]
 
     # Replace local binaries with ones found in path
