@@ -37,12 +37,13 @@ Linux)
 
     # Manjaro / Arch (x86_64 and aarch64)
     elif hash pacman >/dev/null 2>&1; then
-        $SUDO pacman -S --needed base-devel
+        $SUDO pacman -S --needed yay base-devel
         TEMPDIR="$(mktemp -d)"
         cd "$TEMPDIR"
-        git clone https://github.com/nrobinson2000/packages
-        cd packages
-        ./install-pkg neopo
+        yay -G neopo-git
+        cd neopo-git
+        makepkg -sif
+        neopo setup
         exit
     fi
 ;;

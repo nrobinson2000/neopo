@@ -3,7 +3,7 @@
 import os
 
 # Local imports
-from .command import iterate_command, script_command, get_command
+from .command import iterate_command, script_command, script_wait, get_command
 from .command import configure_command, flags_command, settings_command, libraries_command
 from .command import compile_command, flash_command, flash_all_command, clean_command, run_command
 from .command import uninstall_command, versions_command, create_command, particle_command

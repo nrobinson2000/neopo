@@ -1,11 +1,13 @@
 import io
 import os
 import json
+import shutil
 import zipfile
 import tarfile
 import hashlib
 import pathlib
 import platform
+import subprocess
 import urllib.request
 
 # Local imports
@@ -207,3 +209,14 @@ def attempt_download(firmware):
     except urllib.error.URLError as error:
         raise DependencyError("DeviceOS version %s not found!" %
                               firmware["version"]) from error
+
+# Attempt to install Particle extensions in VSCode
+def workbench_install(args):
+    if shutil.which("code"):
+        try:
+            process = ["code", "--install-extension", "particle.particle-vscode-pack"]
+            subprocess.run(process, check=True)
+        except subprocess.CalledProcessError as error:
+            raise DependencyError("Failed to install Workbench extensions!") from error
+    else:
+        raise DependencyError("The `code` command was not found.\nPlease ensure that Visual Studio Code is installed.")

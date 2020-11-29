@@ -6,7 +6,7 @@ import subprocess
 from .common import NEOPO_DEPS
 from .common import ProcessError, UserError, particle_cli, running_on_windows
 from .utility import print_help, responsible, unexpected_error
-from .workbench import install_or_update
+from .workbench import install_or_update, workbench_install
 from .toolchain import versions_command, get_command, download_unlisted_command
 from .project import create_command, configure_command, flags_command, settings_command, libraries_command
 from .build import compile_command, flash_command, flash_all_command, clean_command, run_command
@@ -195,7 +195,8 @@ commands = {
     "print": script_print,
     "settings": settings_command,
     "libs": libraries_command,
-    "setup": setup_command
+    "setup": setup_command,
+    'setup-workbench': workbench_install
 }
 
 # Evaluate command-line arguments and call necessary functions

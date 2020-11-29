@@ -21,7 +21,11 @@ script [file]
 .P
 Neopo is a Particle development management utility that simplifies the installation and usage of Particle's toolchains on a variety on distributions. It features options to build or flash projects, iterable commands, a scripting interface, and Particle Workbench/CLI compatibility. On Linux, several packages required for Workbench to operate sucessfully are installed as dependencies for neopo, providing incredible value to Workbench users, even if they do not choose to use neopo's interfaces.
 
-Neopo can additionally be used as a Python module, providing methods to use local Particle development toolchains from within Python.
+Neopo was designed with extensibility and portability in mind in an attempt to create a useful and unobtrusive local Particle development environment. While neopo excels at installing Particle toolchains and building Particle projects with its simple but powerful command-line options, it additionally provides shortcuts for commonly performed tasks and two types of scripting interfaces.
+
+Users can create simple scripts to automate testing and deployment of firmware and execute them with
+.B neopo script
+or leverage neopo's Python API to integrate local Particle tools into existing Python solutions.
 
 .SH OPTIONS
 
@@ -235,7 +239,6 @@ Copyright (c) 2020 - Nathan Robinson. MIT License: All rights reserved.
 .P
 nrobinson2000/neopo on GitHub: <https://github.com/nrobinson2000/neopo>
 
-.\" TODO: Update online docs to match manpage edits better, use ./make-html
 .SH SEE ALSO
 Online Documentation: <https://neopo.xyz/docs/full-docs>
 .br
@@ -247,4 +250,7 @@ Particle CLI Documentation: <https://docs.particle.io/reference/developer-tools/
 
 .SH NOTES
 
-On Manjaro/Arch running on x86_64 or aarch64 there are several optional tweaks required to complete the installation of neopo. On x86_64, this consists of installing the ncurses packages from the AUR to support use of the Particle Debugger in Workbench. On aarch64, this consists of replacing the armv7l Nodejs distribution with an aarch64 Nodejs distribution. <https://raw.githubusercontent.com/nrobinson2000/neopo/master/scripts/POSTINSTALL>
+On Manjaro or Arch, neopo is installed as an Arch package from the AUR or built directly with makepkg. Depending on how it is installed, there several additional steps required to complete the install of neopo. These steps are contained in a script located in /usr/share/neopo/scripts/POSTINSTALL. For convenience, this script can be executed using:
+.B neopo setup
+
+On x86_64, this consists of installing the ncurses packages from the AUR to support use of the Particle Debugger in Workbench. On aarch64, this consists of replacing the armv7l Nodejs distribution with an aarch64 Nodejs distribution.
