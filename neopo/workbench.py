@@ -265,4 +265,4 @@ def workbench_install(args):
     # Replace CLI used in Workbench with working CLI (aarch64)
     cli_bin = os.path.join(extensions, particle_ext, "src/cli/bin/linux/amd64/particle")
     os.remove(cli_bin)
-    shutil.copy(shutil.which("particle"), cli_bin)
+    shutil.copy(particle_cli, cli_bin)
