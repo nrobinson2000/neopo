@@ -15,6 +15,9 @@ if [[ "$ARCH" == "x86_64" ]]; then
     sudo pacman -S --needed yay
     gpg --keyserver hkp://keys.gnupg.net:80 --recv-keys C52048C0C0748FEE227D47A2702353E0F7E48EDB
     yay -S --needed lib32-ncurses5-compat-libs ncurses5-compat-libs
+elif [[ "$ARCH" == "aarch64" ]]; then
+    sudo pacman -S --needed yay npm
+    yay -S --needed openocd-git
 fi
 
 # Install particle packages

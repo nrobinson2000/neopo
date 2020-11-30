@@ -266,3 +266,29 @@ def workbench_install(args):
     cli_bin = os.path.join(extensions, particle_ext, "src/cli/bin/linux/amd64/particle")
     os.remove(cli_bin)
     shutil.copy(particle_cli, cli_bin)
+
+    # Attempt to get Debugger working in Workbench (aarch64)
+    if platform.machine() == "aarch64":
+        cortex_debug = [ext for ext in exts if ext.startswith("marus25.cortex.debug")][0]
+        serial_port_build = os.path.join(extensions, cortex_debug, "serial-port-build.sh") 
+        content = []
+        with open(serial_port_build) as original:
+            content = original.readlines()
+        for index, line in enumerate(content):
+            if line.lstrip().startswith("generate $version x64 linux"):
+                content[index] = content[index].replace("x64", "arm64")
+                break
+        with open(serial_port_build, "w") as modified:
+            modified.writelines(content)
+        node_version = subprocess.run(["node", "-v"], stdout=subprocess.PIPE)
+        node_version = node_version.stdout.decode("utf-8").rstrip[1:]
+        
+    # ./serial-port-build.sh
+
+    
+
+
+
+
+
+
