@@ -252,6 +252,7 @@ def workbench_install(args):
         content = original.readlines()
 
     for index, line in enumerate(content):
+        # Prevent multiple invocations from writing multiple lines
         if line == line_to_insert:
             break
         line_s = line.lstrip()
@@ -267,10 +268,20 @@ def workbench_install(args):
     os.remove(cli_bin)
     shutil.copy(particle_cli, cli_bin)
 
-    # Attempt to get Debugger working in Workbench (aarch64)
+    # Attempt to get Debugger working in Workbench (aarch64) [openocd-git is installed in setup_command()]
     if platform.machine() == "aarch64":
+        try:
+            node_version = subprocess.run(["node", "-v"], stdout=subprocess.PIPE, check=True)
+            node_version = node_version.stdout.decode("utf-8").rstrip[1:]
+            electron_version = "11.0.3"
+        except subprocess.CalledProcessError as error:
+            raise DependencyError("Failed to run `node`!\nPlease ensure that you have nodejs installed.") from error
+
+        # Obtain serial-port-build.sh
         cortex_debug = [ext for ext in exts if ext.startswith("marus25.cortex.debug")][0]
         serial_port_build = os.path.join(extensions, cortex_debug, "serial-port-build.sh") 
+
+        # Read, modify, and write
         content = []
         with open(serial_port_build) as original:
             content = original.readlines()
@@ -280,15 +291,10 @@ def workbench_install(args):
                 break
         with open(serial_port_build, "w") as modified:
             modified.writelines(content)
-        node_version = subprocess.run(["node", "-v"], stdout=subprocess.PIPE)
-        node_version = node_version.stdout.decode("utf-8").rstrip[1:]
-        
-    # ./serial-port-build.sh
 
-    
-
-
-
-
-
-
+      # Execute serial-port-build.sh
+        try:
+            process = [serial_port_build, electron_version, node_version]
+            subprocess.run(process, check=True)
+        except subprocess.CalledProcessError as error:
+            raise DependencyError("Problem with serial-port-build.sh!") from error
