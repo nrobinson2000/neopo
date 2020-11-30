@@ -294,6 +294,7 @@ def workbench_install(args):
 
       # Execute serial-port-build.sh
         try:
+            os.chdir(os.path.join(extensions, cortex_debug))
             process = [serial_port_build, electron_version, node_version]
             subprocess.run(process, check=True)
         except subprocess.CalledProcessError as error:
