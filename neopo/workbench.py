@@ -180,12 +180,14 @@ def install_or_update(install, force):
             else:
                 skipped_deps.append(dep)
 
-        # Fix buildtools for ARM
-        if install_platform != "x86_64":
-            version = [dep["version"] for dep in dep_json if dep["name"] == "buildtools"][0]
-            fix_buildtools(version)
+        # Fix buildtools and openocd for aarch64
+        if install_platform == "aarch64":
+            buildtools_version = [dep["version"] for dep in dep_json if dep["name"] == "buildtools"][0]
+            fix_buildtools(buildtools_version)
+            openocd_version = [dep["version"] for dep in dep_json if dep["name"] == "openocd"][0]
+            fix_openocd(openocd_version)
 
-        # Put skippedDeps in manifest.json. Fixes: nrobinson2000/neopo/issues/8
+        # Put skippedDeps in manifest.json
         for dep in skipped_deps:
             write_manifest(dep)
 
@@ -229,6 +231,20 @@ def fix_buildtools(version):
         real = shutil.which(command)
         shutil.copy(real, file)
 
+# Fix openocd dependency on aarch64 so Particle Debugger will function
+def fix_openocd(version):
+    openocd = os.path.join(PARTICLE_DEPS, "openocd")
+    latest = os.path.join(openocd, version)
+    binaries = ["_openocd", "openocd"]
+
+    # Replace local binaries with openocd in path
+    real_openocd = shutil.which("openocd")
+    if real_openocd:
+        for command in binaries:
+            file = os.path.join(latest, command)
+            os.remove(file)
+            shutil.copy(real_openocd, file)
+
 # Attempt to install Particle extensions in VSCode
 def workbench_install(args):
     if shutil.which("code"):
@@ -240,13 +256,24 @@ def workbench_install(args):
     else:
         raise DependencyError("The `code` command was not found.\nPlease ensure that Visual Studio Code is installed.")
 
-    # Attempt to patch Workbench so that the popup asking to reinstall dependencies never shows
+    # Locate VSCode extensions
     extensions = os.path.join(os.path.expanduser("~"), ".vscode/extensions")
     _, exts, _ = next(os.walk(extensions))
+
+    # Attempt to patch Workbench so that the popup asking to reinstall dependencies never shows
+    setup_workbench_arm(extensions, exts)
+
+    # Attempt to get Debugger working in Workbench (aarch64) [openocd-git is installed in setup_command()]
+    setup_debugger_arm(extensions, exts)
+
+# Apply necessary tweaks to get Particle Workbench working on aarch64
+def setup_workbench_arm(extensions, exts):
+    if platform.machine() != "aarch64":
+        return
+
     particle_ext = [ext for ext in exts if ext.startswith("particle.particle-vscode-core")][0]
     env_setup = os.path.join(extensions, particle_ext, "src/env-setup.js")
-    line_to_insert = "\t\treturn showWarningMessage('Particle dependencies managed by neopo.xyz.'); // Neopo fix\n"
-
+    line_to_insert = "\t\treturn showWarningMessage('Particle dependencies managed by neopo.xyz.');\n"
     content = []
     with open(env_setup) as original:
         content = original.readlines()
@@ -268,34 +295,37 @@ def workbench_install(args):
     os.remove(cli_bin)
     shutil.copy(particle_cli, cli_bin)
 
-    # Attempt to get Debugger working in Workbench (aarch64) [openocd-git is installed in setup_command()]
-    if platform.machine() == "aarch64":
-        try:
-            node_version = subprocess.run(["node", "-v"], stdout=subprocess.PIPE, check=True)
-            node_version = node_version.stdout.decode("utf-8").rstrip()[1:]
-            electron_version = "11.0.3"
-        except subprocess.CalledProcessError as error:
-            raise DependencyError("Failed to run `node`!\nPlease ensure that you have nodejs installed.") from error
+# Apply necessary tweaks to get Particle Debugger working on aarch64
+def setup_debugger_arm(extensions, exts):
+    if platform.machine() != "aarch64":
+        return
 
-        # Obtain serial-port-build.sh
-        cortex_debug = [ext for ext in exts if ext.startswith("marus25.cortex-debug")][0]
-        serial_port_build = os.path.join(extensions, cortex_debug, "serial-port-build.sh")
+    try:
+        node_version = subprocess.run(["node", "-v"], stdout=subprocess.PIPE, check=True)
+        node_version = node_version.stdout.decode("utf-8").rstrip()[1:]
+        electron_version = "11.0.3"
+    except subprocess.CalledProcessError as error:
+        raise DependencyError("Failed to run `node`!\nPlease ensure that you have nodejs installed.") from error
 
-        # Read, modify, and write
-        content = []
-        with open(serial_port_build) as original:
-            content = original.readlines()
-        for index, line in enumerate(content):
-            if line.lstrip().startswith("generate $version x64 linux"):
-                content[index] = content[index].replace("x64", "arm64")
-                break
-        with open(serial_port_build, "w") as modified:
-            modified.writelines(content)
+    # Obtain serial-port-build.sh
+    cortex_debug = [ext for ext in exts if ext.startswith("marus25.cortex-debug")][0]
+    serial_port_build = os.path.join(extensions, cortex_debug, "serial-port-build.sh")
 
-      # Execute serial-port-build.sh
-        try:
-            os.chdir(os.path.join(extensions, cortex_debug))
-            process = [serial_port_build, electron_version, node_version]
-            subprocess.run(process, check=True)
-        except subprocess.CalledProcessError as error:
-            raise DependencyError("Problem with serial-port-build.sh!") from error
+    # Read, modify, and write
+    content = []
+    with open(serial_port_build) as original:
+        content = original.readlines()
+    for index, line in enumerate(content):
+        if line.lstrip().startswith("generate $version x64 linux"):
+            content[index] = content[index].replace("x64", "arm64")
+            break
+    with open(serial_port_build, "w") as modified:
+        modified.writelines(content)
+
+    # Execute serial-port-build.sh
+    try:
+        os.chdir(os.path.join(extensions, cortex_debug))
+        process = [serial_port_build, electron_version, node_version]
+        subprocess.run(process, check=True)
+    except subprocess.CalledProcessError as error:
+        raise DependencyError("Problem with serial-port-build.sh!") from error
