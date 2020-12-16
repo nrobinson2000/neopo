@@ -254,7 +254,7 @@ def fix_buildtools(version):
 # Fix openocd dependency on aarch64 so Particle Debugger will function
 def fix_openocd(version):
     openocd = os.path.join(PARTICLE_DEPS, "openocd")
-    latest = os.path.join(openocd, version)
+    latest = os.path.join(openocd, version, "bin")
     binaries = ["_openocd", "openocd"]
 
     # Replace local binaries with openocd in path
