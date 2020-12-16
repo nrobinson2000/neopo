@@ -1,6 +1,7 @@
 import io
 import os
 import json
+import time
 import shutil
 import zipfile
 import tarfile
@@ -17,6 +18,8 @@ from .common import extensionFiles, vscodeFiles, jsonFiles
 from .common import particle_cli, running_on_windows
 from .utility import write_file, write_executable
 from .manifest import write_manifest, create_manifest, get_manifest_value
+
+INSTALL_RECEIPT=".particle-install-receipt"
 
 # Find the Workbench extension URL from the Visual Studio Marketplace
 def get_extension_url():
@@ -96,9 +99,21 @@ def download_dep(dep, update_manifest, check_hash):
     with tarfile.open(archive, "r:gz") as file:
         file.extractall(path)
 
+    # Create install receipt so Workbench is happy
+    install_receipt(dep)
+
     # Delete the temporary archive
     os.remove(archive)
     return True
+
+# Create the install receipt for a dependency
+def install_receipt(dep):
+    name, version = dep["name"], dep["version"]
+    path = os.path.join(PARTICLE_DEPS, name, version)
+    installed = int(time.time() * 1000)
+    receipt = {"name": name, "version": version, "installed": installed}
+    with open(os.path.join(path, INSTALL_RECEIPT), "w") as file:
+        json.dump(receipt, file, indent=4)
 
 # Download extension manifest and simple dependencies
 def get_deps():
@@ -173,12 +188,17 @@ def install_or_update(install, force):
         skipped_deps = []
         for dep in dep_json:
             # Install dependency if not currently installed, or forced, otherwise skip
-            installed = os.path.isdir(os.path.join(
-                PARTICLE_DEPS, dep["name"], dep["version"]))
+            install_path = os.path.join(PARTICLE_DEPS, dep["name"], dep["version"])
+            installed = os.path.isdir(install_path)
+            # Check for install receipt here? (Silent fix for older neopo installs)
+            receipt = os.path.isfile(os.path.join(install_path, INSTALL_RECEIPT))
+
             if not installed or force:
                 download_dep(dep, True, True)
             else:
                 skipped_deps.append(dep)
+                if not receipt:
+                    install_receipt(dep)
 
         # Fix buildtools and openocd for aarch64
         if install_platform == "aarch64":
@@ -260,7 +280,7 @@ def workbench_install(args):
     extensions = os.path.join(os.path.expanduser("~"), ".vscode/extensions")
     _, exts, _ = next(os.walk(extensions))
 
-    # Attempt to patch Workbench so that the popup asking to reinstall dependencies never shows
+    # Patch Workbench so correct particle-cli is used
     setup_workbench_arm(extensions, exts)
 
     # Attempt to get Debugger working in Workbench (aarch64) [openocd-git is installed in setup_command()]
@@ -271,26 +291,8 @@ def setup_workbench_arm(extensions, exts):
     if platform.machine() != "aarch64":
         return
 
-    particle_ext = [ext for ext in exts if ext.startswith("particle.particle-vscode-core")][0]
-    env_setup = os.path.join(extensions, particle_ext, "src/env-setup.js")
-    line_to_insert = "\t\treturn showWarningMessage('Particle dependencies managed by neopo.xyz.');\n"
-    content = []
-    with open(env_setup) as original:
-        content = original.readlines()
-
-    for index, line in enumerate(content):
-        # Prevent multiple invocations from writing multiple lines
-        if line == line_to_insert:
-            break
-        line_s = line.lstrip()
-        if line_s.startswith("const shouldInstall"):
-            content.insert(index, line_to_insert)
-            break
-
-    with open(env_setup, "w") as modified:
-        modified.writelines(content)
-
     # Replace CLI used in Workbench with working CLI (aarch64)
+    particle_ext = [ext for ext in exts if ext.startswith("particle.particle-vscode-core")][0]
     cli_bin = os.path.join(extensions, particle_ext, "src/cli/bin/linux/amd64/particle")
     os.remove(cli_bin)
     shutil.copy(particle_cli, cli_bin)
