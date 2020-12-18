@@ -1,6 +1,7 @@
 [![GitHub Actions Status](https://github.com/nrobinson2000/neopo/workflows/python-pip/badge.svg)](https://github.com/nrobinson2000/neopo/actions)
 [![Build Status](https://travis-ci.org/nrobinson2000/neopo.svg?branch=master)](https://travis-ci.org/nrobinson2000/neopo)
 [![Particle Community](https://img.shields.io/badge/particle-community-informational)](https://community.particle.io/t/neopo-a-lightweight-solution-for-local-particle-development/56378?u=nrobinson2000)
+[![AUR package](https://repology.org/badge/version-for-repo/aur/neopo.svg)](https://aur.archlinux.org/packages/neopo-git/)
 
 # neopo
 ## A lightweight solution for local Particle development.
