@@ -238,7 +238,7 @@ def attempt_download(firmware):
                               firmware["version"]) from error
 
 
-# Fix buildtools dependency on aarch64 so Workbench will function
+# Fix buildtools dependency on aarch64 so Workbench will function (requires dfu-util)
 def fix_buildtools(version):
     buildtools = os.path.join(PARTICLE_DEPS, "buildtools")
     latest = os.path.join(buildtools, version)
@@ -251,7 +251,7 @@ def fix_buildtools(version):
         real = shutil.which(command)
         shutil.copy(real, file)
 
-# Fix openocd dependency on aarch64 so Particle Debugger will function
+# Fix openocd dependency on aarch64 so Particle Debugger will function (requires openocd-git)
 def fix_openocd(version):
     openocd = os.path.join(PARTICLE_DEPS, "openocd")
     latest = os.path.join(openocd, version, "bin")
