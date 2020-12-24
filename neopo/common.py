@@ -3,9 +3,73 @@ import os
 import platform
 
 # Primary directories: dependencies, caches, scripts
-PARTICLE_DEPS = os.path.join(os.path.expanduser("~"), ".particle", "toolchains")
-NEOPO_DEPS = os.path.join(os.path.expanduser("~"), ".neopo")
+HOME_DIR = os.path.expanduser("~")
+BASE_DIR = HOME_DIR
+PARTICLE_DEPS = os.path.join(HOME_DIR, ".particle", "toolchains")
+NEOPO_DEPS = os.path.join(HOME_DIR, ".neopo")
 CACHE_DIR = os.path.join(NEOPO_DEPS, "cache")
+
+# EXPERIMENTAL:
+# On Linux use /opt/neopo as the root of the package by setting NEOPO_GLOBAL
+# TODO: Make use of this in the PKGBUILD.
+# TODO: User will need ownership of /opt/neopo
+
+# /opt/neopo
+# ├── particle/
+# │   ├── autoupdate
+# │   ├── error.log
+# │   ├── node_modules/
+# │   │   └── particle-cli/
+# │   ├── node-v12.16.1-linux-x64/
+# │   │   ├── bin/
+# │   │   ├── CHANGELOG.md
+# │   │   ├── include/
+# │   │   ├── lib/
+# │   │   ├── LICENSE
+# │   │   ├── README.md
+# │   │   └── share/
+# │   ├── package-lock.json
+# │   ├── plugin-cache.json
+# │   └── tmp/
+# ├── resources/
+# │   ├── cache/
+# │   │   ├── compilers.json
+# │   │   ├── firmware.json
+# │   │   ├── manifest.json
+# │   │   ├── platforms.json
+# │   │   └── toolchains.json
+# │   ├── particle*
+# │   └── vscode/
+# │       ├── launch.json
+# │       └── settings.json
+# └── toolchains/
+#     ├── buildscripts/
+#     │   └── 1.9.2/
+#     ├── buildtools/
+#     │   └── 1.1.1/
+#     ├── deviceOS/
+#     │   └── 2.0.1/
+#     ├── gcc-arm/
+#     │   └── 9.2.1/
+#     └── openocd/
+#         └── 0.11.2-adhoc6ea4372.0/
+
+# OPT-IN to use /opt/neopo by exporting NEOPO_GLOBAL
+NEOPO_GLOBAL = "NEOPO_GLOBAL" in os.environ
+
+# Use /opt/neopo to store all neopo files
+if NEOPO_GLOBAL:
+    BASE_DIR = "/opt/neopo"
+    PARTICLE_DEPS = os.path.join(BASE_DIR, "toolchains")
+    NEOPO_DEPS = os.path.join(BASE_DIR, "resources")
+    CACHE_DIR = os.path.join(NEOPO_DEPS, "cache")
+
+# Create a copy of the env with XDG_DATA_HOME set if necessary
+def min_particle_env():
+    temp_env = os.environ.copy()
+    if NEOPO_GLOBAL:
+        temp_env["XDG_DATA_HOME"] = BASE_DIR
+    return temp_env
 
 # Precompiled gcc-arm for ARM platforms
 ARM_GCC_ARM = {

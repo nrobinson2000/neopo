@@ -5,7 +5,7 @@ import traceback
 
 # Local imports
 from .common import particle_cli, running_on_windows, ProcessError
-from .common import PARTICLE_DEPS, NEOPO_DEPS, CACHE_DIR
+from .common import PARTICLE_DEPS, NEOPO_DEPS, CACHE_DIR, min_particle_env
 
 # Write data to a file
 def write_file(content, path, mode):
@@ -23,7 +23,7 @@ def write_executable(content, path):
 def check_login():
     process = [particle_cli, "whoami"]
     try:
-        subprocess.run(process, shell=running_on_windows,
+        subprocess.run(process, shell=running_on_windows, env=min_particle_env(),
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
     except subprocess.CalledProcessError:
         return False
@@ -33,7 +33,7 @@ def check_login():
 def download_library(library, version):
     process = [particle_cli, "library", "copy", "%s@%s" % (library, version)]
     try:
-        subprocess.run(process, shell=running_on_windows, check=True)
+        subprocess.run(process, shell=running_on_windows, env=min_particle_env(), check=True)
     except subprocess.CalledProcessError as error:
         raise ProcessError("Failed to download library %s@%s!" % (library, version)) from error
 

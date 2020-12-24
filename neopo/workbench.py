@@ -13,7 +13,7 @@ import urllib.request
 
 # Local imports
 from .common import DependencyError
-from .common import PARTICLE_DEPS, CACHE_DIR, ARM_GCC_ARM
+from .common import HOME_DIR, PARTICLE_DEPS, CACHE_DIR, ARM_GCC_ARM
 from .common import extensionFiles, vscodeFiles, jsonFiles
 from .common import particle_cli, running_on_windows
 from .utility import write_file, write_executable
@@ -277,7 +277,7 @@ def workbench_install(args):
         raise DependencyError("The `code` command was not found.\nPlease ensure that Visual Studio Code is installed.")
 
     # Locate VSCode extensions
-    extensions = os.path.join(os.path.expanduser("~"), ".vscode/extensions")
+    extensions = os.path.join(HOME_DIR, ".vscode/extensions")
     _, exts, _ = next(os.walk(extensions))
 
     # Patch Workbench so correct particle-cli is used

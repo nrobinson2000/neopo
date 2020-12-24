@@ -1,21 +1,23 @@
-import os
 import sys
 import subprocess
 
 # Local imports
 from .build import add_build_tools
-from .common import particle_cli, running_on_windows
+from .common import particle_cli, running_on_windows, min_particle_env
+
+# Create particle-cli temp_env
+def particle_env():
+    temp_env = min_particle_env()
+    # Add build tools to env
+    add_build_tools(temp_env)
+    return temp_env
 
 # Wrapper for [particle]
 def particle_command(args):
-    # Add build tools to env
-    temp_env = os.environ.copy()
-    add_build_tools(temp_env)
-
     process = [particle_cli, *args[2:]]
 
     try:
-        subprocess.run(process, env=temp_env, shell=running_on_windows, check=True)
+        subprocess.run(process, env=particle_env(), shell=running_on_windows, check=True)
     # Return cleanly if ^C was pressed
     except KeyboardInterrupt:
         return

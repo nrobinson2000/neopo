@@ -11,7 +11,7 @@ from .toolchain import versions_command, get_command, download_unlisted_command
 from .project import create_command, configure_command, flags_command, settings_command, libraries_command
 from .build import compile_command, flash_command, flash_all_command, clean_command, run_command
 from .completion import versions_compressed, platforms_command, find_valid_projects, get_makefile_targets
-from .particle import particle_command
+from .particle import particle_command, particle_env
 
 # Print all commands (for completion)
 def options(args):
@@ -103,7 +103,7 @@ iterable_commands = {
 def iterate_command(args):
     # Find Particle deviceIDs connected via USB
     process = [particle_cli, "serial", "list"]
-    particle = subprocess.run(process, stdout=subprocess.PIPE,
+    particle = subprocess.run(process, stdout=subprocess.PIPE, env=particle_env(),
                               shell=running_on_windows, check=True)
     devices = [line.decode("utf-8").split()[-1]
                for line in particle.stdout.splitlines()[1:]]
@@ -127,6 +127,7 @@ def iterate_command(args):
         process = [particle_cli, "usb", "dfu", device]
         subprocess.run(process, stderr=subprocess.PIPE,
                        stdout=subprocess.PIPE,
+                       env=particle_env(),
                        shell=running_on_windows, check=True)
         # Run the iterable command
         iterable_commands[args[1]](args)

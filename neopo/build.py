@@ -3,7 +3,7 @@ import subprocess
 
 # Local imports
 from .common import PARTICLE_DEPS, running_on_windows, particle_cli, projectFiles
-from .common import ProcessError, ProjectError, UserError
+from .common import ProcessError, ProjectError, UserError, min_particle_env
 from .manifest import load_manifest, get_manifest_value
 from .project import get_settings, check_libraries, get_flags
 from .toolchain import get_compiler, check_firmware_version, check_compiler, get_firmware_path
@@ -22,7 +22,7 @@ def add_build_tools(environment, version=None):
 # Use the Makefile to build the specified target
 def build_project(project_path, command, help_only, verbosity):
     compiler_version, script_version, tools_version, firmware_version = load_manifest()
-    temp_env = os.environ.copy()
+    temp_env = min_particle_env()
     add_build_tools(temp_env, tools_version)
 
     # Windows compatibility modifications
