@@ -1,10 +1,8 @@
 ```python
 # EXPERIMENTAL:
-# On Linux use /opt/neopo as the root of the package by setting NEOPO_GLOBAL
-# TODO: Make use of this in the PKGBUILD.
-# TODO: User will need ownership of /opt/neopo
+# On Linux use ~/.local/share/neopo as the root of the package by setting NEOPO_LOCAL
 
-# /opt/neopo
+# .local/share/neopo/
 # ├── particle/
 # │   ├── autoupdate
 # │   ├── error.log

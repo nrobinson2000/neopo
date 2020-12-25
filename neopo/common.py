@@ -9,17 +9,17 @@ HOME_DIR = os.path.expanduser("~")
 # NEOPO_PATH=$PWD/temp neopo particle
 NEOPO_PATH = "NEOPO_PATH" in os.environ
 
-# OPT-IN to use /opt/neopo by exporting NEOPO_GLOBAL. Example:
-# NEOPO_GLOBAL=1 neopo particle
-BASE_DIR = "/opt/neopo"
-NEOPO_GLOBAL = "NEOPO_GLOBAL" in os.environ
+# OPT-IN to use ~/.local/share/neopo by exporting NEOPO_LOCAL. Example:
+# NEOPO_LOCAL=1 neopo particle
+BASE_DIR = os.path.join(HOME_DIR, ".local", "share", "neopo")
+NEOPO_LOCAL = "NEOPO_LOCAL" in os.environ
 
 # Set custom path if specified
 if NEOPO_PATH:
     BASE_DIR = os.environ["NEOPO_PATH"]
 
-# Use /opt/neopo or custom path
-if NEOPO_GLOBAL or NEOPO_PATH:
+# Use ~/.local/share/neopo or custom path
+if NEOPO_LOCAL or NEOPO_PATH:
     PARTICLE_DEPS = os.path.join(BASE_DIR, "toolchains")
     NEOPO_DEPS = os.path.join(BASE_DIR, "resources")
     CACHE_DIR = os.path.join(NEOPO_DEPS, "cache")
@@ -37,7 +37,7 @@ else:
 # Create a copy of the env with XDG_DATA_HOME set if necessary
 def min_particle_env():
     temp_env = os.environ.copy()
-    if NEOPO_GLOBAL or NEOPO_PATH:
+    if NEOPO_LOCAL or NEOPO_PATH:
         temp_env["XDG_DATA_HOME"] = BASE_DIR
     return temp_env
 
