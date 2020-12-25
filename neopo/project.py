@@ -5,7 +5,7 @@ import pathlib
 import subprocess
 
 # Local imports
-from .common import TRAVIS_YML
+from .common import TRAVIS_YML, min_particle_env
 from .common import particle_cli, running_on_windows
 from .common import ProcessError, ProjectError, UserError
 from .common import projectFiles, vscodeFiles
@@ -19,7 +19,7 @@ def create_project(path, name):
     # Use particle-cli to create the project
     try:
         subprocess.run([particle_cli, "project", "create", path, "--name", name],
-            shell=running_on_windows, check=True)
+            env=min_particle_env(), shell=running_on_windows, check=True)
     except subprocess.CalledProcessError as error:
         raise ProcessError("Failed to create project %s!" % name) from error
 

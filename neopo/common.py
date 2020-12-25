@@ -37,7 +37,7 @@ else:
 # Create a copy of the env with XDG_DATA_HOME set if necessary
 def min_particle_env():
     temp_env = os.environ.copy()
-    if NEOPO_GLOBAL:
+    if NEOPO_GLOBAL or NEOPO_PATH:
         temp_env["XDG_DATA_HOME"] = BASE_DIR
     return temp_env
 
