@@ -54,6 +54,7 @@ Options:
         uninstall               # Uninstall neopo (Deprecated)
         versions                # List available versions and platforms
         get <version>           # Download a specific deviceOS version
+        remove <version>        # Delete an installed deviceOS version
         create <project>        # Create a Workbench/neopo project
         particle [OPTIONS]      # Use the encapsulated Particle CLI
 

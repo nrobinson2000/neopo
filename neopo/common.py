@@ -16,7 +16,7 @@ NEOPO_LOCAL = "NEOPO_LOCAL" in os.environ
 
 # Set custom path if specified
 if NEOPO_PATH:
-    BASE_DIR = os.environ["NEOPO_PATH"]
+    BASE_DIR = os.path.abspath(os.environ["NEOPO_PATH"])
 
 # Use ~/.local/share/neopo or custom path
 if NEOPO_LOCAL or NEOPO_PATH:
@@ -73,9 +73,12 @@ particle_cli = os.path.join(
 # JSON cache files
 jsonFiles = {
     "firmware": os.path.join(CACHE_DIR, "firmware.json"),
-    "toolchains": os.path.join(CACHE_DIR, "toolchains.json"),
     "platforms": os.path.join(CACHE_DIR, "platforms.json"),
+    "toolchains": os.path.join(CACHE_DIR, "toolchains.json"),
     "compilers": os.path.join(CACHE_DIR, "compilers.json"),
+    "tools": os.path.join(CACHE_DIR, "tools.json"),
+    "scripts": os.path.join(CACHE_DIR, "scripts.json"),
+    "debuggers": os.path.join(CACHE_DIR, "debuggers.json"),
     "manifest": os.path.join(CACHE_DIR, "manifest.json")
 }
 

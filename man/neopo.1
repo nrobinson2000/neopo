@@ -1,4 +1,4 @@
-.TH NEOPO 1 "November 2020" "neopo" "neopo Manual"
+.TH NEOPO 1 "December 2020" "neopo" "neopo Manual"
 
 .SH NAME
 .I neopo
@@ -27,7 +27,41 @@ Users can create simple scripts to automate testing and deployment of firmware a
 .B neopo script
 or leverage neopo's Python API to integrate local Particle tools into existing Python solutions.
 
+.SH CONFIGURATION
+.P
+Currently there are two environment variables that may be exported or passed to neopo to alter its configuration. More environment variables may be added in the future as neopo becomes more extensible.
+
+.TP
+.B NEOPO_LOCAL
+When set, neopo will use 
+.I ~/.local/share/neopo
+for neopo resources, Particle CLI, and toolchains, rather than
+.I ~/.particle
+and
+.I ~/.neopo
+
+$ export NEOPO_LOCAL=1
+.br
+$ neopo install
+.br
+$ neopo particle
+
+.TP
+.B NEOPO_PATH
+Much like
+.B NEOPO_LOCAL
+but neopo will use a specifed path for its dependencies rather than
+.I ~/.local/share/neopo
+
+$ NEOPO_PATH="build/neopo" neopo install
+
 .SH OPTIONS
+
+When using neopo from the command line, options must be used in the exact order specified in the documentation, much like Particle CLI or Git. Arguments denoted in square brackets
+.B []
+are optional, while arguments denoted in angle brackets
+.B <>
+are mandatory.
 
 .SS GENERAL OPTIONS
 
@@ -74,7 +108,11 @@ Refresh the Workbench cache and download Particle toolchains if there are newer 
 
 .TP
 .B get <version>
-Download a specified Device OS version for later use. Handy for situations when you need to download firmware in advance.
+Download a specific release of Device OS version for later use. Any dependencies of the Device OS release will be downloaded as well.
+
+.TP
+.B remove <version>
+Delete an installed Device OS release if possible. Useful for systems with limited storage space.
 
 .TP
 .B particle [OPTIONS]

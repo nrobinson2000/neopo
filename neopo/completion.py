@@ -6,8 +6,12 @@ from .common import jsonFiles, projectFiles, PARTICLE_DEPS
 
 # Print available versions compressed (for completion)
 def versions_compressed(args):
+    total_versions = set()
     with open(jsonFiles["firmware"], "r") as firmware_file:
-        print(*[entry["version"] for entry in json.load(firmware_file)])
+        total_versions.update([entry["version"] for entry in json.load(firmware_file)])
+    _, installed_versions, _ = next(os.walk(os.path.join(PARTICLE_DEPS, "deviceOS")))
+    total_versions.update(installed_versions)
+    print(*total_versions)
 
 # Print available platforms (for completion)
 def platforms_command(args):

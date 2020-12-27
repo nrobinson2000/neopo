@@ -7,7 +7,7 @@ from .common import NEOPO_DEPS
 from .common import ProcessError, UserError, particle_cli, running_on_windows
 from .utility import print_help, responsible, unexpected_error
 from .workbench import install_or_update, workbench_install
-from .toolchain import versions_command, get_command, download_unlisted_command
+from .toolchain import versions_command, get_command, download_unlisted_command, remove_command
 from .project import create_command, configure_command, flags_command, settings_command, libraries_command
 from .build import compile_command, flash_command, flash_all_command, clean_command, run_command
 from .completion import versions_compressed, platforms_command, find_valid_projects, get_makefile_targets
@@ -180,6 +180,7 @@ commands = {
     "configure": configure_command,
     "update": update_command,
     "get": get_command,
+    "remove": remove_command,
     "list-versions": versions_compressed,
     "platforms": platforms_command,
     "projects": find_valid_projects,

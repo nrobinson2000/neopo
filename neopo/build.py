@@ -6,7 +6,7 @@ from .common import PARTICLE_DEPS, running_on_windows, particle_cli, projectFile
 from .common import ProcessError, ProjectError, UserError, min_particle_env
 from .manifest import load_manifest, get_manifest_value
 from .project import get_settings, check_libraries, get_flags
-from .toolchain import get_compiler, check_firmware_version, check_compiler, get_firmware_path
+from .toolchain import get_compiler, check_firmware_version, get_firmware_path
 
 # Add a path to an environment
 def add_to_path(environment, path):
@@ -52,9 +52,6 @@ def build_project(project_path, command, help_only, verbosity):
 
             if not check_firmware_version(device_platform, firmware_version):
                 raise ProjectError("Firmware related error!")
-
-            if not check_compiler(compiler_version):
-                raise ProjectError("Compiler related error!")
 
             if not check_libraries(project_path, False):
                 print("To install libraries run: $ neopo libs [project]")

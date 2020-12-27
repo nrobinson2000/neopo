@@ -161,7 +161,7 @@ def install_or_update(install, force):
 
     # Dependencies we wish to install and caches we will create
     dependencies = ["compilers", "tools", "scripts", "debuggers"]
-    caches = ["firmware", "platforms", "toolchains", "compilers"]
+    caches = ["firmware", "platforms", "toolchains", "compilers", "tools", "scripts", "debuggers"]
 
     # Download dependency data and create list of installables
     data = get_deps()
@@ -176,8 +176,7 @@ def install_or_update(install, force):
     if install_platform != "x86_64":
         for dep in dep_json:
             if dep["name"] == "gcc-arm":
-                dep["url"] = ARM_GCC_ARM[install_platform][dep["version"]]["url"]
-                dep["sha256"] = ARM_GCC_ARM[install_platform][dep["version"]]["sha256"]
+                fix_gcc_arm(dep)
                 break
 
     # Update JSON cache files
@@ -237,6 +236,13 @@ def attempt_download(firmware):
         raise DependencyError("DeviceOS version %s not found!" %
                               firmware["version"]) from error
 
+# Patch gcc-arm dependency dict for armv7l and aarch64
+def fix_gcc_arm(dep):
+    install_platform = platform.machine()
+    if not install_platform in ARM_GCC_ARM.keys():
+        return
+    dep["url"] = ARM_GCC_ARM[install_platform][dep["version"]]["url"]
+    dep["sha256"] = ARM_GCC_ARM[install_platform][dep["version"]]["sha256"]
 
 # Fix buildtools dependency on aarch64 so Workbench will function (requires dfu-util)
 def fix_buildtools(version):
