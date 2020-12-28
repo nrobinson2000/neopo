@@ -37,6 +37,7 @@ if [[ "$ARCH" == "aarch64" ]]; then
 
     # Replace node executable
     PARTICLE_BASE="${NEOPO_LOCAL:+$HOME/.local/share/neopo/particle}"
+    PARTICLE_BASE="${NEOPO_PATH:+$NEOPO_PATH/particle}"
     NODE_BINARY="$(find ${PARTICLE_BASE:-$HOME/.particle}/node-v*/bin/node)"
     mv "$NODE_BINARY" "${NODE_BINARY}.old"
     ln -s $(which node) "$NODE_BINARY"
