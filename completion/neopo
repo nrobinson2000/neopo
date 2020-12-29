@@ -47,7 +47,7 @@ _neopo() {
         return 0
     fi
 
-    if [ "$prev1" == "run" ]; then
+    if [ "$prev1" == "run" ] || [ "$prev1" == "export" ]; then
         _project $_executable
         return 0
     fi
@@ -65,7 +65,7 @@ _neopo() {
     case "$prev" in
     create|compile|build|flash|flash-all|clean|settings|libs)
         _project $_executable;;
-    run)
+    run|export)
        _run $_executable;;
     configure)
         _configure $_executable;;

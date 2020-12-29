@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.22.4 -->
-<!-- CreationDate: Sun Dec 27 15:56:17 2020 -->
+<!-- CreationDate: Mon Dec 28 19:09:27 2020 -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -264,6 +264,16 @@ OPTIONS</b> in addition to other, less frequently used
 targets. The -v and -q flags are supported. Running without
 arguments will list available targets.</p>
 
+<p style="margin-left:11%;"><b>export &lt;target&gt;
+[project] [-v/q]</b></p>
+
+<p style="margin-left:22%;">Export a makefile target to a
+shell script. Instead of running the target on the project,
+a shell script is created at
+<i>bin/neopo-&lt;target&gt;.sh</i> within the project. The
+script may be used to run the target on the project directly
+without using neopo.</p>
+
 <p style="margin-left:11%;"><b>configure &lt;platform&gt;
 &lt;version&gt; [project]</b></p>
 
@@ -275,9 +285,8 @@ already installed.</p>
 
 <p style="margin-left:22%; margin-top: 1em">To find Device
 OS versions and their supported platforms use
-<b>versions.</b> The tab completion function is especially
-handy since it can fill in platforms and versions for this
-command.</p>
+<b>versions.</b> The tab completion function can fill in
+platforms and versions for this command.</p>
 
 <p style="margin-left:11%;"><b>flags &lt;string&gt;
 [project]</b></p>

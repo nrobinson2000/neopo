@@ -150,12 +150,18 @@ Run a specified makefile target for a project. Includes common targets presented
 in addition to other, less frequently used targets. The -v and -q flags are supported. Running without arguments will list available targets.
 
 .TP
+.B export <target> [project] [-v/q]
+Export a makefile target to a shell script. Instead of running the target on the project, a shell script is created at
+.I bin/neopo-<target>.sh
+within the project. The script may be used to run the target on the project directly without using neopo.
+
+.TP
 .B configure <platform> <version> [project]
 Configure the device platform and Device OS version a project should use. The platform and version are checked for compatibility and the specified version of Device OS will be downloaded if it's not already installed.
 
 To find Device OS versions and their supported platforms use
 .B versions.
-The tab completion function is especially handy since it can fill in platforms and versions for this command.
+The tab completion function can fill in platforms and versions for this command.
 
 .TP
 .B flags <string> [project]

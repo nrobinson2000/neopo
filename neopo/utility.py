@@ -66,6 +66,7 @@ Options:
 
     Special Options:
         run <target> [project] [-v/q]             # Run a makefile target
+        export <target> [project] [-v/q]          # Export target to a script
         configure <platform> <version> [project]  # Configure a project
         flags <string> [project]                  # Set EXTRA_CFLAGS in project 
         settings [project]                        # View configured settings

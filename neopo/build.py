@@ -1,4 +1,5 @@
 import os
+import pathlib
 import subprocess
 
 # Local imports
@@ -7,6 +8,21 @@ from .common import ProcessError, ProjectError, UserError, min_particle_env
 from .manifest import load_manifest, get_manifest_value
 from .project import get_settings, check_libraries, get_flags
 from .toolchain import get_compiler, check_firmware_version, get_firmware_path
+from .utility import write_executable
+
+# Export a build command to a script
+def export_build_process(project_path, process, environment, target):
+    path = os.path.join(project_path, "bin")
+    pathlib.Path(path).mkdir(parents=True, exist_ok=True)
+    script = os.path.join(path, "neopo-%s.sh" % target)
+
+    tools = environment["PATH"].split(os.pathsep)[:-3:-1]
+    path_line = 'PATH="$PATH:%s"\n' % os.pathsep.join(tools)
+    make_line = " ".join(process) + "\n"
+    content = "\n".join(["#!/bin/bash", path_line, make_line])
+    write_executable(content.encode("utf-8"), script)
+
+    print("Exported to %s" % script)
 
 # Add a path to an environment
 def add_to_path(environment, path):
@@ -20,7 +36,7 @@ def add_build_tools(environment, version=None):
     add_to_path(environment, toolpath)
 
 # Use the Makefile to build the specified target
-def build_project(project_path, command, help_only, verbosity):
+def build_project(project_path, command, help_only, verbosity, export=False):
     compiler_version, script_version, tools_version, firmware_version = load_manifest()
     temp_env = min_particle_env()
     add_build_tools(temp_env, tools_version)
@@ -76,6 +92,11 @@ def build_project(project_path, command, help_only, verbosity):
         process.append("EXTRA_CFLAGS=%s" % extra_compiler_flags)
         process.append(command)
 
+    # Export the build process to a shell script
+    if export and not help_only:
+        export_build_process(project_path, process, temp_env, command)
+        return
+
     # Run makefile with given verbosity
     try:
         subprocess.run(process, env=temp_env, shell=running_on_windows, check=True,
@@ -85,7 +106,7 @@ def build_project(project_path, command, help_only, verbosity):
         raise ProcessError("\n*** %s FAILED ***\n" % command.upper()) from error
 
 # Parse the project path from the specified index and run a Makefile target
-def build_command(command, index, args):
+def build_command(command, index, args, export=False):
     verbose_index = index
     project = None
     verbosity_dict = {"": 0, "-v": 1, "-q": -1}
@@ -112,16 +133,16 @@ def build_command(command, index, args):
         raise UserError("Invalid verbosity!") from error
 
     # Build the given project with a command and verbosity
-    build_project(project, command, False, verbosity)
+    build_project(project, command, False, verbosity, export)
 
 # Print help information directly from Makefile
 def build_help():
     build_project(None, None, True, 0)
 
 # Wrapper for [run]
-def run_command(args):
+def run_command(args, export=False):
     try:
-        build_command(args[2], 3, args)
+        build_command(args[2], 3, args, export)
     except IndexError as error:
         build_help()
         raise UserError("You must supply a Makefile target!") from error
@@ -138,3 +159,7 @@ def flash_all_command(args):
 
 def clean_command(args):
     build_command("clean-user", 2, args)
+
+# Wrapper for export
+def export_command(args):
+    run_command(args, True)
