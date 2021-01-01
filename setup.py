@@ -17,8 +17,8 @@ share_files = [
    ('/usr/share/neopo/scripts', ['scripts/POSTINSTALL'])
 ]
 
-script_unix = ['scripts/neopo', 'scripts/neopo-script', 'scripts/particle']
-script_windows = ['scripts/neopo', 'scripts/neopo-script', 'scripts/particle']
+script_unix = ['scripts/neopo', 'scripts/unix/neopo-script', 'scripts/unix/particle']
+script_windows = ['scripts/windows/neopo.cmd', 'scripts/windows/neopo-script.cmd', 'scripts/windows/particle.cmd']
 script_files = script_windows if running_on_windows else script_unix
 
 setup(
