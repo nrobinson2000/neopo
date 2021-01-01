@@ -1,5 +1,8 @@
+import platform
 from setuptools import setup
 from subprocess import run, PIPE
+
+running_on_windows = platform.system() == "Windows"
 
 # Consistent version as AUR
 count = run(["git", "rev-list", "--count", "HEAD"], stdout=PIPE).stdout.splitlines()[0].decode('utf-8')
@@ -14,7 +17,9 @@ share_files = [
    ('/usr/share/neopo/scripts', ['scripts/POSTINSTALL'])
 ]
 
-script_files = ['scripts/neopo', 'scripts/neopo-script', 'scripts/particle']
+script_unix = ['scripts/neopo', 'scripts/neopo-script', 'scripts/particle']
+script_windows = ['scripts/neopo', 'scripts/neopo-script', 'scripts/particle']
+script_files = script_windows if running_on_windows else script_unix
 
 setup(
    name='neopo',
@@ -24,6 +29,6 @@ setup(
    author_email='nrobinson2000@me.com',
    url='https://github.com/nrobinson2000/neopo',
    packages=['neopo'],
-   data_files=share_files,
+   data_files=share_files if not running_on_windows else None,
    scripts=script_files
 )
