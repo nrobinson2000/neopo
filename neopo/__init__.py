@@ -1,5 +1,5 @@
 # neopo: A lightweight solution for local Particle development.
-# Copyright (c) 2020 Nathan Robinson.
+# Copyright (c) 2021 Nathan Robinson.
 # https://neopo.xyz
 
 import os

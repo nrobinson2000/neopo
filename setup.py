@@ -31,6 +31,7 @@ else:
     if os.geteuid() != 0:
         share_files=None
 
+# Provide neopo, neopo-script, and particle commands
 script_unix = ['scripts/unix/neopo',
     'scripts/unix/neopo-script',
     'scripts/unix/particle']
@@ -46,12 +47,10 @@ setup(
    version=VERSION,
    description='A lightweight solution for local Particle development.',
    long_description="""
-   Neopo is a Particle development management utility that simplifies the installation and usage of Particle's
-   toolchains on a variety of distributions. It features options to build or flash projects, iterable commands,
-   a scripting interface, and Particle Workbench/CLI compatibility. On Linux, several packages required for
-   Workbench to operate sucessfully are installed as dependencies for neopo, providing incredible value to
-   Workbench users, even if they do not choose to use neopo's interfaces.
-   """,
+   Neopo is a Particle development management utility that simplifies the
+   installation and usage of Particle's toolchains on a variety of distributions.
+   It features options to build or flash projects, iterable commands, a scripting
+   interface, and Particle Workbench/CLI compatibility.""",
    author='Nathan Robinson',
    author_email='nrobinson2000@me.com',
    url="https://neopo.xyz",

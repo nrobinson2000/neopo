@@ -86,7 +86,7 @@ def print_logo():
    / __ \/ _ \/ __ \/ __ \/ __ \    A lightweight solution for
   / / / /  __/ /_/ / /_/ / /_/ /    local Particle development.
  /_/ /_/\___/\____/ ____/\____/
-                 /_/      .xyz      Copyright (c) 2020 Nathan Robinson
+                 /_/      .xyz      Copyright (c) 2021 Nathan Robinson
     """)
 
 # Print traceback and message for unhandled exceptions
