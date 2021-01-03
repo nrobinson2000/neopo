@@ -24,7 +24,7 @@ share_files = [
    ('/usr/share/bash-completion/completions', ['completion/neopo'])
 ]
 
-# WIP: Don't includes share_file on Windows or when installing as non-root
+# Skip share_files on Windows or when installing as non-root
 if running_on_windows:
     share_files=None
 else:
@@ -45,10 +45,20 @@ setup(
    name='neopo',
    version=VERSION,
    description='A lightweight solution for local Particle development.',
+   long_description="""
+   Neopo is a Particle development management utility that simplifies the installation and usage of Particle's
+   toolchains on a variety of distributions. It features options to build or flash projects, iterable commands,
+   a scripting interface, and Particle Workbench/CLI compatibility. On Linux, several packages required for
+   Workbench to operate sucessfully are installed as dependencies for neopo, providing incredible value to
+   Workbench users, even if they do not choose to use neopo's interfaces.
+   """,
    author='Nathan Robinson',
    author_email='nrobinson2000@me.com',
-   url='https://github.com/nrobinson2000/neopo',
+   url="https://neopo.xyz",
+   download_url='https://github.com/nrobinson2000/neopo',
+   license="MIT",
    packages=['neopo'],
+   platforms=["Linux", "macOS", "Windows", "ARM"],
    data_files=share_files,
    scripts=script_files
 )
