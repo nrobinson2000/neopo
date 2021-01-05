@@ -4,5 +4,5 @@ create test
 build test
 configure electron 1.5.0 test
 build test
-configure argon 1.5.4-rc.1 test
+configure argon 2.0.0-rc.1 test
 build test
