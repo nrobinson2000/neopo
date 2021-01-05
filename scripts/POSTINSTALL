@@ -51,4 +51,4 @@ neopo particle
 sed -i 's/plugdev/uucp/g' "$HOME/.particle/node_modules/particle-cli/assets/50-particle.rules"
 
 # Setup non-root USB access
-neopo particle configure usb
+neopo particle usb configure
