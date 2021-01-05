@@ -9,7 +9,7 @@ import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 # Import module api
-from .script import script_wait
+from .command import script_wait
 from .cli import main, particle
 from .cli import iterate, script
 from .cli import install, upgrade, uninstall, versions, create
