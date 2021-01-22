@@ -1,2 +1,2 @@
 #!/bin/bash
-roff2html neopo.1 > neopo.html
+groff -mandoc -Thtml neopo.1 > neopo.html
