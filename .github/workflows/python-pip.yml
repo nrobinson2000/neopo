@@ -21,6 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
           ./ci/github.sh
+          neopo install
           neopo help
           neopo particle
     - name: Test neopo (bash)
