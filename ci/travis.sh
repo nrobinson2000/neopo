@@ -11,5 +11,5 @@ if [ "$(uname)" == 'Linux' ]; then
 fi
 
 # Install neopo using pip
-sudo python3 -m pip install --upgrade pip
-sudo python3 -m pip install .
+python3 -m pip install --upgrade pip
+python3 -m pip install .
