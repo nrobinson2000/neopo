@@ -92,7 +92,7 @@ vscodeFiles = {
 # Files inside VSIX
 extensionFiles = {
     "bin": "extension/src/cli/bin",
-    "manifest": "extension/src/compiler/manifest.json",
+    "manifest": "extension/node_modules/@particle/toolchain-manager/manifest.json",
     "launch": "extension/src/cli/vscode/launch.json",
     "settings": "extension/src/cli/vscode/settings.json"
 }
