@@ -3,6 +3,7 @@ import sys
 import subprocess
 
 # Local imports
+from .version import NEOPO_VERSION
 from .common import NEOPO_DEPS
 from .common import ProcessError, UserError, particle_cli, running_on_windows
 from .utility import print_help, responsible, unexpected_error
@@ -164,8 +165,14 @@ def setup_command(args):
         os.remove(lock_file)
         raise ProcessError("POSTINSTALL failed!") from error
 
+# Print the version of neopo
+def print_version(args):
+    print(NEOPO_VERSION)
+
 # Available options
 commands = {
+    "--version": print_version,
+    "--help": print_help,
     "help": print_help,
     "install": install_command,
     "uninstall": uninstall_command,

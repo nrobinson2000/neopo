@@ -42,6 +42,10 @@ script_windows = ['scripts/windows/neopo.cmd',
 
 script_files = script_windows if running_on_windows else script_unix
 
+# update version.py
+with open(os.path.join('neopo', 'version.py'), 'w') as file:
+    file.writelines(['NEOPO_VERSION="%s"' % VERSION])
+
 setup(
    name='neopo',
    version=VERSION,
