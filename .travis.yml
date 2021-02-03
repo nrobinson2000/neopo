@@ -4,6 +4,7 @@
 os:
   - linux
   - osx
+dist: focal
 language: shell
 install:
   - source ci/travis.sh
