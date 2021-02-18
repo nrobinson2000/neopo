@@ -1,5 +1,5 @@
 FROM ubuntu:latest
-WORKDIR /code
-ADD docker-install.sh /code
+WORKDIR /root
+ADD docker-install.sh /root
 RUN ./docker-install.sh
-VOLUME /code
+WORKDIR /neopo
