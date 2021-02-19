@@ -41,6 +41,13 @@ $ sudo python3 -m pip install .
 $ neopo install
 ```
 
+Docker container:
+
+```bash
+$ docker pull nrobinson2000/neopo
+$ docker run -it nrobinson2000/neopo
+```
+
 For more installation information, please refer to the [Installation tutorial.](https://neopo.xyz/tutorials/install)
 
 ## Usage

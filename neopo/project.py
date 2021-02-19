@@ -45,14 +45,14 @@ def create_project(path, name):
 
     # Change name/src/name.ino to name/src/name.cpp
     # Add #include "Particle.h"
-    include = '#include "Particle.h"\n'
+    include = '#include "Particle.h"\n\n'
     src = os.path.join(project_path, "src", "%s.ino" % name)
     dst = os.path.join(project_path, "src", "%s.cpp" % name)
     shutil.move(src, dst)
     with open(dst, "r") as original:
         data = original.read()
     with open(dst, "w") as modified:
-        modified.write(include + data)
+        modified.write(include + data + "\n")
 
     # TODO: Default device in manifest.json
     device = "argon"
