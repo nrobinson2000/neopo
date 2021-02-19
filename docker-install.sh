@@ -21,6 +21,8 @@ apt -y purge git python3-setuptools python3-pip
 apt -y autoremove
 apt -y clean
 rm -rf /tmp/* /var/tmp/*
+rm -rf /var/lib/apt/lists/*
+rm -rf neopo
 
 # Post-pull installation steps:
 #   neopo install
