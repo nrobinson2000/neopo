@@ -16,14 +16,12 @@ pushd neopo > /dev/null
 python3 -m pip install .
 popd > /dev/null
 
-# Run the neopo installer
-# neopo install
-
-# Run Particle CLI to download its dependencies
-# neopo particle 2>&1
-
 # Clean up
 apt -y purge git python3-setuptools python3-pip
 apt -y autoremove
 apt -y clean
-rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+rm -rf /tmp/* /var/tmp/*
+
+# Post-pull installation steps:
+#   neopo install
+#   particle --version
