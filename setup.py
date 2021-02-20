@@ -4,6 +4,7 @@ from setuptools import setup
 from subprocess import run, PIPE, CalledProcessError
 
 running_on_windows = system() == "Windows"
+running_in_docker = os.path.isfile("/.dockerenv")
 
 # Consistent version as AUR
 try:
@@ -24,12 +25,9 @@ share_files = [
    ('/usr/share/bash-completion/completions', ['completion/neopo'])
 ]
 
-# Skip share_files on Windows or when installing as non-root
-if running_on_windows:
+# Skip share_files on Windows, docker, or when installing as non-root
+if running_on_windows or running_in_docker or os.geteuid() != 0:
     share_files=None
-else:
-    if os.geteuid() != 0:
-        share_files=None
 
 # Provide neopo, neopo-script, and particle commands
 script_unix = ['scripts/unix/neopo',

@@ -25,7 +25,7 @@ script [file]
 
 .SH DESCRIPTION
 .P
-Neopo is a Particle development management utility that simplifies the installation and usage of Particle's toolchains on a variety of distributions. It features options to build or flash projects, iterable commands, a scripting interface, and Particle Workbench/CLI compatibility. On Linux, several packages required for Workbench to operate sucessfully are installed as dependencies for neopo, providing incredible value to Workbench users, even if they do not choose to use neopo's interfaces.
+Neopo is a Particle development management utility that simplifies the installation and usage of Particle's toolchains on a variety of distributions. It features options to build or flash projects, iterable commands, a scripting interface, and Particle Workbench/CLI compatibility. On Linux, several packages required for Workbench to operate successfully are installed as dependencies for neopo, providing incredible value to Workbench users, even if they do not choose to use neopo's interfaces.
 
 Neopo was designed with extensibility and portability in mind in an attempt to create a useful and unobtrusive local Particle development environment. While neopo excels at installing Particle toolchains and building Particle projects with its simple but powerful command-line options, it additionally provides shortcuts for commonly performed tasks and two scripting interfaces.
 
@@ -76,10 +76,12 @@ When neopo runs with
 or without arguments, brief documentation for all user-accessible commands is displayed.
 
 .TP
-.B install [-f]
+.B install [-f, -s]
 Install Particle toolchains and setup the neopo environment. It takes an optional parameter of
-.B -f,
-which can force toolchains to be reinstalled, rather than skipped if the latest versions are already installed.
+.B -f
+which can force toolchains to be reinstalled, rather than skipped if the latest versions are already installed. To skip the installation of all dependencies, use the
+.B -s
+parameter instead.
 
 .TP
 .B upgrade
@@ -102,7 +104,7 @@ List all known versions of Device OS and supported platforms available to neopo.
 Custom Device OS versions and platforms are included.
 
 .TP
-.B create <project>
+.B create <project> [platform] [version]
 Create a new Particle project at the specified project path. The created project is compatible with neopo, Particle Workbench, and Particle CLI. If Git is installed, the project is additionally initialized as a repository with support for TravisCI.
 
 .TP
@@ -269,7 +271,7 @@ neopo.script_wait()
 neopo.particle("subscribe")
 
 .TP
-To directly use Particle CLI within Python, one can explicity import the particle() function:
+To directly use Particle CLI within Python, one can explicitly import the particle() function:
 
 from neopo import particle
 .br

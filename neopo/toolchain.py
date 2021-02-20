@@ -63,11 +63,11 @@ def check_firmware_version(device_platform, version):
     version if not official else None)
 
     # Check that platform and firmware are compatible
-    if not platform_id:
-        print("Invalid platform %s for deviceOS@%s!" % (device_platform, version))
-        return False
     if missing and not official:
         print("Invalid deviceOS version %s!" % version)
+        return False
+    if not platform_id:
+        print("Invalid platform %s for deviceOS@%s!" % (device_platform, version))
         return False
     if platform_id not in get_supported_platforms(version):
         print("Platform %s is not supported in deviceOS version %s!" %
@@ -101,9 +101,13 @@ def versions_command(args):
                                  for platform in get_supported_platforms(version)])
             print("   %s\t [ %s ]" % (version, devices))
 
-    _, installed_versions, _ = next(os.walk(os.path.join(PARTICLE_DEPS, "deviceOS")))
-    custom_versions = list(set(installed_versions) - official_versions)
-    custom_versions.sort()
+    device_os_path = os.path.join(PARTICLE_DEPS, "deviceOS")
+    if os.path.isdir(device_os_path):
+        _, installed_versions, _ = next(os.walk(device_os_path))
+        custom_versions = list(set(installed_versions) - official_versions)
+        custom_versions.sort()
+    else:
+        custom_versions = None
 
     if custom_versions:
         print()

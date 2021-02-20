@@ -27,8 +27,8 @@ def main(args=None):
 
 # General options
 
-def install(force=False):
-    install_or_update(True, force)
+def install(force=False, skip=False):
+    install_or_update(True, force, skip)
 
 def upgrade():
     upgrade_command(None)
@@ -87,7 +87,7 @@ def script(script_name):
 
 # Dependency options
 def update():
-    install_or_update(False, False)
+    install_or_update(False, False, False)
 
 def get(version):
     get_command([None, None, version])

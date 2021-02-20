@@ -156,7 +156,7 @@ def write_json_caches(data, keys):
             json.dump(key_data, file, indent=4)
 
 # Install or update neopo dependencies (not the neopo script)
-def install_or_update(install, force):
+def install_or_update(install, force, skip_deps):
     print("Installing neopo..." if install else "Updating dependencies...")
 
     # Dependencies we wish to install and caches we will create
@@ -181,6 +181,13 @@ def install_or_update(install, force):
 
     # Update JSON cache files
     write_json_caches(data, caches)
+
+    # Skip installation of dependencies (for containers)
+    if skip_deps:
+        for dep in dep_json:
+            write_manifest(dep)
+        print("Skipped installation of all dependencies.")
+        return
 
     # Either install or update
     if install:

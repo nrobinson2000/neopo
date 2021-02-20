@@ -14,7 +14,18 @@ from .manifest import get_manifest_value
 from .toolchain import check_firmware_version
 
 # Create a Particle project and copy in Workbench settings
-def create_project(path, name):
+def create_project(path, name, config_device = None, config_version = None):
+    # Default settings
+    if not config_version:
+        config_version = get_manifest_value("deviceOS")
+    if not config_device:
+        config_device = "argon"
+
+    # Check supplied settings before creating project
+    if config_device and config_version:
+        if not check_firmware_version(config_device, config_version):
+            raise ProjectError("Failed to create project %s!" % name)
+
     project_path = os.path.join(path, name)
     # Use particle-cli to create the project
     try:
@@ -54,10 +65,8 @@ def create_project(path, name):
     with open(dst, "w") as modified:
         modified.write(include + data + "\n")
 
-    # TODO: Default device in manifest.json
-    device = "argon"
-    version = get_manifest_value("deviceOS")
-    configure_project(project_path, device, version)
+    # Configure project with default or specified settings
+    configure_project(project_path, config_device, config_version)
 
 # Modify Workbench settings in a project (platform, firmwareVersion)
 def configure_project(project_path, platform, firmware_version):
@@ -81,9 +90,7 @@ def configure_project(project_path, platform, firmware_version):
 
     # Apply configuration to project
     write_settings(project_path, platform, firmware_version)
-    print("Configured project %s:" % project_path)
-    print("\tparticle.targetPlatform: %s" % platform)
-    print("\tparticle.firmwareVersion: %s" % firmware_version)
+    print("Configured project %s: (%s, %s)" % (project_path, platform, firmware_version))
 
 # Load Workbench settings from a project
 def get_settings(project_path):
@@ -188,8 +195,10 @@ def set_flags(project_path, make_flags):
 def create_command(args):
     try:
         project_path = os.path.abspath(args[2])
+        platform = args[3] if len(args) >= 4 else None
+        version = args[4] if len(args) >= 5 else None
         create_project(os.path.dirname(project_path),
-                       os.path.basename(project_path))
+                       os.path.basename(project_path), platform, version)
     except IndexError as error:
         raise UserError("You must supply a path for the project!") from error
 

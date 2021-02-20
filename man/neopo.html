@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.22.4 -->
-<!-- CreationDate: Fri Jan 22 14:10:00 2021 -->
+<!-- CreationDate: Sat Feb 20 02:56:23 2021 -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -68,7 +68,7 @@ installation and usage of Particle&rsquo;s toolchains on a
 variety of distributions. It features options to build or
 flash projects, iterable commands, a scripting interface,
 and Particle Workbench/CLI compatibility. On Linux, several
-packages required for Workbench to operate sucessfully are
+packages required for Workbench to operate successfully are
 installed as dependencies for neopo, providing incredible
 value to Workbench users, even if they do not choose to use
 neopo&rsquo;s interfaces.</p>
@@ -151,13 +151,14 @@ brief documentation for all user-accessible commands is
 displayed.</p> </td></tr>
 </table>
 
-<p style="margin-left:11%;"><b>install [-f]</b></p>
+<p style="margin-left:11%;"><b>install [-f, -s]</b></p>
 
 <p style="margin-left:22%;">Install Particle toolchains and
 setup the neopo environment. It takes an optional parameter
-of <b>-f,</b> which can force toolchains to be reinstalled,
+of <b>-f</b> which can force toolchains to be reinstalled,
 rather than skipped if the latest versions are already
-installed.</p>
+installed. To skip the installation of all dependencies, use
+the <b>-s</b> parameter instead.</p>
 
 <p style="margin-left:11%;"><b>upgrade</b></p>
 
@@ -182,8 +183,8 @@ Device OS and supported platforms available to neopo. To
 refresh, run <b>update.</b> Custom Device OS versions and
 platforms are included.</p>
 
-<p style="margin-left:11%;"><b>create
-&lt;project&gt;</b></p>
+<p style="margin-left:11%;"><b>create &lt;project&gt;
+[platform] [version]</b></p>
 
 <p style="margin-left:22%;">Create a new Particle project
 at the specified project path. The created project is
@@ -406,7 +407,7 @@ neopo.script_wait() <br>
 neopo.particle(&quot;subscribe&quot;)</p>
 
 <p style="margin-left:11%;">To directly use Particle CLI
-within Python, one can explicity import <br>
+within Python, one can explicitly import <br>
 the particle() function:</p>
 
 <p style="margin-left:22%; margin-top: 1em">from neopo

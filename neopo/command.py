@@ -22,17 +22,19 @@ def options(args):
 def install_command(args):
     try:
         force = args[2] == "-f"
+        skip = args[2] == "-s"
     except IndexError:
         force = None
-    install_or_update(True, force)
+        skip = None
+    install_or_update(True, force, skip)
 
 # Wrapper for [update]
 def update_command(args):
     try:
-        force = args[2] == "-f"
+        skip = args[2] == "-s"
     except IndexError:
-        force = None
-    install_or_update(False, force)
+        skip = None
+    install_or_update(False, False, skip)
 
 # Wrapper for [upgrade]
 def upgrade_command(args):
