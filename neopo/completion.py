@@ -9,8 +9,10 @@ def versions_compressed(args):
     total_versions = set()
     with open(jsonFiles["firmware"], "r") as firmware_file:
         total_versions.update([entry["version"] for entry in json.load(firmware_file)])
-    _, installed_versions, _ = next(os.walk(os.path.join(PARTICLE_DEPS, "deviceOS")))
-    total_versions.update(installed_versions)
+    device_os_path = os.path.join(PARTICLE_DEPS, "deviceOS")
+    if os.path.isdir(device_os_path):
+        _, installed_versions, _ = next(os.walk(device_os_path))
+        total_versions.update(installed_versions)
     print(*sorted(total_versions))
 
 # Print available platforms (for completion)

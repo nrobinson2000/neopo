@@ -1,9 +1,4 @@
-#!/bin/bash
-
-# neopo: A lightweight solution for local Particle development.
-# Copyright (c) 2021 Nathan Robinson.
-
-# Neopo tab completion function
+# neopo(1) completion
 
 _project() { 
     local _projects
@@ -62,6 +57,16 @@ _neopo() {
         return 0
     fi
 
+    if [ "$prev1" == "create" ]; then
+        _configure $_executable
+        return 0
+    fi
+
+    if [ "$prev2" == "create" ]; then
+        _get-versions $_executable
+        return 0
+    fi
+
     case "$prev" in
     create|compile|build|flash|flash-all|clean|settings|libs)
         _project $_executable;;
@@ -76,7 +81,5 @@ _neopo() {
     iterate)
         COMPREPLY=($(compgen -W "$_iterable" -- "$cur"));;
     esac
-}
-
-# Apply the _neopo completion function
+} &&
 complete -F _neopo neopo

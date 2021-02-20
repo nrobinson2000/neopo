@@ -101,13 +101,12 @@ def versions_command(args):
                                  for platform in get_supported_platforms(version)])
             print("   %s\t [ %s ]" % (version, devices))
 
+    custom_versions = None
     device_os_path = os.path.join(PARTICLE_DEPS, "deviceOS")
     if os.path.isdir(device_os_path):
         _, installed_versions, _ = next(os.walk(device_os_path))
         custom_versions = list(set(installed_versions) - official_versions)
         custom_versions.sort()
-    else:
-        custom_versions = None
 
     if custom_versions:
         print()
