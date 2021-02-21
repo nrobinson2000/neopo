@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.22.4 -->
-<!-- CreationDate: Sun Feb 21 00:37:32 2021 -->
+<!-- CreationDate: Sun Feb 21 13:57:53 2021 -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -50,7 +50,8 @@ development</p>
 
 <p style="margin-left:11%; margin-top: 1em"><b>neopo</b>
 [OPTIONS] [PROJECT] [-v/q] <b><br>
-neopo</b> create &lt;project&gt; <b><br>
+neopo</b> create &lt;project&gt; [platform] [version]
+<b><br>
 neopo</b> configure &lt;platform&gt; &lt;version&gt;
 [project] <b><br>
 neopo</b> build [project] [-v/q] <b><br>
@@ -152,15 +153,6 @@ Device OS and supported platforms available to neopo. To
 refresh, run <b>update.</b> Custom Device OS versions and
 platforms are included.</p>
 
-<p style="margin-left:11%;"><b>create &lt;project&gt;
-[platform] [version]</b></p>
-
-<p style="margin-left:22%;">Create a new Particle project
-at the specified project path. The created project is
-compatible with neopo, Particle Workbench, and Particle CLI.
-If Git is installed, the project is additionally initialized
-as a repository with support for TravisCI.</p>
-
 <table width="100%" border="0" rules="none" frame="void"
        cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
@@ -235,7 +227,30 @@ Usually unnecessary but can eliminate some build errors.</p>
 
 <p style="margin-left:11%; margin-top: 1em"><b>SPECIAL
 OPTIONS <br>
-run &lt;target&gt; [project] [-v/q]</b></p>
+create &lt;project&gt; [platform] [version]</b></p>
+
+<p style="margin-left:22%;">Create a new Particle project
+at the specified project path. The created project is
+compatible with neopo, Particle Workbench, and Particle CLI.
+If Git is installed, the project is additionally initialized
+as a repository with support for TravisCI.</p>
+
+<p style="margin-left:11%;"><b>configure &lt;platform&gt;
+&lt;version&gt; [project]</b></p>
+
+<p style="margin-left:22%;">Configure the device platform
+and Device OS version a project should use. The platform and
+version are checked for compatibility and the specified
+version of Device OS will be downloaded if not already
+installed.</p>
+
+<p style="margin-left:22%; margin-top: 1em">To find Device
+OS versions and their supported platforms use
+<b>versions.</b> The tab completion function can fill in
+platforms and versions for this command.</p>
+
+<p style="margin-left:11%;"><b>run &lt;target&gt; [project]
+[-v/q]</b></p>
 
 <p style="margin-left:22%;">Run a specified makefile target
 for a project. Includes common targets presented in <b>BUILD
@@ -253,20 +268,6 @@ a shell script is created at
 <i>bin/neopo-&lt;target&gt;.sh</i> within the project. The
 script may be used to run the target on the project directly
 without using neopo.</p>
-
-<p style="margin-left:11%;"><b>configure &lt;platform&gt;
-&lt;version&gt; [project]</b></p>
-
-<p style="margin-left:22%;">Configure the device platform
-and Device OS version a project should use. The platform and
-version are checked for compatibility and the specified
-version of Device OS will be downloaded if not already
-installed.</p>
-
-<p style="margin-left:22%; margin-top: 1em">To find Device
-OS versions and their supported platforms use
-<b>versions.</b> The tab completion function can fill in
-platforms and versions for this command.</p>
 
 <p style="margin-left:11%;"><b>flags &lt;string&gt;
 [project]</b></p>
