@@ -6,7 +6,7 @@
 # Install dependencies
 apt update
 apt -y --no-install-recommends install libarchive-zip-perl libc6-i386 python3 vim-tiny \
-git python3-setuptools python3-pip curl # Build only
+git python3-wheel python3-setuptools python3-pip curl # Build only
 
 # Download particle completion
 curl -sLo ".completions/particle" "https://raw.githubusercontent.com/nrobinson2000/particle-cli-completion/master/particle"
@@ -28,7 +28,7 @@ EOF
 
 # Clean up
 rm -rf neopo .git scripts setup.py
-apt -y purge git python3-setuptools python3-pip curl
+apt -y purge git python3-wheel python3-setuptools python3-pip curl
 apt -y autoremove
 apt -y clean
 rm -rf /tmp/* /var/tmp/*

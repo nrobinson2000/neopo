@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM debian:stable-slim
 WORKDIR /root
 ADD .git /root/.git/
 ADD neopo /root/neopo/
