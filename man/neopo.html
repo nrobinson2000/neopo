@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.22.4 -->
-<!-- CreationDate: Sat Feb 20 02:56:23 2021 -->
+<!-- CreationDate: Sun Feb 21 00:37:32 2021 -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -23,8 +23,8 @@
 <a href="#NAME">NAME</a><br>
 <a href="#SYNOPSIS">SYNOPSIS</a><br>
 <a href="#DESCRIPTION">DESCRIPTION</a><br>
-<a href="#CONFIGURATION">CONFIGURATION</a><br>
 <a href="#OPTIONS">OPTIONS</a><br>
+<a href="#CONFIGURATION">CONFIGURATION</a><br>
 <a href="#AUTHOR">AUTHOR</a><br>
 <a href="#COPYRIGHT">COPYRIGHT</a><br>
 <a href="#REPORTING BUGS">REPORTING BUGS</a><br>
@@ -87,37 +87,6 @@ create simple scripts to automate testing and deployment of
 firmware and execute them with <b>neopo script</b> or
 leverage neopo&rsquo;s Python API to integrate local
 Particle tools into existing Python solutions.</p>
-
-<h2>CONFIGURATION
-<a name="CONFIGURATION"></a>
-</h2>
-
-
-<p style="margin-left:11%; margin-top: 1em">Currently there
-are two environment variables that may be exported or passed
-to neopo to alter its configuration. More environment
-variables may be added as neopo becomes more extensible.
-<b><br>
-NEOPO_LOCAL</b></p>
-
-<p style="margin-left:22%;">When set, neopo will use
-<i>~/.local/share/neopo</i> for neopo resources, Particle
-CLI, and toolchains, rather than <i>~/.particle</i> and
-<i>~/.neopo</i></p>
-
-<p style="margin-left:22%; margin-top: 1em">$ export
-NEOPO_LOCAL=1 <br>
-$ neopo install <br>
-$ neopo particle</p>
-
-<p style="margin-left:11%;"><b>NEOPO_PATH</b></p>
-
-<p style="margin-left:22%;">When set, neopo will use a
-specific path for its dependencies, rather than
-<i>~/.local/share/neopo</i></p>
-
-<p style="margin-left:22%; margin-top: 1em">$
-NEOPO_PATH=&quot;build/neopo&quot; neopo install</p>
 
 <h2>OPTIONS
 <a name="OPTIONS"></a>
@@ -419,6 +388,37 @@ particle(&quot;serial monitor&quot;)</p>
 &quot;myFooMachine&quot; <br>
 function = &quot;myBarFunction&quot; <br>
 particle([&quot;call&quot;, device, function])</p>
+
+<h2>CONFIGURATION
+<a name="CONFIGURATION"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Currently there
+are two environment variables that may be exported or passed
+to neopo to alter its configuration. More environment
+variables may be added as neopo becomes more extensible.
+<b><br>
+NEOPO_LOCAL</b></p>
+
+<p style="margin-left:22%;">When set, neopo will use
+<i>~/.local/share/neopo</i> for neopo resources, Particle
+CLI, and toolchains, rather than <i>~/.particle</i> and
+<i>~/.neopo</i></p>
+
+<p style="margin-left:22%; margin-top: 1em">$ export
+NEOPO_LOCAL=1 <br>
+$ neopo install <br>
+$ neopo particle</p>
+
+<p style="margin-left:11%;"><b>NEOPO_PATH</b></p>
+
+<p style="margin-left:22%;">When set, neopo will use a
+specific path for its dependencies, rather than
+<i>~/.local/share/neopo</i></p>
+
+<p style="margin-left:22%; margin-top: 1em">$
+NEOPO_PATH=&quot;build/neopo&quot; neopo install</p>
 
 <h2>AUTHOR
 <a name="AUTHOR"></a>

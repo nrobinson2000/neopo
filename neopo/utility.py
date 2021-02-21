@@ -47,15 +47,15 @@ $ man neopo
 
 Options:
     General Options:
-        help                # Show this help information
-        install [-f/s]      # Install dependencies [force or skip]
-        update              # Update neopo dependencies
-        upgrade             # Upgrade neopo   (Deprecated)
-        uninstall           # Uninstall neopo (Deprecated)
-        versions            # List available versions and platforms
-        get <version>       # Download a specific deviceOS version
-        remove <version>    # Delete an installed deviceOS version
-        particle [OPTIONS]  # Use the encapsulated Particle CLI
+        help                    # Show this help information
+        install [-f/s]          # Install dependencies [force or skip]
+        update                  # Update neopo dependencies
+        upgrade                 # Upgrade neopo   (Deprecated)
+        uninstall               # Uninstall neopo (Deprecated)
+        versions                # List available versions and platforms
+        get <version>           # Download a specific deviceOS version
+        remove <version>        # Delete an installed deviceOS version
+        particle [OPTIONS]      # Use the encapsulated Particle CLI
 
     Build Options:
         compile/build [project] [-v/q]  # Build a project: `compile-user`

@@ -33,32 +33,6 @@ Users can create simple scripts to automate testing and deployment of firmware a
 .B neopo script
 or leverage neopo's Python API to integrate local Particle tools into existing Python solutions.
 
-.SH CONFIGURATION
-.P
-Currently there are two environment variables that may be exported or passed to neopo to alter its configuration. More environment variables may be added as neopo becomes more extensible.
-
-.TP
-.B NEOPO_LOCAL
-When set, neopo will use 
-.I ~/.local/share/neopo
-for neopo resources, Particle CLI, and toolchains, rather than
-.I ~/.particle
-and
-.I ~/.neopo
-
-$ export NEOPO_LOCAL=1
-.br
-$ neopo install
-.br
-$ neopo particle
-
-.TP
-.B NEOPO_PATH
-When set, neopo will use a specific path for its dependencies, rather than
-.I ~/.local/share/neopo
-
-$ NEOPO_PATH="build/neopo" neopo install
-
 .SH OPTIONS
 
 When using neopo from the command line, options must be used in the exact order specified in the documentation, much like Particle CLI or Git. Arguments denoted in square brackets
@@ -284,6 +258,32 @@ device = "myFooMachine"
 function = "myBarFunction"
 .br
 particle(["call", device, function])
+
+.SH CONFIGURATION
+.P
+Currently there are two environment variables that may be exported or passed to neopo to alter its configuration. More environment variables may be added as neopo becomes more extensible.
+
+.TP
+.B NEOPO_LOCAL
+When set, neopo will use 
+.I ~/.local/share/neopo
+for neopo resources, Particle CLI, and toolchains, rather than
+.I ~/.particle
+and
+.I ~/.neopo
+
+$ export NEOPO_LOCAL=1
+.br
+$ neopo install
+.br
+$ neopo particle
+
+.TP
+.B NEOPO_PATH
+When set, neopo will use a specific path for its dependencies, rather than
+.I ~/.local/share/neopo
+
+$ NEOPO_PATH="build/neopo" neopo install
 
 .SH AUTHOR
 .P
