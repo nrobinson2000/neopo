@@ -1,4 +1,5 @@
 import os
+import sys
 import stat
 import subprocess
 import traceback
@@ -95,11 +96,15 @@ def unexpected_error():
     print("An unexpected error occurred!")
     print("To report this error on GitHub, please open an issue:")
     print("https://github.com/nrobinson2000/neopo/issues")
+    sys.exit(1)
 
-# Check if neopo is responsible for given file
-def responsible(file):
+# Check if a missing file is managed by neopo
+def handle_missing_file(file):
     dirs = [PARTICLE_DEPS, NEOPO_DEPS, CACHE_DIR]
     for directory in dirs:
         if file.startswith(directory):
-            return True
-    return False
+            print("Error: file %s not found." % file)
+            print("Please ensure that you have installed the dependencies:")
+            print("\t$ neopo install")
+            sys.exit(1)
+    unexpected_error()

@@ -117,7 +117,7 @@ def versions_command(args):
             print("   %s\t [ %s ]" % (version, devices))
 
     print("\nTo configure a project use:")
-    print("\tneopo configure <platform> <version> <project>")
+    print("\tneopo configure <platform> <version> [project]")
 
 # Wrapper for [get]
 def get_command(args):
@@ -229,7 +229,7 @@ def remove_firmware(version):
             shutil.rmtree(dep_path)
             print("Removed deviceOS@%s." % version)
         else:
-            print("Canceled.")
+            print("Aborted.")
     except KeyboardInterrupt:
         print("\nInterrupt signal received.")
         return

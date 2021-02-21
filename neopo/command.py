@@ -6,7 +6,7 @@ import subprocess
 from .version import NEOPO_VERSION
 from .common import NEOPO_DEPS
 from .common import ProcessError, UserError, particle_cli, running_on_windows
-from .utility import print_help, responsible, unexpected_error
+from .utility import print_help, handle_missing_file, unexpected_error
 from .workbench import install_or_update, workbench_install
 from .toolchain import versions_command, get_command, download_unlisted_command, remove_command
 from .project import create_command, configure_command, flags_command, settings_command, libraries_command
@@ -219,19 +219,12 @@ def main(args):
         try:
             commands[args[1]](args)
         except FileNotFoundError as error:
-            file = error.filename
-            if responsible(file):
-                print("Error: file %s not found." % file)
-                print("Please ensure that you have installed the dependencies:")
-                print("\t$ neopo install")
-            else:
-                unexpected_error()
+            handle_missing_file(error.filename)
         except RuntimeError as error:
             print(error)
             sys.exit(1)
         except Exception as error:
             unexpected_error()
-            sys.exit(2)
     else:
         print_help(args)
         print("Invalid command!")

@@ -21,9 +21,12 @@ neopo install -s
 cat >> .bashrc << EOF
 
 # neopo settings
-source .completions/particle
-source .completions/neopo
+source ~/.completions/particle
+source ~/.completions/neopo
 alias vim='vim.tiny'
+alias ls='ls --color=auto'
+alias ll='ls -la'
+alias la='ls -A'
 EOF
 
 # Clean up

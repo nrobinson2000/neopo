@@ -9,7 +9,7 @@
 [OPTIONS] [PROJECT] [-v/q]
 .br
 .B neopo
-create <project>
+create <project> [platform] [version]
 .br
 .B neopo
 configure <platform> <version> [project]
@@ -78,10 +78,6 @@ List all known versions of Device OS and supported platforms available to neopo.
 Custom Device OS versions and platforms are included.
 
 .TP
-.B create <project> [platform] [version]
-Create a new Particle project at the specified project path. The created project is compatible with neopo, Particle Workbench, and Particle CLI. If Git is installed, the project is additionally initialized as a repository with support for TravisCI.
-
-.TP
 .B update
 Refresh the Workbench cache and download Particle toolchains if there are newer versions available.
 
@@ -123,6 +119,19 @@ Compile application and system firmware and flash all parts to a connected devic
 Clean application firmware. Usually unnecessary but can eliminate some build errors.
 
 .SS SPECIAL OPTIONS
+
+.TP
+.B create <project> [platform] [version]
+Create a new Particle project at the specified project path. The created project is compatible with neopo, Particle Workbench, and Particle CLI. If Git is installed, the project is additionally initialized as a repository with support for TravisCI.
+
+.TP
+.B configure <platform> <version> [project]
+Configure the device platform and Device OS version a project should use. The platform and version are checked for compatibility and the specified version of Device OS will be downloaded if not already installed.
+
+To find Device OS versions and their supported platforms use
+.B versions.
+The tab completion function can fill in platforms and versions for this command.
+
 .TP
 .B run <target> [project] [-v/q]
 Run a specified makefile target for a project. Includes common targets presented in
@@ -134,14 +143,6 @@ in addition to other, less frequently used targets. The -v and -q flags are supp
 Export a makefile target to a shell script. Instead of running the target on the project, a shell script is created at
 .I bin/neopo-<target>.sh
 within the project. The script may be used to run the target on the project directly without using neopo.
-
-.TP
-.B configure <platform> <version> [project]
-Configure the device platform and Device OS version a project should use. The platform and version are checked for compatibility and the specified version of Device OS will be downloaded if not already installed.
-
-To find Device OS versions and their supported platforms use
-.B versions.
-The tab completion function can fill in platforms and versions for this command.
 
 .TP
 .B flags <string> [project]

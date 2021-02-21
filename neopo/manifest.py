@@ -3,6 +3,7 @@ import json
 
 # Local imports
 from .common import jsonFiles
+from .utility import handle_missing_file
 
 # Update the manifest JSON file
 def write_manifest(dep):
@@ -23,12 +24,15 @@ def create_manifest():
         open(jsonFiles["manifest"], "w")
 
 def get_manifest_value(key):
-    with open(jsonFiles["manifest"], "r") as file:
-        try:
-            data = json.load(file)
-        except json.decoder.JSONDecodeError:
-            return None
-        return data[key]
+    try:
+        with open(jsonFiles["manifest"], "r") as file:
+            try:
+                data = json.load(file)
+            except json.decoder.JSONDecodeError:
+                return None
+            return data[key]
+    except FileNotFoundError as error:
+        handle_missing_file(error.filename)
 
 # Load settings from the dependency mainfest JSON file
 def load_manifest():
