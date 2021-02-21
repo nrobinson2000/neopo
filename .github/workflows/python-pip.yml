@@ -28,4 +28,4 @@ jobs:
           neopo-script ci/travisTests
     - name: Test neopo (module)
       run: |
-          python ci/github-neopo.py
+          python ci/test-neopo.py
