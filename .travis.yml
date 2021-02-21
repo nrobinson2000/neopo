@@ -7,11 +7,9 @@ os:
 dist: focal
 language: shell
 install:
-  - source ci/travis.sh
-  - neopo install
+  - source ci/install-neopo.sh
+  - neopo install -s
+  - neopo particle --version
 script:
-  # Regular neopo tests
-  - neopo help
-  - neopo script ci/travisTests
-  # Python tests
+  - neopo-script ci/travisTests
   - python3 ci/travis-neopo.py

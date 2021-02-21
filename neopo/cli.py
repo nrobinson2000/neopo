@@ -39,8 +39,8 @@ def uninstall():
 def versions():
     versions_command(None)
 
-def create(project_path=os.getcwd()):
-    create_command([None, None, project_path])
+def create(project_path=os.getcwd(), platform=None, version=None):
+    create_command([None, None, project_path, platform, version])
 
 def particle(args=None):
     if isinstance(args, str):

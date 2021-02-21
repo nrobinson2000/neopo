@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: [3.8]
+        python-version: [3.9]
 
     steps:
     - uses: actions/checkout@v2
@@ -20,13 +20,12 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-          ./ci/github.sh
-          neopo install
-          neopo help
-          neopo particle
-    - name: Test neopo (bash)
+          source ci/install-neopo.sh
+          neopo install -s
+          neopo particle --version
+    - name: Test neopo (script)
       run: |
-          neopo script ci/travisTests
-    # - name: Test (python)
-    #   run: |
-    #       python ci/github-neopo.py
+          neopo-script ci/travisTests
+    - name: Test neopo (module)
+      run: |
+          python ci/github-neopo.py
