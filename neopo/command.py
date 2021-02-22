@@ -99,7 +99,8 @@ iterable_commands = {
     "flash-all": flash_all_command,
     "clean": clean_command,
     "run": run_command,
-    "script": script_command
+    "script": script_command,
+    "particle": particle_command
 }
 
 # Iterate through all connected devices and run a command
