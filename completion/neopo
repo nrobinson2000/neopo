@@ -42,6 +42,11 @@ _neopo() {
         return 0
     fi
 
+    if [ "$COMP_CWORD" == 2 ] && [ "$prev" == "help" ]; then
+        COMPREPLY=($(compgen -W "$_options" -- "$cur"))
+        return 0
+    fi
+
     if [ "$prev1" == "run" ] || [ "$prev1" == "export" ]; then
         _project $_executable
         return 0
