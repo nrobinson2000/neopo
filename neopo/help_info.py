@@ -5,8 +5,6 @@ help_commands = {
     "help": [
         "Print general help information or help for a specific neopo command",
         "[command]",
-        None,
-        None,
     ],
     # General commands
     "install": [
@@ -37,7 +35,7 @@ help_commands = {
         "<version>",
     ],
     "particle": [
-        "Access Particle CLI to run particle commands; also available as `particle`",
+        "Access Particle CLI to run particle commands. (Also available as `particle`)",
         "[options] [command...]",
     ],
     # Build commands
@@ -126,7 +124,7 @@ making it possible to use the Particle toolchains without requiring neopo.\n""",
     ],
     "libs": [
         """Parse the project.properties file in a Particle project and install specified
-libraries in the lib/ directory of the current or specifed project.\n""",
+libraries in the lib/ directory of the current or specified project.\n""",
         "[project]",
     ],
     "iterate": [
@@ -158,16 +156,21 @@ DFU mode and running a command on the device.\n""",
     "setup": ["Run the optional post-install setup script for Linux"],
     "setup-workbench": ["Install Particle Workbench extensions in Visual Studio Code"],
     # Completion
-    "list-versions": [],
-    "platforms": [],
-    "projects": [],
-    "targets": [],
-    "options": [],
-    "options-iterable": [],
+    "list-versions": ["Print all DeviceOS versions. (For bash completion.)"],
+    "platforms": ["Print all device platforms. (For bash completion.)"],
+    "projects": ["Find Particle projects relative to PWD. (For bash completion.)"],
+    "targets": ["Print all targets available for `neopo run`. (For bash completion.)"],
+    "options": ["Print all neopo commands. (For bash completion.)"],
+    "options-iterable": [
+        "Print all commmands supported by `neopo iterate`. (For bash completion)."
+    ],
     # Deprecated
-    "download-unlisted": [],
-    "uninstall": [],
-    "upgrade": [],
+    "download-unlisted": [
+        "Attempt to download an unlisted DeviceOS release. (Deprecated)",
+        "<version>",
+    ],
+    "uninstall": ["Print information about uninstalling neopo. (Deprecated)"],
+    "upgrade": ["Print information about upgrading neopo. (Deprecated)"],
 }
 
 # Print description, usage, commands, and options for a command

@@ -92,21 +92,26 @@ def configure_project(project_path, platform, firmware_version):
     write_settings(project_path, platform, firmware_version)
     print("Configured project %s: (%s, %s)" % (project_path, platform, firmware_version))
 
+# Read settings.json in a project
+def open_settings(project_path):
+    with open(os.path.join(project_path, projectFiles["settings"]), "r") as settings:
+        try:
+            return json.loads(settings.read())
+        except json.decoder.JSONDecodeError as error:
+            raise ProjectError("Failed to load settings from %s\nPlease ensure that it contains valid JSON syntax." % projectFiles["settings"]) from error
+
 # Load Workbench settings from a project
 def get_settings(project_path):
-    with open(os.path.join(project_path, projectFiles["settings"]), "r") as settings:
-        data = json.loads(settings.read())
-        return (data["particle.targetPlatform"], data["particle.firmwareVersion"])
+    data = open_settings(project_path)
+    return (data["particle.targetPlatform"], data["particle.firmwareVersion"])
 
 # Update Workbench settings in a project
 def write_settings(project_path, platform, version):
-    with open(os.path.join(project_path, projectFiles["settings"]), "r+") as settings:
-        data = json.loads(settings.read())
+    data = open_settings(project_path)
+    with open(os.path.join(project_path, projectFiles["settings"]), "w") as settings:
         data["particle.targetPlatform"] = platform
         data["particle.firmwareVersion"] = version
-        settings.seek(0)
         json.dump(data, settings, indent=4)
-        settings.truncate()
 
 # Create a dictionary from a .properties file
 def load_properties(properties_path):
