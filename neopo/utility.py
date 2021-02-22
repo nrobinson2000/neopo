@@ -48,6 +48,8 @@ def print_help(args):
         return
     except IndexError:
         pass
+    except TypeError:
+        pass
 
     print_logo()
     print("""Usage: neopo [OPTIONS] [PROJECT] [-v/q]
