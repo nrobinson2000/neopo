@@ -8,6 +8,8 @@ import traceback
 from .common import particle_cli, running_on_windows, ProcessError
 from .common import PARTICLE_DEPS, NEOPO_DEPS, CACHE_DIR, min_particle_env
 
+from .help_info import get_help
+
 # Write data to a file
 def write_file(content, path, mode):
     with open(path, mode) as file:
@@ -40,45 +42,50 @@ def download_library(library, version):
 
 # Print help information about the program
 def print_help(args):
+    try:
+        command = args[2]
+        get_help(command)
+        return
+    except IndexError:
+        pass
+
     print_logo()
     print("""Usage: neopo [OPTIONS] [PROJECT] [-v/q]
+Help:  neopo help <command>
     
 Refer to the manual for more detailed help: 
-$ man neopo
+  $ man neopo
 
-Options:
-    General Options:
-        help                    # Show this help information
-        install [-f/s]          # Install dependencies [force or skip]
-        update                  # Update neopo dependencies
-        upgrade                 # Upgrade neopo   (Deprecated)
-        uninstall               # Uninstall neopo (Deprecated)
-        versions                # List available versions and platforms
-        get <version>           # Download a specific deviceOS version
-        remove <version>        # Delete an installed deviceOS version
-        particle [OPTIONS]      # Use the encapsulated Particle CLI
+  General Commands:
+      help | --help           # Show this help information
+      install [-f/s]          # Install dependencies [force or skip]
+      update                  # Update neopo dependencies
+      versions                # List available versions and platforms
+      get <version>           # Download a specific deviceOS version
+      remove <version>        # Delete an installed deviceOS version
+      particle [OPTIONS]      # Use the encapsulated Particle CLI
 
-    Build Options:
-        compile/build [project] [-v/q]  # Build a project: `compile-user`
-        flash [project] [-v/q]          # Flash a project: `flash-user`
-        flash-all [project] [-v/q]      # Flash a project: `flash-all`
-        clean [project] [-v/q]          # Clean a project: `clean-user`
+  Build Commands:
+      compile | build [project] [-v/q]  # Compile application (local)
+      flash [project] [-v/q]            # Flash application (local)
+      flash-all [project] [-v/q]        # Flash application and DeviceOS
+      clean [project] [-v/q]            # Clean application
 
-    Special Options:
-        create <project> [platform] [version]     # Create a Particle project
-        configure <platform> <version> [project]  # Configure a project
-        run <target> [project] [-v/q]             # Run a makefile target
-        export <target> [project] [-v/q]          # Export target to a script
-        flags <string> [project]                  # Set EXTRA_CFLAGS in project 
-        settings [project]                        # View configured settings
-        libs [project]                            # Install Particle libraries
-        iterate <command> [OPTIONS] [-v/q]        # Put devices into DFU mode
-                                                  # and run commands on them
-    Script Options:
-        script [file]       # Execute a script or read a script from stdin
-        print [message]     # Print a message to the console
-        wait                # Wait for the user to press ENTER
-        """)
+  Special Commands:
+      create <project> [platform] [version]     # Create a Particle project
+      configure <platform> <version> [project]  # Configure a Particle project
+      run <target> [project] [-v/q]             # Run a makefile target
+      export <target> [project] [-v/q]          # Export target to a script
+      flags <string> [project]                  # Set EXTRA_CFLAGS in a project 
+      settings [project]                        # View configured settings
+      libs [project]                            # Install Particle libraries
+      iterate <command> [OPTIONS] [-v/q]        # Put devices into DFU mode
+                                                # and run commands on them
+  Script Commands:
+      script [file]       # Execute a script or read a script from stdin
+      print [message]     # Print a message to the console
+      wait                # Wait for the user to press ENTER
+""")
 
 
 def print_logo():
