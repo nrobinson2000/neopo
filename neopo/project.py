@@ -119,6 +119,8 @@ def load_properties(properties_path):
     with open(properties_path, "r") as file:
         for line in file.readlines():
             tokens = line.split("=", 1)
+            if len(tokens) != 2:
+                continue
             key = tokens[0]
             value = tokens[1].strip()
             properties[key] = value
