@@ -33,12 +33,16 @@ def check_login():
     return True
 
 # Download a library using particle-cli
-def download_library(library, version):
-    process = [particle_cli, "library", "copy", "%s@%s" % (library, version)]
+def download_library(library, project_path):
+    process = [particle_cli, "library", "copy", "%s@%s" % library]
     try:
+        old_cwd = os.getcwd()
+        os.chdir(project_path)
         subprocess.run(process, shell=running_on_windows, env=min_particle_env(), check=True)
+        os.chdir(old_cwd)
     except subprocess.CalledProcessError as error:
-        raise ProcessError("Failed to download library %s@%s!" % (library, version)) from error
+        os.chdir(old_cwd)
+        raise ProcessError("Failed to download library %s@%s!" % library) from error
 
 # Print help information about the program
 def print_help(args):

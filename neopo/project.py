@@ -126,57 +126,56 @@ def load_properties(properties_path):
             properties[key] = value
     return properties
 
+# Extract dependencies from .properties
+def get_library_deps(properties):
+    return [(key.split(".")[1], properties[key]) for key in properties.keys() if key.startswith("dependencies")]
+
+# Discover dependencies of locally installed libraries
+def find_sub_libraries(libraries, project_path):
+    found_libraries = []
+    for library in libraries:
+        properties_file = os.path.join(project_path, "lib", library[0], "library.properties")
+        try:
+            properties = load_properties(properties_file)
+            found_libraries.extend(get_library_deps(properties))
+        except FileNotFoundError:
+            print("Failed to find: %s" % os.path.join(library[0], "library.properties"))
+    return found_libraries
+
 # Ensure that specified libraries are downloaded, otherwise install them
 def check_libraries(project_path, active):
     try:
-        properties = load_properties(os.path.join(
-            project_path, projectFiles["properties"]))
-        libraries = [key.split(".")[1] for key in properties.keys(
-        ) if key.startswith("dependencies")]
+        properties = load_properties(os.path.join(project_path, projectFiles["properties"]))
+        libraries = get_library_deps(properties)
+        libraries.extend(find_sub_libraries(libraries, project_path))
+
     except FileNotFoundError as error:
-        raise ProjectError("%s is not a Particle Project!" %
-                           project_path) from error
+        raise ProjectError("%s is not a Particle Project!" % project_path) from error
 
     # Ensure that the user is signed into particle
     if active and not check_login():
-        raise ProcessError(
-            "Please log into Particle CLI!\n\tneopo particle login")
-
-    # pushd like behavior
-    old_cwd = os.getcwd()
-    os.chdir(project_path)
+        raise ProcessError("Please log into Particle CLI!\n\tneopo particle login")
 
     libraries_intact = True
 
     for library in libraries:
-        requested_version = properties["dependencies.%s" % library]
+        requested_version = library[1]
         try:
-            lib_properties = load_properties(
-                os.path.join("lib", library, "library.properties"))
+            lib_properties = load_properties(os.path.join(project_path, "lib", library[0], "library.properties"))
             actual_version = lib_properties["version"]
         except FileNotFoundError:
             actual_version = None
-        try:
-            if requested_version != actual_version:
-                if active:
-                    download_library(library, requested_version)
-                else:
-                    print("WARNING: library %s@%s not found locally." %
-                          (library, requested_version))
-                    libraries_intact = False
+
+        if requested_version != actual_version:
+            if active:
+                download_library(library, project_path)
             else:
-                if active:
-                    print("Library %s@%s is already installed." %
-                          (library, requested_version))
-        except ProcessError as error:
-            # Restore CWD
-            os.chdir(old_cwd)
-            raise ProjectError("Failed to download library!") from error
+                print("WARNING: Library %s@%s not found locally." % library)
+                libraries_intact = False
+        else:
+            if active:
+                print("Library %s@%s is already installed." % library)
 
-    # Restore current working directory
-    os.chdir(old_cwd)
-
-    # Return whether all libraries were present
     return libraries_intact
 
 # Get EXTRA_CFLAGS for a project or return empty string
