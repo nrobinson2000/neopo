@@ -51,6 +51,10 @@ ARM_GCC_ARM = {
         "9.2.1": {
             "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.3/gcc-arm-v9.2.1-aarch64.tar.gz",
             "sha256": "1530a1ebc43118cb81650af8621f6529df20b300e6c9d5e38aeb1ccc717c6a9e"
+        },
+        "10.2.1": {
+            "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.3/gcc-arm-v10.2.1-aarch64.tar.gz",
+            "sha256": "52dfb2c4d98ec2d9f8d42675b567a794ca556a5c2c5cb42b4b27132050668c56"
         }
     },
     "armv7l": {
