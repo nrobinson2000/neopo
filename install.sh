@@ -68,7 +68,7 @@ cd "$TEMPDIR/neopo"
 $SUDOPY python3 -m pip install .
 
 # Run the neopo installer
-neopo install
+neopo install -s
 
 # Run Particle CLI so that it has a chance to pre-download its dependencies
 neopo particle usb configure
