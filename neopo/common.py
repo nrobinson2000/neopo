@@ -65,7 +65,11 @@ ARM_GCC_ARM = {
         "9.2.1": {
             "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.2/gcc-arm-v9.2.1-raspberry-pi.tar.gz",
             "sha256": "d963b551122d57057aaacc82e61ca6a05a524df14bb9fe28ca55b67494639fce"
-        }
+        },
+        "10.2.1": {
+            "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.2/gcc-arm-v10.2.1-raspberry-pi.tar.gz,
+            "sha256": "83772bc5109ef6c5c08da09970f0d10a6d945a8eae1b015facddab6e9e33662c"
+        }        
     }
 }
 
