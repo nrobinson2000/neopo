@@ -127,6 +127,9 @@ cache:
     - $HOME/.neopo
 """
 
+s3_bucket = "https://s3.amazonaws.com/library-archives.particle.io/"
+s3_prefix = "?prefix=libraries/"
+
 # Custom errors
 class UserError(RuntimeError):
     pass

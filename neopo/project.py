@@ -147,17 +147,19 @@ def check_libraries(project_path, active):
     try:
         properties = load_properties(os.path.join(project_path, projectFiles["properties"]))
         libraries = get_library_deps(properties)
-        libraries.extend(find_sub_libraries(libraries, project_path))
 
     except FileNotFoundError as error:
         raise ProjectError("%s is not a Particle Project!" % project_path) from error
 
-    # Ensure that the user is signed into particle
-    if active and not check_login():
-        raise ProcessError("Please log into Particle CLI!\n\tneopo particle login")
+    libraries_intact = install_libraries(libraries, project_path, active)
+    if libraries_intact:
+        sub_libraries = find_sub_libraries(libraries, project_path)
+        libraries_intact = install_libraries(sub_libraries, project_path, active)
+    return libraries_intact
 
+# Install a list of libraries
+def install_libraries(libraries, project_path, active):
     libraries_intact = True
-
     for library in libraries:
         requested_version = library[1]
         try:
@@ -175,7 +177,6 @@ def check_libraries(project_path, active):
         else:
             if active:
                 print("Library %s@%s is already installed." % library)
-
     return libraries_intact
 
 # Get EXTRA_CFLAGS for a project or return empty string

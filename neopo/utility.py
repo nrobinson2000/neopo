@@ -4,9 +4,16 @@ import stat
 import subprocess
 import traceback
 
+import io
+import urllib.request
+import tarfile
+import pathlib
+import xml.etree.ElementTree as ET
+
 # Local imports
 from .common import particle_cli, running_on_windows, ProcessError
 from .common import PARTICLE_DEPS, NEOPO_DEPS, CACHE_DIR, min_particle_env
+from .common import s3_bucket, s3_prefix
 
 from .help_info import get_help
 
@@ -32,17 +39,52 @@ def check_login():
         return False
     return True
 
-# Download a library using particle-cli
+def search(lib_query):
+    request = urllib.request.Request(
+        s3_bucket + s3_prefix + lib_query)
+    with urllib.request.urlopen(request) as response:
+        content = response.read()
+        return io.BytesIO(content)
+
+def get_keys(byte_file):
+    tree = ET.parse(byte_file)
+    keys = [e.text for e in tree.iter() if e.tag.endswith('Key')]
+    return keys
+
+def get_library(name, version, keys):
+    combo = "%s-%s" % (name, version)
+    for key in keys:
+        if combo in key:
+            return key
+    return None
+
+def install_library(name, version, project_path):
+    data = search(name)
+    keys = get_keys(data)
+    lib = get_library(name, version, keys)
+    if not lib:
+        raise ProcessError("Library %s@%s not found!" % (name, version))
+    library_url = s3_bucket + lib
+    print("Downloading library %s@%s..." % (name, version))
+    download_library_archive(library_url, name, project_path)
+
+def download_library_archive(url, name, project_path):
+    base = os.path.join(project_path, "lib")
+    path = os.path.join(base, name)
+    archive = os.path.join(base, name + ".tar.gz")
+    pathlib.Path(path).mkdir(parents=True, exist_ok=True)
+    request = urllib.request.Request(url)
+    with urllib.request.urlopen(request) as response:
+        content = response.read()
+    with open(archive, "wb") as gz_file:
+        gz_file.write(content)
+    with tarfile.open(archive, "r:gz") as tar:
+        tar.extractall(path)
+    os.remove(archive)
+
 def download_library(library, project_path):
-    process = [particle_cli, "library", "copy", "%s@%s" % library]
-    try:
-        old_cwd = os.getcwd()
-        os.chdir(project_path)
-        subprocess.run(process, shell=running_on_windows, env=min_particle_env(), check=True)
-        os.chdir(old_cwd)
-    except subprocess.CalledProcessError as error:
-        os.chdir(old_cwd)
-        raise ProcessError("Failed to download library %s@%s!" % library) from error
+    name, version = library
+    install_library(name, version, project_path)
 
 # Print help information about the program
 def print_help(args):
