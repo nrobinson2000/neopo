@@ -1,4 +1,4 @@
-.TH NEOPO 1 "January 2021" "neopo" "neopo Manual"
+.TH NEOPO 1 "April 2021" "neopo" "neopo Manual"
 
 .SH NAME
 .I neopo
@@ -6,7 +6,7 @@
 
 .SH SYNOPSIS
 .B neopo
-[OPTIONS] [PROJECT] [-v/q]
+[COMMAND] [PROJECT] [OPTIONS] [-v/q]
 .br
 .B neopo
 create <project> [platform] [version]
@@ -33,7 +33,7 @@ Users can create simple scripts to automate testing and deployment of firmware a
 .B neopo script
 or leverage neopo's Python API to integrate local Particle tools into existing Python solutions.
 
-.SH OPTIONS
+.SH COMMANDS
 
 When using neopo from the command line, options must be used in the exact order specified in the documentation, much like Particle CLI or Git. Arguments denoted in square brackets
 .B []
@@ -41,7 +41,7 @@ are optional, while arguments denoted in angle brackets
 .B <>
 are mandatory.
 
-.SS GENERAL OPTIONS
+.SS GENERAL COMMANDS
 
 .TP
 .B help
@@ -97,7 +97,7 @@ prefix, any Particle CLI command can be accessed. For convenience, a
 .B particle
 alias is included with neopo.
 
-.SS BUILD OPTIONS
+.SS BUILD COMMANDS
 
 .TP
 .B compile/build [project] [-v/q]
@@ -118,7 +118,7 @@ Compile application and system firmware and flash all parts to a connected devic
 .B clean [project] [-v/q]
 Clean application firmware. Usually unnecessary but can eliminate some build errors.
 
-.SS SPECIAL OPTIONS
+.SS SPECIAL COMMANDS
 
 .TP
 .B create <project> [platform] [version]
@@ -135,7 +135,7 @@ The tab completion function can fill in platforms and versions for this command.
 .TP
 .B run <target> [project] [-v/q]
 Run a specified makefile target for a project. Includes common targets presented in
-.B BUILD OPTIONS
+.B BUILD COMMANDS
 in addition to other, less frequently used targets. The -v and -q flags are supported. Running without arguments will list available targets. The tab completion function can suggest targets for this command.
 
 .TP

@@ -14,6 +14,10 @@ curl -sLo ".completions/particle" "https://raw.githubusercontent.com/nrobinson20
 # Install neopo with pip
 python3 -m pip install .
 
+# Use custom path
+export NEOPO_PATH="$HOME/.neopo"
+mkdir -p $NEOPO_PATH
+
 # Preinstall neopo and particle
 neopo install -s
 
@@ -21,6 +25,7 @@ neopo install -s
 cat >> .bashrc << EOF
 
 # neopo settings
+export NEOPO_PATH="$NEOPO_PATH"
 source ~/.completions/particle
 source ~/.completions/neopo
 alias vim='vim.tiny'
