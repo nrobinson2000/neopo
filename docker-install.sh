@@ -5,7 +5,8 @@
 
 # Install dependencies
 apt update
-apt -y --no-install-recommends install libarchive-zip-perl libc6-i386 python3 vim-tiny \
+#apt upgrade -y --no-install-recommends
+apt -y --no-install-recommends install libarchive-zip-perl libc6-i386 python3 vim-tiny jq \
 git python3-wheel python3-setuptools python3-pip curl # Build only
 
 # Download particle completion

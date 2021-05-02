@@ -1,4 +1,6 @@
-# neopo(1) completion
+from neopo.command import commands, iterable_commands
+
+print(r'''# neopo(1) completion
 # depends on jq(1)
 
 _find_toolchains() {
@@ -57,8 +59,8 @@ _configure() {
 _neopo() {
     local _options _iterable cur prev prev1 prev2
 
-    _options="--version --help help install uninstall versions create compile build flash flash-all clean run export configure update get remove list-versions platforms projects targets options download-unlisted script iterate options-iterable flags upgrade particle wait print settings libs setup setup-workbench"
-    _iterable="compile build flash flash-all clean run script particle"
+    _options="%s"
+    _iterable="%s"
 
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
@@ -116,4 +118,4 @@ _neopo() {
         COMPREPLY=($(compgen -W "$_iterable" -- "$cur"));;
     esac
 } &&
-complete -F _neopo neopo
+complete -F _neopo neopo''' % (" ".join(commands.keys()), " ".join(iterable_commands.keys())))
