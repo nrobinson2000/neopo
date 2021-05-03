@@ -4,14 +4,14 @@ print(r'''# neopo(1) completion
 # depends on jq(1)
 
 _find_toolchains() {
-    [ -d "$NEOPO_PATH/toolchains" ] && echo "$NEOPO_PATH/toolchains" && return
-    [ -n "${NEOPO_LOCAL+x}" ] && [ -d "$HOME/.local/share/neopo/toolchains" ] && echo "$HOME/.local/share/neopo/toolchains" && return
+    [ -n "$NEOPO_PATH" ] && [ -d "$NEOPO_PATH/toolchains" ] && echo "$NEOPO_PATH/toolchains" && return
+    [ -n "$NEOPO_LOCAL" ] && [ -d "$HOME/.local/share/neopo/toolchains" ] && echo "$HOME/.local/share/neopo/toolchains" && return
     [ -d "$HOME/.particle/toolchains" ] && echo "$HOME/.particle/toolchains" || exit
 }
 
 _find_cache() {
-    [ -d "$NEOPO_PATH/resources/cache" ] && echo "$NEOPO_PATH/resources/cache" && return
-    [ -n "${NEOPO_LOCAL+x}" ] && [ -d "$HOME/.local/share/neopo/resources/cache" ] && echo "$HOME/.local/share/neopo/resources/cache" && return
+    [ -n "$NEOPO_PATH" ] && [ -d "$NEOPO_PATH/resources/cache" ] && echo "$NEOPO_PATH/resources/cache" && return
+    [ -n "$NEOPO_LOCAL" ] && [ -d "$HOME/.local/share/neopo/resources/cache" ] && echo "$HOME/.local/share/neopo/resources/cache" && return
     [ -d "$HOME/.neopo/cache" ] && echo "$HOME/.neopo/cache" || exit
 }
 

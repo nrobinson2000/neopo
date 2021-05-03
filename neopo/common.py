@@ -2,8 +2,11 @@
 import os
 import platform
 
+# Windows tricks
+running_on_windows = platform.system() == "Windows"
+
 # Home directory of user running neopo
-HOME_DIR = os.path.expanduser("~")
+HOME_DIR = os.path.expanduser("~") if running_on_windows else os.environ["HOME"]
 
 # Specify custom path. Example:
 # NEOPO_PATH=$PWD/temp neopo particle
@@ -25,7 +28,7 @@ if NEOPO_LOCAL or NEOPO_PATH:
     CACHE_DIR = os.path.join(NEOPO_DEPS, "cache")
 else:
     # Fallback: ~/.neopo and ~/.particle
-    # Primary directories: dependencies, caches, scripts
+    # Primary directories: dependencies, caches
     BASE_DIR = HOME_DIR
     PARTICLE_DEPS = os.path.join(HOME_DIR, ".particle", "toolchains")
     NEOPO_DEPS = os.path.join(HOME_DIR, ".neopo")
@@ -69,12 +72,11 @@ ARM_GCC_ARM = {
         "10.2.1": {
             "url": "https://github.com/nrobinson2000/neopo/releases/download/0.0.2/gcc-arm-v10.2.1-raspberry-pi.tar.gz",
             "sha256": "83772bc5109ef6c5c08da09970f0d10a6d945a8eae1b015facddab6e9e33662c"
-        }        
+        }       
     }
 }
 
 # Windows tricks
-running_on_windows = platform.system() == "Windows"
 particle_cli = os.path.join(
     NEOPO_DEPS, "particle.exe") if running_on_windows else os.path.join(NEOPO_DEPS, "particle")
 
