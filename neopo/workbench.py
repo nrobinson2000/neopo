@@ -62,7 +62,7 @@ def get_file(file, path):
     return file.read(path)
 
 # Experimental
-def parallel_handler(deps):
+def parallel_handler(deps, update_manifest=True):
     if not deps or not isinstance(deps, list):
         return
 
@@ -72,6 +72,10 @@ def parallel_handler(deps):
     # Download dependencies in parallel
     with concurrent.futures.ThreadPoolExecutor() as exector:
         exector.map(parallel_download_dep, deps)
+
+    # Update dependency manifest
+    if update_manifest:
+        map(write_manifest, deps)
 
 # Experimental
 def parallel_download_dep(dep):
