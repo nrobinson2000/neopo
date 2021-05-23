@@ -75,7 +75,9 @@ def parallel_handler(deps, update_manifest=True):
 
     # Update dependency manifest
     if update_manifest:
-        map(write_manifest, deps)
+        create_manifest()
+        for dep in deps:
+            write_manifest(dep)
 
 # Experimental
 def parallel_download_dep(dep):
