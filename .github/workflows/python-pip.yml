@@ -1,10 +1,12 @@
 name: python-pip
 
 on: push
+env:
+    NEOPO_LOCAL: 1
+    NEOPO_PARALLEL: 1
 
 jobs:
   build:
-
     runs-on: ${{ matrix.os }}
 
     strategy:
