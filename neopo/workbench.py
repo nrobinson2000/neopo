@@ -13,7 +13,6 @@ import urllib.request
 
 # Experimental
 import concurrent.futures
-import requests
 
 # Local imports
 from .common import DependencyError
@@ -70,19 +69,24 @@ def parallel_handler(deps):
     # Ensure that installation directory exists
     pathlib.Path(PARTICLE_DEPS).mkdir(parents=True, exist_ok=True)
 
-    # Download dependenies in parallel
+    # Download dependencies in parallel
     with concurrent.futures.ThreadPoolExecutor() as exector:
         exector.map(parallel_download_dep, deps)
 
 # Experimental
 def parallel_download_dep(dep):
-    response = requests.get(dep["url"])
+    try:
+        with urllib.request.urlopen(dep["url"]) as response:
+                content = response.read()
+    except urllib.error.URLError as error:
+        print("%s@%s: failed to download!" % (dep["name"], dep["version"]))
+        return
     print("%s@%s: downloaded" % (dep["name"], dep["version"]))
-    matched = hashlib.sha256(response.content).hexdigest() == dep["sha256"]
+    matched = hashlib.sha256(content).hexdigest() == dep["sha256"]
     if not matched:
         print("%s@%s: sha256 failed!" % (dep["name"], dep["version"]))
         return
-    tarball = tarfile.open(fileobj=io.BytesIO(response.content), mode="r:gz")
+    tarball = tarfile.open(fileobj=io.BytesIO(content), mode="r:gz")
     path = os.path.join(PARTICLE_DEPS, dep["name"], dep["version"])
     try:
         tarball.extractall(path)
