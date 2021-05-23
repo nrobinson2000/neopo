@@ -8,6 +8,9 @@ running_on_windows = platform.system() == "Windows"
 # Home directory of user running neopo
 HOME_DIR = os.path.expanduser("~") if running_on_windows else os.environ["HOME"]
 
+# Enable parallel downloads with opt-in variable
+NEOPO_PARALLEL = "NEOPO_PARALLEL" in os.environ
+
 # Specify custom path. Example:
 # NEOPO_PATH=$PWD/temp neopo particle
 NEOPO_PATH = "NEOPO_PATH" in os.environ

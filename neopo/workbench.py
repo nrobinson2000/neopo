@@ -11,9 +11,13 @@ import platform
 import subprocess
 import urllib.request
 
+# Experimental
+import concurrent.futures
+import requests
+
 # Local imports
 from .common import DependencyError
-from .common import HOME_DIR, PARTICLE_DEPS, CACHE_DIR, ARM_GCC_ARM
+from .common import HOME_DIR, PARTICLE_DEPS, CACHE_DIR, ARM_GCC_ARM, NEOPO_PARALLEL
 from .common import extensionFiles, vscodeFiles, jsonFiles
 from .common import particle_cli, running_on_windows
 from .utility import write_file, write_executable
@@ -57,6 +61,36 @@ def get_extension(url):
 # Load a file from a ZIP
 def get_file(file, path):
     return file.read(path)
+
+# Experimental
+def parallel_handler(deps):
+    if not deps or not isinstance(deps, list):
+        return
+
+    # Ensure that installation directory exists
+    pathlib.Path(PARTICLE_DEPS).mkdir(parents=True, exist_ok=True)
+
+    # Download dependenies in parallel
+    with concurrent.futures.ThreadPoolExecutor() as exector:
+        exector.map(parallel_download_dep, deps)
+
+# Experimental
+def parallel_download_dep(dep):
+    response = requests.get(dep["url"])
+    print("%s@%s: downloaded" % (dep["name"], dep["version"]))
+    matched = hashlib.sha256(response.content).hexdigest() == dep["sha256"]
+    if not matched:
+        print("%s@%s: sha256 failed!" % (dep["name"], dep["version"]))
+        return
+    tarball = tarfile.open(fileobj=io.BytesIO(response.content), mode="r:gz")
+    path = os.path.join(PARTICLE_DEPS, dep["name"], dep["version"])
+    try:
+        tarball.extractall(path)
+        tarball.close()
+        install_receipt(dep)
+        print("%s@%s: extracted" % (dep["name"], dep["version"]))
+    except PermissionError:
+        print("%s@%s: failed to extract!" % (dep["name"], dep["version"]))
 
 # Download the specified dependency
 def download_dep(dep, update_manifest, check_hash):
@@ -187,6 +221,18 @@ def install_or_update(install, force, skip_deps):
         for dep in dep_json:
             write_manifest(dep)
         print("Skipped installation of all dependencies.")
+        return
+
+    # Experimental (parallel downloading to save time)
+    # Currently opt-in
+    if NEOPO_PARALLEL:
+        deps_to_install = []
+        for dep in dep_json:
+            install_path = os.path.join(PARTICLE_DEPS, dep["name"], dep["version"])
+            installed = os.path.isdir(install_path)
+            if force or not installed: deps_to_install.append(dep)
+        # Download needed deps in parallel
+        parallel_handler(deps_to_install)
         return
 
     # Either install or update
