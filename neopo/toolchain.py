@@ -4,9 +4,9 @@ import shutil
 import platform
 
 # Local imports
-from .common import jsonFiles, PARTICLE_DEPS, DependencyError, UserError
+from .common import NEOPO_PARALLEL, jsonFiles, PARTICLE_DEPS, DependencyError, UserError
 from .workbench import download_dep, attempt_download
-from .workbench import INSTALL_RECEIPT, fix_gcc_arm, install_receipt
+from .workbench import INSTALL_RECEIPT, fix_gcc_arm, install_receipt, parallel_handler
 
 # Attempt to get custom toolchain data from .workbench/manifest.json
 def get_custom_toolchain(firmware_version, component="toolchains", all_items=False):
@@ -172,12 +172,17 @@ def get_dep_data(dep, version):
 
 # Install specified dependencies
 def install_firmware_deps(deps_dict):
-    for (dep, version) in deps_dict.items():
-        download_dep(get_dep_data(dep, version), False, True)
+    if NEOPO_PARALLEL:
+        deps = [get_dep_data(dep, version) for (dep, version) in deps_dict.items()]
+        parallel_handler(deps)
+    else:
+        for (dep, version) in deps_dict.items():
+            download_dep(get_dep_data(dep, version), False, True)
 
 # Download a specific deviceOS version (along with any of its dependencies)
 def download_firmware(version):
     deps = get_firmware_deps(version)
+    # deps.append(get_firmware_data(version)) #?
     missing_deps = check_deps_installed(deps)
     if missing_deps:
         install_firmware_deps(missing_deps)

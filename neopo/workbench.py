@@ -92,6 +92,7 @@ def parallel_download_dep(dep):
         tarball.extractall(path)
         tarball.close()
         install_receipt(dep)
+        # write_manifest(dep) #?
         print("%s@%s: extracted" % (dep["name"], dep["version"]))
     except PermissionError:
         print("%s@%s: failed to extract!" % (dep["name"], dep["version"]))
