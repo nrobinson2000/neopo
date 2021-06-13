@@ -27,7 +27,7 @@ jobs:
           neopo particle --version
     - name: Test neopo (script)
       run: |
-          neopo-script ci/travisTests
+          neopo script ci/travisTests
     - name: Test neopo (module)
       run: |
           python ci/test-neopo.py

@@ -11,5 +11,5 @@ install:
   - neopo install -s
   - neopo particle --version
 script:
-  - neopo-script ci/travisTests
+  - neopo script ci/travisTests
   - python3 ci/test-neopo.py
