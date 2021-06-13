@@ -10,7 +10,7 @@ running_in_docker = os.path.isfile("/.dockerenv")
 try:
     count = run(["git", "rev-list", "--count", "HEAD"],
             stdout=PIPE, check=True).stdout.splitlines()[0].decode('utf-8')
-    VERSION = "%d" % count
+    VERSION = "%s" % count
 except CalledProcessError:
     print("Could not determine package version with Git! Exiting...")
     raise
