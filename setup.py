@@ -10,9 +10,7 @@ running_in_docker = os.path.isfile("/.dockerenv")
 try:
     count = run(["git", "rev-list", "--count", "HEAD"],
             stdout=PIPE, check=True).stdout.splitlines()[0].decode('utf-8')
-    commit = run(["git", "rev-parse", "--short", "HEAD"],
-            stdout=PIPE, check=True).stdout.splitlines()[0].decode('utf-8')
-    VERSION = "%s.%s" % (count, commit)
+    VERSION = "%d" % count
 except CalledProcessError:
     print("Could not determine package version with Git! Exiting...")
     raise
@@ -29,13 +27,11 @@ share_files = [
 if running_on_windows or running_in_docker or os.geteuid() != 0:
     share_files=None
 
-# Provide neopo, neopo-script, and particle commands
+# Provide neopo and particle commands
 script_unix = ['scripts/unix/neopo',
-    'scripts/unix/neopo-script',
     'scripts/unix/particle']
 
 script_windows = ['scripts/windows/neopo.cmd',
-    'scripts/windows/neopo-script.cmd',
     'scripts/windows/particle.cmd']
 
 script_files = script_windows if running_on_windows else script_unix

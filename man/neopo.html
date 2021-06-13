@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.22.4 -->
-<!-- CreationDate: Fri Apr 23 15:03:26 2021 -->
+<!-- CreationDate: Sun Jun 13 15:38:51 2021 -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -395,8 +395,8 @@ particle([&quot;call&quot;, device, function])</p>
 </h2>
 
 
-<p style="margin-left:11%; margin-top: 1em">Currently there
-are two environment variables that may be exported or passed
+<p style="margin-left:11%; margin-top: 1em">There are
+several environment variables that may be exported or passed
 to neopo to alter its configuration. More environment
 variables may be added as neopo becomes more extensible.
 <b><br>
@@ -420,6 +420,15 @@ specific path for its dependencies, rather than
 
 <p style="margin-left:22%; margin-top: 1em">$
 NEOPO_PATH=&quot;build/neopo&quot; neopo install</p>
+
+<p style="margin-left:11%;"><b>NEOPO_PARALLEL</b></p>
+
+<p style="margin-left:22%;">When set, neopo will download
+dependencies in parallel, slightly improving overall
+download time.</p>
+
+<p style="margin-left:22%; margin-top: 1em">$
+NEOPO_PARALLEL=1 neopo install</p>
 
 <h2>AUTHOR
 <a name="AUTHOR"></a>

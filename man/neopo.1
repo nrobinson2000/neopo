@@ -1,4 +1,4 @@
-.TH NEOPO 1 "April 2021" "neopo" "neopo Manual"
+.TH NEOPO 1 "June 2021" "neopo" "neopo Manual"
 
 .SH NAME
 .I neopo
@@ -262,7 +262,7 @@ particle(["call", device, function])
 
 .SH CONFIGURATION
 .P
-Currently there are two environment variables that may be exported or passed to neopo to alter its configuration. More environment variables may be added as neopo becomes more extensible.
+There are several environment variables that may be exported or passed to neopo to alter its configuration. More environment variables may be added as neopo becomes more extensible.
 
 .TP
 .B NEOPO_LOCAL
@@ -285,6 +285,12 @@ When set, neopo will use a specific path for its dependencies, rather than
 .I ~/.local/share/neopo
 
 $ NEOPO_PATH="build/neopo" neopo install
+
+.TP
+.B NEOPO_PARALLEL
+When set, neopo will download dependencies in parallel, slightly improving overall download time.
+
+$ NEOPO_PARALLEL=1 neopo install
 
 .SH AUTHOR
 .P
