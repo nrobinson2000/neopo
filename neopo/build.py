@@ -18,8 +18,13 @@ def export_build_process(project_path, process, environment, target):
 
     tools = environment["PATH"].split(os.pathsep)[:-3:-1]
     path_line = 'PATH="$PATH:%s"\n' % os.pathsep.join(tools)
-    make_line = " ".join(process) + "\n"
-    content = "\n".join(["#!/bin/bash", path_line, make_line])
+
+    # Format make line better
+    temp = [" ".join(process[:3])]
+    temp.extend(process[3:])
+    make_lines = " \\\n".join(temp)
+
+    content = "\n".join(["#!/bin/sh", path_line]) + "\n" + make_lines + "\n"
     write_executable(content.encode("utf-8"), script)
 
     print("Exported to %s" % script)
@@ -57,7 +62,7 @@ def build_project(project_path, command, help_only, verbosity, export=False):
 
     # Add [-s] flag to make to silence output
     if verbosity == 0:
-        process.append("-s")
+        process[process.index("-f")] = "-sf"
 
     if help_only:
         process.append("help")

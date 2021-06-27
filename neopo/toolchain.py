@@ -2,6 +2,7 @@ import os
 import json
 import shutil
 import platform
+import subprocess
 
 # Local imports
 from .common import NEOPO_PARALLEL, jsonFiles, PARTICLE_DEPS, DependencyError, UserError
@@ -191,6 +192,28 @@ def download_firmware(version):
     if not download_dep(get_firmware_data(version), False, True):
         print("Could not download deviceOS version %s!" % version)
 
+# Clone a specific tag (version) from the device-os repo
+def clone_tag_from_git(version):
+    repo_path = os.path.join(PARTICLE_DEPS, "deviceOS", version)
+    repo_url = "https://github.com/particle-iot/device-os"
+    clone_process = ["git", "clone", "--depth", "1", "-b", "v%s" % version, repo_url, repo_path]
+    submodule_process = ["git", "-C", repo_path, "submodule", "update", "--init"]
+    try:
+        subprocess.run(clone_process, check=True)
+        subprocess.run(submodule_process, check=True)
+        install_receipt({"name": "deviceOS", "version": version})
+        cleanup_repo(repo_path)
+    except subprocess.CalledProcessError as error:
+        raise DependencyError from error
+
+# Delete uneeded files from a deviceOS release
+def cleanup_repo(repo_path):
+    old_pwd=os.path.abspath(os.curdir)
+    os.chdir(repo_path)
+    subprocess.run(["sh", "-c", "rm -rf $(find -name '.git')"], check=True)
+    subprocess.run(["sh", "-c", "rm -rf $(tail +2 .bundleignore | head -n -3 | sed -e 's/^/./')"], check=True)
+    os.chdir(old_pwd)
+
 # Attempt to download deviceOS version not specified in manifest (experimental)
 def download_unlisted(version):
     # Minimum information for a firmware dependency
@@ -203,9 +226,8 @@ def download_unlisted(version):
         attempt_download(firmware)
     except DependencyError:
         # Try to download from github
-        firmware["url"] = "https://github.com/particle-iot/device-os/archive/v%s.tar.gz" % version
-        print("Trying github.com/particle-iot/device-os...")
-        attempt_download(firmware)
+        print("Trying to clone v%s from GitHub..." % version)
+        clone_tag_from_git(version)
 
 # Wrapper for [download-unlisted]
 def download_unlisted_command(args):
