@@ -1,2 +1,0 @@
-#!/bin/bash
-groff -mandoc -Thtml neopo.1 > neopo.html

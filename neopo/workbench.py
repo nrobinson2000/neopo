@@ -23,11 +23,13 @@ from .utility import write_file, write_executable
 from .manifest import write_manifest, create_manifest, get_manifest_value
 
 INSTALL_RECEIPT=".particle-install-receipt"
+WORKBENCH_EXTENSION="particle.particle-vscode-core"
 
 # Find the Workbench extension URL from the Visual Studio Marketplace
-def get_extension_url():
-    print("Finding Workbench extension URL...")
-    payload = '{"assetTypes":null,"filters":[{"criteria":[{"filterType":7,"value":"particle.particle-vscode-core"}],"direction":2,"pageSize":100,"pageNumber":1,"sortBy":0,"sortOrder":0,"pagingToken":null}],"flags":103}'
+def get_extension_url(extension_name=WORKBENCH_EXTENSION):
+    if extension_name == WORKBENCH_EXTENSION:
+        print("Finding Workbench extension URL...")
+    payload = '{"assetTypes":null,"filters":[{"criteria":[{"filterType":7,"value":"%s"}],"direction":2,"pageSize":100,"pageNumber":1,"sortBy":0,"sortOrder":0,"pagingToken":null}],"flags":103}' % extension_name
 
     request = urllib.request.Request(
         "https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery",

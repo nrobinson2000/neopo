@@ -1,4 +1,4 @@
-.TH NEOPO 1 "June 2021" "neopo" "neopo Manual"
+.TH NEOPO 1 "September 2021" "neopo" "neopo Manual"
 
 .SH NAME
 .I neopo
@@ -56,20 +56,6 @@ Install Particle toolchains and setup the neopo environment. It takes an optiona
 which can force toolchains to be reinstalled, rather than skipped if the latest versions are already installed. To skip the installation of all dependencies, use the
 .B -s
 parameter instead.
-
-.TP
-.B upgrade
-Upgrade the neopo utility to the latest version available on GitHub. (Deprecated)
-
-.TP
-.B uninstall
-Uninstall neopo from the system. (Deprecated)
-
-The
-.B upgrade
-and
-.B uninstall
-commands are deprecated because neopo is installed with pip or from the AUR. Running them will provide information regarding how to upgrade or uninstall neopo.
 
 .TP
 .B versions
@@ -315,14 +301,28 @@ Particle CLI Documentation: <https://docs.particle.io/reference/developer-tools/
 
 .SH NOTES
 
-On Manjaro or Arch, neopo is installed as an Arch package from the AUR or built directly with makepkg. Depending on how it is installed, there are several additional steps required to complete the install of neopo. These steps are contained in a script located at /usr/share/neopo/scripts/POSTINSTALL. For convenience, this script can be executed using:
+On Arch-based distributions using the
+.B neopo-git
+package from the AUR is recommended.
+
+There are several additional steps
+required to complete the install of neopo. These steps are contained in a
+script located at /usr/share/neopo/scripts/POSTINSTALL. For convenience, this
+script can be executed using:
 .B neopo setup
 
-On x86_64, this consists of installing the ncurses package from the AUR to support use of the Particle Debugger in Workbench. On aarch64, this consists of replacing the armv7l Nodejs distribution with an aarch64 Nodejs distribution.
+On x86_64, this consists of installing the ncurses package from the AUR to
+support use of the Particle Debugger in Workbench. On aarch64, this consists of
+replacing the armv7l Nodejs distribution with an aarch64 Nodejs distribution.
 
-Using neopo on armv7l and aarch64 is incredibly feasible. On average, builds run only a few times slower than on Linux x86_64 systems, which is still much faster than using Particle Workbench on Windows. Hopefully Particle will differentiate between armv7l and aarch64 in future releases so that using Particle on aarch64 will become more accessible.
+Using neopo on armv7l and aarch64 is incredibly feasible. On average, builds
+run only a few times slower than on Linux x86_64 systems, which is still much
+faster than using Particle Workbench on Windows. Hopefully Particle will
+differentiate between armv7l and aarch64 in future releases so that using
+Particle on aarch64 will become more accessible.
 
-Using Particle Workbench on aarch64 is possible through the use of neopo. After installing
+Using Particle Workbench on aarch64 is possible through the use of neopo. After
+installing
 .I visual-studio-code-bin
 from the AUR, the Workbench extensions can be installed and prepared with:
 .B neopo setup-workbench
