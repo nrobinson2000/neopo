@@ -113,9 +113,11 @@ def versions_command(args):
         print()
         print("Custom deviceOS versions:\n")
         for version in custom_versions:
-            devices = ", ".join([platform_convert(platform, "id", "name", version)
-                                 for platform in get_supported_platforms(version)])
-            print("   %s\t [ %s ]" % (version, devices))
+            supported_platforms = get_supported_platforms(version)
+            if supported_platforms:
+                devices = ", ".join([platform_convert(platform, "id", "name", version)
+                                     for platform in supported_platforms])
+                print("   %s\t [ %s ]" % (version, devices))
 
     print("\nTo configure a project use:")
     print("\tneopo configure <platform> <version> [project]")
@@ -215,12 +217,14 @@ def cleanup_repo(repo_path):
     os.chdir(old_pwd)
 
 # Attempt to download deviceOS version not specified in manifest (experimental)
-def download_unlisted(version):
+def download_unlisted(version, skip_mirror=False):
     # Minimum information for a firmware dependency
     firmware = {"name": "deviceOS", "version": version, "sha256": "SKIP",
                 "url": "https://binaries.particle.io/device-os/v%s.tar.gz" % version}
 
     try:
+        if skip_mirror:
+            raise DependencyError()
         # Attempt to download from Particle's download mirror
         print("Trying binaries.particle.io/device-os...")
         attempt_download(firmware)

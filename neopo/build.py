@@ -1,4 +1,5 @@
 import os
+import time
 import pathlib
 import subprocess
 
@@ -7,7 +8,7 @@ from .common import PARTICLE_DEPS, running_on_windows, particle_cli, projectFile
 from .common import ProcessError, ProjectError, UserError, min_particle_env
 from .manifest import load_manifest, get_manifest_value
 from .project import get_settings, check_libraries, get_flags
-from .toolchain import get_compiler, check_firmware_version, get_firmware_path
+from .toolchain import get_compiler, check_firmware_version, get_firmware_path, platform_convert
 from .utility import write_executable
 
 # Export a build command to a script
@@ -39,6 +40,58 @@ def add_build_tools(environment, version=None):
     toolpath = os.path.join(PARTICLE_DEPS, "buildtools", tools_version)
     toolpath = os.path.join(toolpath, "bin") if running_on_windows else toolpath
     add_to_path(environment, toolpath)
+
+# Build and flash bootloader to connected device [WIP]
+def flash_bootloader(platform, firmware_version, verbosity=1):
+    bootloader_bin = build_bootloader(platform, firmware_version, verbosity)
+    temp_env = min_particle_env()
+    usb_listen = [particle_cli, "usb", "listen"]
+    serial_flash = [particle_cli, "serial", "flash", "--yes", bootloader_bin]
+
+    try:
+        subprocess.run(usb_listen, env=temp_env, shell=running_on_windows, check=True)
+        time.sleep(2) # Account for device to enter listening mode
+        subprocess.run(serial_flash, env=temp_env, shell=running_on_windows, check=True)
+    # Return cleanly if ^C was pressed
+    except KeyboardInterrupt:
+        return
+    except subprocess.CalledProcessError:
+        return
+
+# Build bootloader and return path to built file [WIP]
+def build_bootloader(platform, firmware_version, verbosity=1):
+    compiler_version, script_version, tools_version, _ = load_manifest()
+
+    temp_env = min_particle_env()
+    add_build_tools(temp_env, tools_version)
+    add_to_path(temp_env, os.path.join(
+        PARTICLE_DEPS, "gcc-arm", compiler_version, "bin"))
+
+    device_os_path = os.path.join(PARTICLE_DEPS, "deviceOS", firmware_version)
+    bootloader = os.path.join(device_os_path, "bootloader")
+    process = ["make", "PLATFORM=" + platform]
+    verbosity != 1 and process.append("-s")
+
+    OLDPWD = os.path.abspath(os.curdir)
+    try:
+        os.chdir(bootloader)
+        subprocess.run(process, env=temp_env, shell=running_on_windows, check=True,
+                        stdout=subprocess.PIPE if verbosity == -1 else None,
+                        stderr=subprocess.PIPE if verbosity == -1 else None)
+    except subprocess.CalledProcessError as error:
+        pass
+    finally:
+        os.chdir(OLDPWD)
+
+    platform_id = platform_convert(platform, "name", "id")
+
+    target = os.path.join(device_os_path, "build", "target", "bootloader",
+            "platform-%s-m-lto" % platform_id, "bootloader.bin")
+
+    if os.path.isfile(target):
+        return target
+    else:
+        raise ProcessError("%s was not built!" % target)
 
 # Use the Makefile to build the specified target
 def build_project(project_path, command, help_only, verbosity, export=False):
@@ -168,3 +221,23 @@ def clean_command(args):
 # Wrapper for export
 def export_command(args):
     run_command(args, True)
+
+# Wrapper for flash-bootloader
+def flash_bootloader_command(args):
+    try:
+        device_platform = args[2]
+        firmware_version = args[3]
+    except IndexError as error:
+        raise UserError("You must specify platform and device os version!")
+
+    verbosity_dict = {None: 0, "-v": 1, "-q": -1}
+    try:
+        verbosity = args[4]
+    except IndexError:
+        verbosity = None
+    verbosity_level=verbosity_dict[verbosity]
+
+    if not check_firmware_version(device_platform, firmware_version):
+        raise ProjectError("Firmware related error!")
+
+    flash_bootloader(device_platform, firmware_version, verbosity_level)

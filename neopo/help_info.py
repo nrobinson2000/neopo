@@ -25,13 +25,13 @@ help_commands = {
     "update": [
         "Update neopo dependencies and Particle toolchains to the latest versions"
     ],
-    "versions": ["List downloadable DeviceOS versions and their supported platforms"],
+    "versions": ["List downloadable Device OS versions and their supported platforms"],
     "get": [
-        "Download a specific DeviceOS version and required toolchains",
+        "Download a specific Device OS version and required toolchains",
         "<version>",
     ],
     "remove": [
-        "Delete a specific DeviceOS version from ~/.particle/toolchains",
+        "Delete a specific Device OS version from ~/.particle/toolchains",
         "<version>",
     ],
     "particle": [
@@ -67,7 +67,7 @@ help_commands = {
         ],
     ],
     "flash-all": [
-        "Compile and flash the current or specified project and DeviceOS",
+        "Compile and flash the current or specified project and Device OS",
         "[project] [verbosity]",
         None,
         [
@@ -84,13 +84,13 @@ help_commands = {
             ("-q", "Quiet compiler output"),
         ],
     ],
-    # Special commands
+    # Project commands
     "create": [
         "Initialize and configure a Particle project compatible with official tools",
         "<project> [platform] [version]",
     ],
     "configure": [
-        """Change the platform and DeviceOS version used in a project, verifying
+        """Change the platform and Device OS version used in a project, verifying
 compatibility and downloading toolchains if necessary. If used with a basic
 Particle CLI project, the project is upgraded with Workbench and neopo support.\n""",
         "<platform> <version> [project]",
@@ -127,6 +127,17 @@ making it possible to use the Particle toolchains without requiring neopo.\n""",
 libraries in the lib/ directory of the current or specified project.\n""",
         "[project]",
     ],
+    # Special commands
+    "bootloader": [
+        """Build and flash the bootloader for a specific platform and Device OS version.
+After building the bootloader it is flashed over serial using particle-cli.\n""",
+        "<platform> <version> [verbosity]",
+        None,
+        [
+            ("-v", "Verbose compiler output"),
+            ("-q", "Quiet compiler output"),
+        ],
+    ],
     "iterate": [
         """Iterate over all Particle devices connected via USB, placing each device into
 DFU mode and running a command on the device.\n""",
@@ -156,7 +167,7 @@ DFU mode and running a command on the device.\n""",
     "setup": ["Run the optional post-install setup script for Linux"],
     "setup-workbench": ["Install Particle Workbench extensions in Visual Studio Code"],
     # Completion
-    "list-versions": ["Print all DeviceOS versions. (For bash completion.)"],
+    "list-versions": ["Print all Device OS versions. (For bash completion.)"],
     "platforms": ["Print all device platforms. (For bash completion.)"],
     "projects": ["Find Particle projects relative to PWD. (For bash completion.)"],
     "targets": ["Print all targets available for `neopo run`. (For bash completion.)"],
@@ -166,7 +177,7 @@ DFU mode and running a command on the device.\n""",
     ],
     # Deprecated
     "download-unlisted": [
-        "Attempt to download an unlisted DeviceOS release. (Deprecated)",
+        "Attempt to download an unlisted Device OS release. (Deprecated)",
         "<version>",
     ],
     "uninstall": ["Print information about uninstalling neopo. (Deprecated)"],

@@ -119,7 +119,7 @@ Refer to the manual for more detailed help:
       flash-all [project] [-v/q]        # Flash application and DeviceOS
       clean [project] [-v/q]            # Clean application
 
-  Special Commands:
+  Project Commands:
       create <project> [platform] [version]     # Create a Particle project
       configure <platform> <version> [project]  # Configure a Particle project
       run <target> [project] [-v/q]             # Run a makefile target
@@ -127,6 +127,9 @@ Refer to the manual for more detailed help:
       flags <string> [project]                  # Set EXTRA_CFLAGS in a project 
       settings [project]                        # View configured settings
       libs [project]                            # Install Particle libraries
+
+  Special Commands:
+      bootloader <platform> <version> [-v/-q]   # Flash device bootloader
       iterate <command> [OPTIONS] [-v/q]        # Put devices into DFU mode
                                                 # and run commands on them
   Script Commands:

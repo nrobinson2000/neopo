@@ -104,7 +104,7 @@ Compile application and system firmware and flash all parts to a connected devic
 .B clean [project] [-v/q]
 Clean application firmware. Usually unnecessary but can eliminate some build errors.
 
-.SS SPECIAL COMMANDS
+.SS PROJECT COMMANDS
 
 .TP
 .B create <project> [platform] [version]
@@ -143,6 +143,12 @@ View configured settings for a project. The device platform, Device OS version, 
 Verify or install Particle libraries specified in
 .B project.properties
 for a project. This command is useful when working with projects that use the cloud compiler because it allows you to quickly download the same libraries locally.
+
+.SS SPECIAL COMMANDS
+
+.TP
+.B bootloader <platform> <version> [-v/-q]
+An experimental command to build and flash the bootloader for a specified platform and Device OS version. After building the bootloader it is flashed over serial using particle-cli.
 
 .TP
 .B iterate <command> [OPTIONS] [-v/q]

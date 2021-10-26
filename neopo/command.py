@@ -11,6 +11,7 @@ from .workbench import install_or_update, workbench_install
 from .toolchain import versions_command, get_command, download_unlisted_command, remove_command
 from .project import create_command, configure_command, flags_command, settings_command, libraries_command
 from .build import compile_command, flash_command, flash_all_command, clean_command, run_command, export_command
+from .build import flash_bootloader_command
 from .completion import versions_compressed, platforms_command, find_valid_projects, get_makefile_targets
 from .particle import particle_command, particle_env
 
@@ -185,6 +186,7 @@ commands = {
     "build": compile_command,
     "flash": flash_command,
     "flash-all": flash_all_command,
+    "bootloader": flash_bootloader_command,
     "clean": clean_command,
     "run": run_command,
     "export": export_command,
