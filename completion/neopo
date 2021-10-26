@@ -57,7 +57,7 @@ _configure() {
 _neopo() {
     local _options _iterable cur prev prev1 prev2
 
-    _options="--version --help help install uninstall versions create compile build flash flash-all clean run export configure update get remove list-versions platforms projects targets options download-unlisted script iterate options-iterable flags upgrade particle wait print settings libs setup setup-workbench"
+    _options="--version --help help install uninstall versions create compile build flash flash-all bootloader clean run export configure update get remove list-versions platforms projects targets options download-unlisted script iterate options-iterable flags upgrade particle wait print settings libs setup setup-workbench"
     _iterable="compile build flash flash-all clean run script particle"
 
     COMPREPLY=()
