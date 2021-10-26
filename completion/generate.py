@@ -103,6 +103,16 @@ _neopo() {
         return 0
     fi
 
+    if [ "$prev" == "bootloader" ]; then
+        _configure
+        return 0
+    fi
+
+    if [ "$prev1" == "bootloader" ]; then
+        _get_versions
+        return 0
+    fi
+
     case "$prev" in
     create|compile|build|flash|flash-all|clean|settings|libs)
         _project;;
