@@ -236,7 +236,12 @@ def download_unlisted(version, skip_mirror=False):
 # Wrapper for [download-unlisted]
 def download_unlisted_command(args):
     try:
-        download_unlisted(args[2])
+        git_flag = args[3] == "-g"
+    except IndexError:
+        git_flag = False
+
+    try:
+        download_unlisted(args[2], git_flag)
     except IndexError as error:
         raise UserError("You must specify a deviceOS version!") from error
 
