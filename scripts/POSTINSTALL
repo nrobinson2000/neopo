@@ -22,7 +22,7 @@ elif [[ "$ARCH" == "aarch64" ]]; then
     yay -S --needed openocd-git
 
     # Optional depends
-    sudo pacman -S --needed dfu-util nodejs npm
+    sudo pacman -S --needed dfu-util nodejs-lts-erbium npm
 fi
 
 # Install particle packages
