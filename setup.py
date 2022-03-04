@@ -41,7 +41,7 @@ with open(os.path.join('neopo', 'version.py'), 'w') as file:
     file.writelines(['NEOPO_VERSION="%s"' % VERSION])
 
 # Make baud-switcher helper program
-if system() == 'Linux' and not running_in_docker:
+if system() == 'Linux' and share_files:
     try:
         run(["make", "-C", "serial", "clean", "all"], check=True)
     except CalledProcessError:
