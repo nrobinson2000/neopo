@@ -13,3 +13,5 @@ neopo.egg-info
 neopo/neopo.c
 Makefile
 temp
+baud-switcher
+venv
