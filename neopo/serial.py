@@ -51,6 +51,10 @@ USB_EXPRESSION = "(?<=\[).{4}:.{4}(?=\])"
 BAUD_TOOL = "stty"
 
 
+def is_baud_tool_installed():
+    return which(BAUD_TOOL) is not None
+
+
 def get_dfu_device():
     process = ["dfu-util", "-l"]
     r = subprocess.run(
@@ -62,7 +66,7 @@ def get_dfu_device():
     )
     content = r.stdout.decode()
     group = re.search(USB_EXPRESSION, content)
-    return group.group(0)
+    return group.group(0) if group else None
 
 
 def serial_open(device):
@@ -83,14 +87,16 @@ def dfu_open(device):
                        stderr=subprocess.PIPE, check=True)
 
 
-def serial_reset(device):
-    dfu_open(device)
+def serial_reset(port):
+    dfu_open(port)
     time.sleep(1)
     dfu_close()
 
 
 def dfu_close():
     device = get_dfu_device()
+    if device is None:
+        raise ProcessError("No DFU device found to close")
     address = "0x080A0000:leave"
     process = f"dfu-util -d {device} -a0 -i0 -s {address} -D /dev/null".split()
 
