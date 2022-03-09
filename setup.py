@@ -40,15 +40,6 @@ script_files = script_windows if running_on_windows else script_unix
 with open(os.path.join('neopo', 'version.py'), 'w') as file:
     file.writelines(['NEOPO_VERSION="%s"' % VERSION])
 
-# Make baud-switcher helper program
-if system() == 'Linux' and share_files:
-    try:
-        run(["make", "-C", "serial", "clean", "all"], check=True)
-    except CalledProcessError:
-        print("Failed to make baud-switcher!")
-        raise
-    share_files.append(("/usr/bin", ["serial/baud-switcher"]))
-
 setup(
    name='neopo',
    version=VERSION,
