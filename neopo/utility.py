@@ -133,7 +133,7 @@ Refer to the manual for more detailed help:
       iterate <command> [OPTIONS] [-v/q]        # Put devices into DFU mode
                                                 # and run commands on them
       legacy <command>                          # Put legacy devices into
-                                                # serial or DFU mode on linux
+                                                # serial or DFU mode
   Script Commands:
       script [file]       # Execute a script or read a script from stdin
       print [message]     # Print a message to the console
