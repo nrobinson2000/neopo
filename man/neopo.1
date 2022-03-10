@@ -1,4 +1,4 @@
-.TH NEOPO 1 "September 2021" "neopo" "neopo Manual"
+.TH NEOPO 1 "March 2022" "neopo" "neopo Manual"
 
 .SH NAME
 .I neopo
@@ -163,6 +163,16 @@ The following commands are iterable:
 .B run,
 .B script.
 
+.TP
+.B legacy <command>
+An advanced command used to place Gen 2 devices on old deviceOS versions into and out of serial mode and DFU mode.  It triggers device states by imposing specific baud rates over the USB serial connection.  It also leverages particle serial list to automatically determine the correct port as required.
+
+The following commands are available as legacy commands:
+.B serial open,
+.B serial close,
+.B dfu open,
+.B dfu close.
+
 .SS SCRIPT INTERFACE
 
 One of the powerful features of neopo is the scripting interface. Neopo scripts are a list of commands to run sequentially, with each command placed on its own line. Empty lines and lines starting with
@@ -326,7 +336,6 @@ run only a few times slower than on Linux x86_64 systems, which is still much
 faster than using Particle Workbench on Windows. Hopefully Particle will
 differentiate between armv7l and aarch64 in future releases so that using
 Particle on aarch64 will become more accessible.
-
 Using Particle Workbench on aarch64 is possible through the use of neopo. After
 installing
 .I visual-studio-code-bin

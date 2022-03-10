@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.22.4 -->
-<!-- CreationDate: Tue Oct 26 04:12:25 2021 -->
+<!-- CreationDate: Thu Mar 10 04:58:50 2022 -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -298,6 +298,20 @@ it can be used.</p>
 commands are iterable: <b>compile, build, flash, flash-all,
 clean, run, script.</b></p>
 
+<p style="margin-left:11%;"><b>legacy
+&lt;command&gt;</b></p>
+
+<p style="margin-left:22%;">An advanced command used to
+place Gen 2 devices on old deviceOS versions into and out of
+serial mode and DFU mode. It triggers device states by
+imposing specific baud rates over the USB serial connection.
+It also leverages particle serial list to automatically
+determine the correct port as required.</p>
+
+<p style="margin-left:22%; margin-top: 1em">The following
+commands are available as legacy commands: <b>serial open,
+serial close, dfu open, dfu close.</b></p>
+
 <p style="margin-left:11%; margin-top: 1em"><b>SCRIPT
 INTERFACE</b> <br>
 One of the powerful features of neopo is the scripting
@@ -491,13 +505,11 @@ builds run only a few times slower than on Linux x86_64
 systems, which is still much faster than using Particle
 Workbench on Windows. Hopefully Particle will differentiate
 between armv7l and aarch64 in future releases so that using
-Particle on aarch64 will become more accessible.</p>
-
-<p style="margin-left:11%; margin-top: 1em">Using Particle
-Workbench on aarch64 is possible through the use of neopo.
-After installing <i>visual-studio-code-bin</i> from the AUR,
-the Workbench extensions can be installed and prepared with:
-<b>neopo setup-workbench</b></p>
+Particle on aarch64 will become more accessible. Using
+Particle Workbench on aarch64 is possible through the use of
+neopo. After installing <i>visual-studio-code-bin</i> from
+the AUR, the Workbench extensions can be installed and
+prepared with: <b>neopo setup-workbench</b></p>
 <hr>
 </body>
 </html>
