@@ -48,7 +48,6 @@ def set_baudrate(port, baudrate):
         os.close(fd)
 
 
-PARTICLE_ENV = particle_env()
 DFU_BAUD = 14400
 LISTENING_BAUD = 28800
 USB_EXPRESSION = "(?<=\[).{4}:.{4}(?=\])"
@@ -62,7 +61,8 @@ PLATFORM_SUPPORTED = RUNTIME_PLATFORM != "Windows"
 
 def throw_error_if_unsupported_platform():
     if not PLATFORM_SUPPORTED:
-        raise DependencyError("ERROR: Unsupported Platform - legacy commands requires Linux or macOS to run")
+        raise DependencyError(
+            "ERROR: Unsupported Platform - legacy commands requires Linux or macOS to run")
 
 
 def get_particle_serial_ports():
@@ -75,7 +75,7 @@ def get_particle_serial_ports():
         # Find Particle deviceIDs connected via USB
         process = [particle_cli, "serial", "list"]
         particle = subprocess.run(process, stdout=subprocess.PIPE, env=particle_env(),
-                                shell=running_on_windows, check=True)
+                                  shell=running_on_windows, check=True)
         return [line.decode("utf-8").split()[-1]
                 for line in particle.stdout.splitlines()[1:]]
 
@@ -87,7 +87,7 @@ def get_dfu_device():
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         check=True,
-        env=PARTICLE_ENV,
+        env=particle_env()
     )
     content = r.stdout.decode()
     group = re.search(USB_EXPRESSION, content)
@@ -135,5 +135,5 @@ def dfu_close():
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         check=True,
-        env=PARTICLE_ENV,
+        env=particle_env()
     )
