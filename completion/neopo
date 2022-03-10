@@ -57,7 +57,7 @@ _configure() {
 _neopo() {
     local _options _iterable cur prev prev1 prev2
 
-    _options="--version --help help install uninstall versions create compile build flash flash-all bootloader clean run export configure update get remove list-versions platforms projects targets options download-unlisted script iterate options-iterable flags upgrade particle wait print settings libs setup setup-workbench"
+    _options="--version --help help install uninstall versions create compile build flash flash-all bootloader clean run export configure update get remove list-versions platforms projects targets options download-unlisted script iterate options-iterable legacy options-legacy flags upgrade particle wait print settings libs setup setup-workbench"
     _iterable="compile build flash flash-all clean run script particle"
 
     COMPREPLY=()
@@ -108,6 +108,19 @@ _neopo() {
 
     if [ "$prev1" == "bootloader" ]; then
         _get_versions
+        return 0
+    fi
+
+    local legacy_options="serial dfu"
+    local legacy_options2="open close"
+
+    if [ "$prev" == "legacy" ]; then
+        COMPREPLY=($(compgen -W "$legacy_options" -- "$cur"))
+        return 0
+    fi
+
+    if [ "$prev1" == "legacy" ] && [[ $legacy_options =~ "$prev" ]]; then
+        COMPREPLY=($(compgen -W "$legacy_options2" -- "$cur"))
         return 0
     fi
 
