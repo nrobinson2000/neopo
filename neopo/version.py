@@ -1,1 +1,1 @@
-NEOPO_VERSION="350"
+NEOPO_VERSION="develop"
