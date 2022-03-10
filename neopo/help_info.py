@@ -155,7 +155,7 @@ DFU mode and running a command on the device.\n""",
     ],
     "legacy": [
         """Run legacy commands for controlling serial and DFU modes on old deviceOS versions
-for gen 2 devices. Only available on Linux at this time.\n""",
+for gen 2 devices. Only available on Linux and macOS at this time.\n""",
         "<command>",
         [
             ("serial open", "open serial mode on older devices"),

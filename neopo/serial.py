@@ -1,5 +1,6 @@
 from .particle import particle_env
 from .common import ProcessError, DependencyError, particle_cli, running_on_windows
+
 import subprocess
 import time
 import re
@@ -52,7 +53,8 @@ DFU_BAUD = 14400
 LISTENING_BAUD = 28800
 USB_EXPRESSION = "(?<=\[).{4}:.{4}(?=\])"
 BAUD_TOOL = "stty"
-# currently only supporting osx and linux, we use this one-time check
+
+# currently only supporting macOS and linux, we use this one-time check
 # for efficient error checking
 RUNTIME_PLATFORM = system()
 PLATFORM_SUPPORTED = RUNTIME_PLATFORM != "Windows"
@@ -60,7 +62,7 @@ PLATFORM_SUPPORTED = RUNTIME_PLATFORM != "Windows"
 
 def throw_error_if_unsupported_platform():
     if not PLATFORM_SUPPORTED:
-        raise DependencyError("ERROR: Unsupported Platform - legacy commands requires Linux or OSX to run")
+        raise DependencyError("ERROR: Unsupported Platform - legacy commands requires Linux or macOS to run")
 
 
 def get_particle_serial_ports():
