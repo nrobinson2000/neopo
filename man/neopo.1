@@ -1,4 +1,4 @@
-.TH NEOPO 1 "September 2021" "neopo" "neopo Manual"
+.TH NEOPO 1 "March 2022" "neopo" "neopo Manual"
 
 .SH NAME
 .I neopo
@@ -165,7 +165,7 @@ The following commands are iterable:
 
 .TP
 .B legacy <command>
-An advanced command used to place Gen 2 devices on old deviceOS versions into and out of serial mode and DFU mode.  It uses the baud-switcher tool to trigger the device states based on imposing specific baud rates over the USB serial connection.  It also leverages particle serial list to automatically determine the correct port as required.
+An advanced command used to place Gen 2 devices on old deviceOS versions into and out of serial mode and DFU mode.  It triggers device states by imposing specific baud rates over the USB serial connection.  It also leverages particle serial list to automatically determine the correct port as required.
 
 The following commands are available as legacy commands:
 .B serial open,
@@ -336,7 +336,6 @@ run only a few times slower than on Linux x86_64 systems, which is still much
 faster than using Particle Workbench on Windows. Hopefully Particle will
 differentiate between armv7l and aarch64 in future releases so that using
 Particle on aarch64 will become more accessible.
-
 Using Particle Workbench on aarch64 is possible through the use of neopo. After
 installing
 .I visual-studio-code-bin
