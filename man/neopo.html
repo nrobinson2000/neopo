@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.22.4 -->
-<!-- CreationDate: Tue Oct 26 04:12:25 2021 -->
+<!-- CreationDate: Mon Mar  7 15:21:53 2022 -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -297,6 +297,21 @@ it can be used.</p>
 <p style="margin-left:22%; margin-top: 1em">The following
 commands are iterable: <b>compile, build, flash, flash-all,
 clean, run, script.</b></p>
+
+<p style="margin-left:11%;"><b>legacy
+&lt;command&gt;</b></p>
+
+<p style="margin-left:22%;">An advanced command used to
+place Gen 2 devices on old deviceOS versions into and out of
+serial mode and DFU mode. It uses the baud-switcher tool to
+trigger the device states based on imposing specific baud
+rates over the USB serial connection. It also leverages
+particle serial list to automatically determine the correct
+port as required.</p>
+
+<p style="margin-left:22%; margin-top: 1em">The following
+commands are available as legacy commands: <b>serial open,
+serial close, dfu open, dfu close.</b></p>
 
 <p style="margin-left:11%; margin-top: 1em"><b>SCRIPT
 INTERFACE</b> <br>

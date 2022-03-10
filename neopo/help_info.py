@@ -153,6 +153,17 @@ DFU mode and running a command on the device.\n""",
             ("particle", "Access Particle CLI (Extemely useful)"),
         ],
     ],
+    "legacy": [
+        """Run legacy commands for controlling serial and DFU modes on old deviceOS versions
+for gen 2 devices. Only available on Linux at this time.\n""",
+        "<command>",
+        [
+            ("serial open", "open serial mode on older devices"),
+            ("serial close", "exit serial mode on older devices"),
+            ("dfu open", "open DFU mode on older devices"),
+            ("dfu close", "exit DFU mode on older devices"),
+        ],
+    ],
     # Script commands
     "script": [
         "Load and execute a neopo script from a file or standard input",

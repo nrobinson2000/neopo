@@ -163,6 +163,16 @@ The following commands are iterable:
 .B run,
 .B script.
 
+.TP
+.B legacy <command>
+An advanced command used to place Gen 2 devices on old deviceOS versions into and out of serial mode and DFU mode.  It uses the baud-switcher tool to trigger the device states based on imposing specific baud rates over the USB serial connection.  It also leverages particle serial list to automatically determine the correct port as required.
+
+The following commands are available as legacy commands:
+.B serial open,
+.B serial close,
+.B dfu open,
+.B dfu close.
+
 .SS SCRIPT INTERFACE
 
 One of the powerful features of neopo is the scripting interface. Neopo scripts are a list of commands to run sequentially, with each command placed on its own line. Empty lines and lines starting with

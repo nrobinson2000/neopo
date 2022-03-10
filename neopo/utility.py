@@ -132,6 +132,8 @@ Refer to the manual for more detailed help:
       bootloader <platform> <version> [-v/-q]   # Flash device bootloader
       iterate <command> [OPTIONS] [-v/q]        # Put devices into DFU mode
                                                 # and run commands on them
+      legacy <command>                          # Put legacy devices into
+                                                # serial or DFU mode on linux
   Script Commands:
       script [file]       # Execute a script or read a script from stdin
       print [message]     # Print a message to the console
