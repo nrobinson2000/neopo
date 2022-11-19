@@ -47,7 +47,12 @@ def get_extension_url(extension_name=WORKBENCH_EXTENSION):
 
     # Parse response and extract the URL of the VSIX
     data = json.loads(content.decode("utf-8"))
-    return data["results"][0]["extensions"][0]["versions"][0]["files"][-1]["source"]
+
+    files_raw = data["results"][0]["extensions"][0]["versions"][0]["files"]
+    files = {f['assetType']: f['source'] for f in files_raw}
+    package = 'Microsoft.VisualStudio.Services.VSIXPackage'
+
+    return files[package]
 
 # Download the the Workbench extension from the URL and return it in ZIP format
 def get_extension(url):
