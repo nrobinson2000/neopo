@@ -34,6 +34,19 @@ def get_manifest_value(key):
     except FileNotFoundError as error:
         handle_missing_file(error.filename)
 
+def get_cached_json(key):
+    try:
+        with open(jsonFiles[key]) as file:
+            try:
+                data = json.load(file)
+                return data
+            except json.decoder.JSONDecodeError:
+                return None
+            except KeyError:
+                return None
+    except FileNotFoundError as error:
+        handle_missing_file(error.filename)
+
 # Load settings from the dependency mainfest JSON file
 def load_manifest():
     with open(jsonFiles["manifest"], "r") as file:

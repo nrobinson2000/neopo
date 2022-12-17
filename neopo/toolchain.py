@@ -8,6 +8,7 @@ import subprocess
 from .common import NEOPO_PARALLEL, jsonFiles, PARTICLE_DEPS, DependencyError, UserError
 from .workbench import download_dep, attempt_download
 from .workbench import INSTALL_RECEIPT, fix_gcc_arm, install_receipt, parallel_handler
+from .manifest import get_cached_json
 
 # Attempt to get custom toolchain data from .workbench/manifest.json
 def get_custom_toolchain(firmware_version, component="toolchains", all_items=False):
@@ -16,9 +17,19 @@ def get_custom_toolchain(firmware_version, component="toolchains", all_items=Fal
     if os.path.isfile(custom_manifest):
         with open(custom_manifest) as file:
             data = json.load(file)
-            toolchain = data[component]
+            if component:
+                toolchain = data[component]
+            else:
+                return data
             return toolchain if all_items else toolchain[0]
     return None
+
+def write_custom_toolchain(firmware_version, toolchain_data):
+    firmware_path = get_firmware_path(firmware_version)
+    custom_manifest = os.path.join(firmware_path, ".workbench", "manifest.json")
+    with open(custom_manifest, 'w') as file:
+        json.dump(toolchain_data, file, indent=4)
+
 
 # Get a deviceOS dependency from a version
 def get_firmware_data(version):
@@ -231,7 +242,22 @@ def download_unlisted(version, skip_mirror=False):
     except DependencyError:
         # Try to download from github
         print("Trying to clone v%s from GitHub..." % version)
-        clone_tag_from_git(version)
+        try:
+            clone_tag_from_git(version)
+        except DependencyError:
+            return
+
+    # We need to correct the .workbench/manifest.json
+    # Add the "platforms" list from cache
+    toolchain = get_custom_toolchain(version, None)
+    platforms = get_supported_platforms(version)
+
+    all_platforms = get_cached_json('platforms')
+
+    selected_platforms = [p for p in all_platforms if p['id'] in platforms]
+
+    toolchain['platforms'] = selected_platforms
+    write_custom_toolchain(version, toolchain)
 
 # Wrapper for [download-unlisted]
 def download_unlisted_command(args):
