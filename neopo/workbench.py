@@ -54,12 +54,15 @@ def get_extension_url(extension_name=WORKBENCH_EXTENSION):
 
     return files[package]
 
-# Download the the Workbench extension from the URL and return it in ZIP format
+def download_url(url):
+    with urllib.request.urlopen(url) as response:
+        return response.read()
+
+# Download the Workbench extension from the URL and return it in ZIP format
 def get_extension(url):
     print("Downloading Workbench extension...")
     try:
-        with urllib.request.urlopen(url) as response:
-            content = response.read()
+        content = download_url(url)
     except urllib.error.URLError as error:
         raise DependencyError("Failed to download extension!") from error
     return zipfile.ZipFile(io.BytesIO(content), "r")
@@ -177,18 +180,34 @@ def get_deps():
     pathlib.Path(vscodeFiles["dir"]).mkdir(parents=True, exist_ok=True)
     manifest = get_file(extension, extensionFiles["manifest"])
 
-    # Attempt to pull particle-cli executable from VSIX
-    try:
-        os_platform = platform.system().lower()
-        os_arch = platform.machine().lower(
-        ) if running_on_windows else "amd64" if platform.machine() == "x86_64" else "arm"
-        particle_bin = os.path.basename(particle_cli)
-        particle = get_file(
-            extension, "/".join([extensionFiles["bin"], os_platform, os_arch, particle_bin]))
+    # For arm, the particle executable is no longer provided in the VSIX
+    # But it is still hosted on binaries.particle.io
+    if platform.machine() in ('armv7l', 'aarch64'):
+        # Get manifest file
+        particle_bin_manifest = get_file(extension, "/".join([extensionFiles["bin"], "manifest.json"]))
+        manifest_json = json.loads(particle_bin_manifest.decode())
+
+        # Swap out amd64 for arm
+        raw_url = manifest_json['builds']['linux']['amd64']['url']
+        arm_url = raw_url.replace('amd64', 'arm')
+
+        # Download arm binary
+        particle = download_url(arm_url)
         write_executable(particle, particle_cli)
-    except KeyError as error:
-        raise DependencyError(
-            "Failed to download particle executable from extension!") from error
+
+    else:
+        # Attempt to pull particle-cli executable from VSIX
+        try:
+            os_platform = platform.system().lower()
+            os_arch = platform.machine().lower(
+            ) if running_on_windows else "amd64" if platform.machine() == "x86_64" else "arm"
+            particle_bin = os.path.basename(particle_cli)
+            particle = get_file(
+                extension, "/".join([extensionFiles["bin"], os_platform, os_arch, particle_bin]))
+            write_executable(particle, particle_cli)
+        except KeyError as error:
+            raise DependencyError(
+                "Failed to download particle executable from extension!") from error
 
     # Create launch.json and settings.json project template files
     launch = get_file(extension, extensionFiles["launch"])
