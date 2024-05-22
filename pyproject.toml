@@ -6,10 +6,11 @@ authors = ["Nate Robinson <nrobinson2000@me.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.9"
+python = ">=3.10"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.4.4"
+ipython = "^8.24.0"
 
 [build-system]
 requires = ["poetry-core"]
