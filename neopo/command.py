@@ -1,24 +1,62 @@
 import os
-import sys
 import subprocess
+import sys
+
+from .build import (
+    clean_command,
+    compile_command,
+    export_command,
+    flash_all_command,
+    flash_bootloader_command,
+    flash_command,
+    run_command,
+)
+from .common import (
+    NEOPO_DEPS,
+    ProcessError,
+    UserError,
+    particle_cli,
+    running_on_windows,
+)
+from .completion import (
+    find_valid_projects,
+    get_makefile_targets,
+    platforms_command,
+    versions_compressed,
+)
+from .particle import particle_command, particle_env
+from .project import (
+    configure_command,
+    create_command,
+    flags_command,
+    libraries_command,
+    settings_command,
+)
+from .serial import (
+    dfu_close,
+    dfu_open,
+    get_dfu_device,
+    get_particle_serial_ports,
+    serial_open,
+    serial_reset,
+)
+from .toolchain import (
+    download_unlisted_command,
+    get_command,
+    remove_command,
+    versions_command,
+)
+from .utility import handle_missing_file, print_help, unexpected_error
 
 # Local imports
 from .version import NEOPO_VERSION
-from .common import NEOPO_DEPS
-from .common import ProcessError, UserError, particle_cli, running_on_windows
-from .utility import print_help, handle_missing_file, unexpected_error
 from .workbench import install_or_update, workbench_install
-from .toolchain import versions_command, get_command, download_unlisted_command, remove_command
-from .project import create_command, configure_command, flags_command, settings_command, libraries_command
-from .build import compile_command, flash_command, flash_all_command, clean_command, run_command, export_command
-from .build import flash_bootloader_command
-from .completion import versions_compressed, platforms_command, find_valid_projects, get_makefile_targets
-from .particle import particle_command, particle_env
-from .serial import get_particle_serial_ports, serial_open, dfu_open, serial_reset, dfu_close, get_dfu_device
+
 
 # Print all commands (for completion)
 def options(args):
     print(*commands)
+
 
 # Wrapper for [install]
 def install_command(args):
@@ -30,6 +68,7 @@ def install_command(args):
         skip = None
     install_or_update(True, force, skip)
 
+
 # Wrapper for [update]
 def update_command(args):
     try:
@@ -38,23 +77,35 @@ def update_command(args):
         skip = None
     install_or_update(False, False, skip)
 
+
 # Wrapper for [upgrade]
 def upgrade_command(args):
-    print("This command is deprecated because neopo is now installed using pip or the AUR.")
-    print("To upgrade neopo, either rerun the universal installer, or follow distribution\nspecific instructions.")
+    print(
+        "This command is deprecated because neopo is now installed using pip or the AUR."
+    )
+    print(
+        "To upgrade neopo, either rerun the universal installer, or follow distribution\nspecific instructions."
+    )
+
 
 # Provide information for how to uninstall neopo
 def uninstall_command(args):
-    print("This command is deprecated because neopo is now installed using pip or the AUR.")
+    print(
+        "This command is deprecated because neopo is now installed using pip or the AUR."
+    )
     print("To uninstall neopo from your system run:")
     print("\t$ sudo pip3 uninstall neopo")
     print()
-    print("If you want to delete the neopo and particle directories you can do so with:")
+    print(
+        "If you want to delete the neopo and particle directories you can do so with:"
+    )
     print("\t$ rm -rf ~/.neopo ~/.particle")
+
 
 # Wait for user to press enter [for scripting]
 def script_wait(args=None):
     input("Press Enter to continue...")
+
 
 # Print a message to the console [for scripting]
 def script_print(args):
@@ -63,6 +114,7 @@ def script_print(args):
     except IndexError:
         message = ""
     print(*message)
+
 
 # Wrapper for [script]
 def script_command(args):
@@ -74,10 +126,13 @@ def script_command(args):
         if script.isatty():
             # Correct message depending on invocation
             exec_name = args[1]
-            exec_name = "neopo-script" if exec_name.endswith(
-                "script.py") else "neopo script"
-            raise ProcessError("Usage:\n\t$ %s <file>\n\t$ <another process> | %s" % (
-                exec_name, exec_name)) from error
+            exec_name = (
+                "neopo-script" if exec_name.endswith("script.py") else "neopo script"
+            )
+            raise ProcessError(
+                "Usage:\n\t$ %s <file>\n\t$ <another process> | %s"
+                % (exec_name, exec_name)
+            ) from error
     except FileNotFoundError as error:
         raise ProcessError("Could not find script %s!" % name) from error
 
@@ -93,6 +148,7 @@ def script_command(args):
         if len(process) > 1:
             main(process)
 
+
 # Available options for iterate
 iterable_commands = {
     "compile": compile_command,
@@ -102,17 +158,24 @@ iterable_commands = {
     "clean": clean_command,
     "run": run_command,
     "script": script_command,
-    "particle": particle_command
+    "particle": particle_command,
 }
+
 
 # Iterate through all connected devices and run a command
 def iterate_command(args):
     # Find Particle deviceIDs connected via USB
     process = [particle_cli, "serial", "list"]
-    particle = subprocess.run(process, stdout=subprocess.PIPE, env=particle_env(),
-                              shell=running_on_windows, check=True)
-    devices = [line.decode("utf-8").split()[-1]
-               for line in particle.stdout.splitlines()[1:]]
+    particle = subprocess.run(
+        process,
+        stdout=subprocess.PIPE,
+        env=particle_env(),
+        shell=running_on_windows,
+        check=True,
+    )
+    devices = [
+        line.decode("utf-8").split()[-1] for line in particle.stdout.splitlines()[1:]
+    ]
 
     if not devices:
         raise ProcessError("No devices found!")
@@ -124,23 +187,28 @@ def iterate_command(args):
         if not args[1] in iterable_commands.keys():
             raise UserError("Invalid command!")
     except IndexError as error:
-        raise UserError(
-            "You must supply a command to iterate with!") from error
+        raise UserError("You must supply a command to iterate with!") from error
 
     for device in devices:
         print("DeviceID: %s" % device)
         # Put device into DFU mode
         process = [particle_cli, "usb", "dfu", device]
-        subprocess.run(process, stderr=subprocess.PIPE,
-                       stdout=subprocess.PIPE,
-                       env=particle_env(),
-                       shell=running_on_windows, check=True)
+        subprocess.run(
+            process,
+            stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            env=particle_env(),
+            shell=running_on_windows,
+            check=True,
+        )
         # Run the iterable command
         iterable_commands[args[1]](args)
+
 
 # Print all iterable options (for completion)
 def iterate_options(args):
     print(*iterable_commands)
+
 
 # Available options for legacy
 legacy_commands = {
@@ -149,6 +217,7 @@ legacy_commands = {
     "serial close": serial_reset,
     "dfu close": dfu_close,
 }
+
 
 # Run the legacy baud rate-based commands (imported from po/po-util for older gen 2 devices)
 def legacy_command(args):
@@ -159,10 +228,15 @@ def legacy_command(args):
     try:
         full_arg = " ".join(args[1:3])
         if not full_arg in legacy_commands.keys():
-            raise UserError("Invalid command! Commands are: {}".format(list(legacy_commands.keys())))
+            raise UserError(
+                "Invalid command! Commands are: {}".format(list(legacy_commands.keys()))
+            )
     except IndexError as error:
         raise UserError(
-            "You must supply a full legacy command! Commands are: {}".format(legacy_commands.keys())) from error
+            "You must supply a full legacy command! Commands are: {}".format(
+                legacy_commands.keys()
+            )
+        ) from error
 
     # dfu_close doesn't need port
     if full_arg == "dfu close":
@@ -172,16 +246,20 @@ def legacy_command(args):
     serial_ports = get_particle_serial_ports()
     if not serial_ports:
         if full_arg == "dfu open" and get_dfu_device() is not None:
-                raise ProcessError("Already have a device in DFU mode and no other devices found!")
+            raise ProcessError(
+                "Already have a device in DFU mode and no other devices found!"
+            )
         raise ProcessError("No devices found!")
 
     for port in serial_ports:
         # Run the appropriate command
         legacy_commands[full_arg](port)
 
+
 # Print all legacy options (for completion)
 def legacy_options(args):
     print(*legacy_commands)
+
 
 # Run POSTINSTALL setup script for Manjaro/Arch
 def setup_command(args):
@@ -193,9 +271,12 @@ def setup_command(args):
         return
     if os.path.isdir(NEOPO_DEPS):
         with open(lock_file, "w") as lock:
-            lock.writelines([
-            "This file is used internally by neopo to recall if setup has been performed.\n",
-            "If you delete this file you can reattempt setup with: neopo setup\n"])
+            lock.writelines(
+                [
+                    "This file is used internally by neopo to recall if setup has been performed.\n",
+                    "If you delete this file you can reattempt setup with: neopo setup\n",
+                ]
+            )
 
     # Check for POSTINSTALL script
     post_install = "/usr/share/neopo/scripts/POSTINSTALL"
@@ -211,9 +292,11 @@ def setup_command(args):
         os.remove(lock_file)
         raise ProcessError("POSTINSTALL failed!") from error
 
+
 # Print the version of neopo
 def print_version(args):
     print(NEOPO_VERSION)
+
 
 # Available options
 commands = {
@@ -255,8 +338,9 @@ commands = {
     "settings": settings_command,
     "libs": libraries_command,
     "setup": setup_command,
-    "setup-workbench": workbench_install
+    "setup-workbench": workbench_install,
 }
+
 
 # Evaluate command-line arguments and call necessary functions
 def main(args=sys.argv):

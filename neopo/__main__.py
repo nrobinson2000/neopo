@@ -3,6 +3,7 @@
 # https://neopo.xyz
 
 import sys
+
 from .command import main
 
 if __name__ == "__main__":

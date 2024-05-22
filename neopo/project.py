@@ -1,20 +1,28 @@
-import os
 import json
-import shutil
+import os
 import pathlib
+import shutil
 import subprocess
 
 # Local imports
-from .common import TRAVIS_YML, min_particle_env
-from .common import particle_cli, running_on_windows
-from .common import ProcessError, ProjectError, UserError
-from .common import projectFiles, vscodeFiles
-from .utility import write_file, check_login, download_library
+from .common import (
+    TRAVIS_YML,
+    ProcessError,
+    ProjectError,
+    UserError,
+    min_particle_env,
+    particle_cli,
+    projectFiles,
+    running_on_windows,
+    vscodeFiles,
+)
 from .manifest import get_manifest_value
 from .toolchain import check_firmware_version
+from .utility import check_login, download_library, write_file
+
 
 # Create a Particle project and copy in Workbench settings
-def create_project(path, name, config_device = None, config_version = None):
+def create_project(path, name, config_device=None, config_version=None):
     # Default settings
     if not config_version:
         config_version = get_manifest_value("deviceOS")
@@ -29,8 +37,12 @@ def create_project(path, name, config_device = None, config_version = None):
     project_path = os.path.join(path, name)
     # Use particle-cli to create the project
     try:
-        subprocess.run([particle_cli, "project", "create", path, "--name", name],
-            env=min_particle_env(), shell=running_on_windows, check=True)
+        subprocess.run(
+            [particle_cli, "project", "create", path, "--name", name],
+            env=min_particle_env(),
+            shell=running_on_windows,
+            check=True,
+        )
     except subprocess.CalledProcessError as error:
         raise ProcessError("Failed to create project %s!" % name) from error
 
@@ -68,6 +80,7 @@ def create_project(path, name, config_device = None, config_version = None):
     # Configure project with default or specified settings
     configure_project(project_path, config_device, config_version)
 
+
 # Modify Workbench settings in a project (platform, firmwareVersion)
 def configure_project(project_path, platform, firmware_version):
     # Ensure that firware is compatible with platform
@@ -81,16 +94,23 @@ def configure_project(project_path, platform, firmware_version):
 
     # Upgrade a CLI project to Workbench format if required
     if not os.path.isfile(os.path.join(project_path, projectFiles["settings"])):
-        pathlib.Path(os.path.join(project_path, ".vscode")
-                     ).mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(vscodeFiles["launch"], os.path.join(
-            project_path, projectFiles["launch"]))
-        shutil.copyfile(vscodeFiles["settings"], os.path.join(
-            project_path, projectFiles["settings"]))
+        pathlib.Path(os.path.join(project_path, ".vscode")).mkdir(
+            parents=True, exist_ok=True
+        )
+        shutil.copyfile(
+            vscodeFiles["launch"], os.path.join(project_path, projectFiles["launch"])
+        )
+        shutil.copyfile(
+            vscodeFiles["settings"],
+            os.path.join(project_path, projectFiles["settings"]),
+        )
 
     # Apply configuration to project
     write_settings(project_path, platform, firmware_version)
-    print("Configured project %s: (%s, %s)" % (project_path, platform, firmware_version))
+    print(
+        "Configured project %s: (%s, %s)" % (project_path, platform, firmware_version)
+    )
+
 
 # Read settings.json in a project
 def open_settings(project_path):
@@ -98,12 +118,17 @@ def open_settings(project_path):
         try:
             return json.loads(settings.read())
         except json.decoder.JSONDecodeError as error:
-            raise ProjectError("Failed to load settings from %s\nPlease ensure that it contains valid JSON syntax." % projectFiles["settings"]) from error
+            raise ProjectError(
+                "Failed to load settings from %s\nPlease ensure that it contains valid JSON syntax."
+                % projectFiles["settings"]
+            ) from error
+
 
 # Load Workbench settings from a project
 def get_settings(project_path):
     data = open_settings(project_path)
     return (data["particle.targetPlatform"], data["particle.firmwareVersion"])
+
 
 # Update Workbench settings in a project
 def write_settings(project_path, platform, version):
@@ -112,6 +137,7 @@ def write_settings(project_path, platform, version):
         data["particle.targetPlatform"] = platform
         data["particle.firmwareVersion"] = version
         json.dump(data, settings, indent=4)
+
 
 # Create a dictionary from a .properties file
 def load_properties(properties_path):
@@ -126,15 +152,23 @@ def load_properties(properties_path):
             properties[key] = value
     return properties
 
+
 # Extract dependencies from .properties
 def get_library_deps(properties):
-    return [(key.split(".")[1], properties[key]) for key in properties.keys() if key.startswith("dependencies")]
+    return [
+        (key.split(".")[1], properties[key])
+        for key in properties.keys()
+        if key.startswith("dependencies")
+    ]
+
 
 # Discover dependencies of locally installed libraries
 def find_sub_libraries(libraries, project_path):
     found_libraries = []
     for library in libraries:
-        properties_file = os.path.join(project_path, "lib", library[0], "library.properties")
+        properties_file = os.path.join(
+            project_path, "lib", library[0], "library.properties"
+        )
         try:
             properties = load_properties(properties_file)
             found_libraries.extend(get_library_deps(properties))
@@ -142,10 +176,13 @@ def find_sub_libraries(libraries, project_path):
             print("Failed to find: %s" % os.path.join(library[0], "library.properties"))
     return found_libraries
 
+
 # Ensure that specified libraries are downloaded, otherwise install them
 def check_libraries(project_path, active):
     try:
-        properties = load_properties(os.path.join(project_path, projectFiles["properties"]))
+        properties = load_properties(
+            os.path.join(project_path, projectFiles["properties"])
+        )
         libraries = get_library_deps(properties)
 
     except FileNotFoundError as error:
@@ -157,13 +194,16 @@ def check_libraries(project_path, active):
         libraries_intact = install_libraries(sub_libraries, project_path, active)
     return libraries_intact
 
+
 # Install a list of libraries
 def install_libraries(libraries, project_path, active):
     libraries_intact = True
     for library in libraries:
         requested_version = library[1]
         try:
-            lib_properties = load_properties(os.path.join(project_path, "lib", library[0], "library.properties"))
+            lib_properties = load_properties(
+                os.path.join(project_path, "lib", library[0], "library.properties")
+            )
             actual_version = lib_properties["version"]
         except FileNotFoundError:
             actual_version = None
@@ -179,6 +219,7 @@ def install_libraries(libraries, project_path, active):
                 print("Library %s@%s is already installed." % library)
     return libraries_intact
 
+
 # Get EXTRA_CFLAGS for a project or return empty string
 def get_flags(project_path):
     try:
@@ -189,6 +230,7 @@ def get_flags(project_path):
     except (FileNotFoundError, KeyError):
         return ""
 
+
 # Set EXTRA_CFLAGS for a project
 def set_flags(project_path, make_flags):
     settings_path = os.path.join(project_path, projectFiles["settings"])
@@ -198,16 +240,22 @@ def set_flags(project_path, make_flags):
     with open(settings_path, "w") as file:
         json.dump(settings, file, indent=4)
 
+
 # Wrapper for [create]
 def create_command(args):
     try:
         project_path = os.path.abspath(args[2])
         platform = args[3] if len(args) >= 4 else None
         version = args[4] if len(args) >= 5 else None
-        create_project(os.path.dirname(project_path),
-                       os.path.basename(project_path), platform, version)
+        create_project(
+            os.path.dirname(project_path),
+            os.path.basename(project_path),
+            platform,
+            version,
+        )
     except IndexError as error:
         raise UserError("You must supply a path for the project!") from error
+
 
 # Wrapper for [config/configure]
 def configure_command(args):
@@ -215,22 +263,22 @@ def configure_command(args):
         project_path = args[4] if len(args) >= 5 else os.getcwd()
         configure_project(project_path, args[2], args[3])
     except IndexError as error:
-        raise UserError(
-            "You must supply platform and deviceOS version!") from error
+        raise UserError("You must supply platform and deviceOS version!") from error
+
 
 # Wrapper for [flags]
 def flags_command(args):
     try:
         make_flags = args[2]
     except IndexError as error:
-        raise UserError(
-            "You must provide the flags as one (quoted) string!") from error
+        raise UserError("You must provide the flags as one (quoted) string!") from error
     try:
         project = os.path.abspath(args[3])
     except IndexError:
         project = os.getcwd()
 
     set_flags(project, make_flags)
+
 
 # Wrapper for [settings]
 def settings_command(args):
@@ -243,8 +291,8 @@ def settings_command(args):
         print("version: %s" % settings[1])
         print("EXTRA_CFLAGS: %s" % (flags if flags else "<not set>"))
     except FileNotFoundError as error:
-        raise UserError("%s is not a Particle project!" %
-                        project_path) from error
+        raise UserError("%s is not a Particle project!" % project_path) from error
+
 
 # Wrapper for [libs]
 def libraries_command(args):

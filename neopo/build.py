@@ -1,15 +1,29 @@
 import os
-import time
 import pathlib
 import subprocess
+import time
 
 # Local imports
-from .common import PARTICLE_DEPS, running_on_windows, particle_cli, projectFiles
-from .common import ProcessError, ProjectError, UserError, min_particle_env
-from .manifest import load_manifest, get_manifest_value
-from .project import get_settings, check_libraries, get_flags
-from .toolchain import get_compiler, check_firmware_version, get_firmware_path, platform_convert
+from .common import (
+    PARTICLE_DEPS,
+    ProcessError,
+    ProjectError,
+    UserError,
+    min_particle_env,
+    particle_cli,
+    projectFiles,
+    running_on_windows,
+)
+from .manifest import get_manifest_value, load_manifest
+from .project import check_libraries, get_flags, get_settings
+from .toolchain import (
+    check_firmware_version,
+    get_compiler,
+    get_firmware_path,
+    platform_convert,
+)
 from .utility import write_executable
+
 
 # Export a build command to a script
 def export_build_process(project_path, process, environment, target):
@@ -30,9 +44,11 @@ def export_build_process(project_path, process, environment, target):
 
     print("Exported to %s" % script)
 
+
 # Add a path to an environment
 def add_to_path(environment, path):
     environment["PATH"] += os.pathsep + path
+
 
 # Add buildtools to PATH
 def add_build_tools(environment, version=None):
@@ -40,6 +56,7 @@ def add_build_tools(environment, version=None):
     toolpath = os.path.join(PARTICLE_DEPS, "buildtools", tools_version)
     toolpath = os.path.join(toolpath, "bin") if running_on_windows else toolpath
     add_to_path(environment, toolpath)
+
 
 # Build and flash bootloader to connected device [WIP]
 def flash_bootloader(platform, firmware_version, verbosity=1):
@@ -50,7 +67,7 @@ def flash_bootloader(platform, firmware_version, verbosity=1):
 
     try:
         subprocess.run(usb_listen, env=temp_env, shell=running_on_windows, check=True)
-        time.sleep(2) # Account for device to enter listening mode
+        time.sleep(2)  # Account for device to enter listening mode
         subprocess.run(serial_flash, env=temp_env, shell=running_on_windows, check=True)
     # Return cleanly if ^C was pressed
     except KeyboardInterrupt:
@@ -58,14 +75,16 @@ def flash_bootloader(platform, firmware_version, verbosity=1):
     except subprocess.CalledProcessError:
         return
 
+
 # Build bootloader and return path to built file [WIP]
 def build_bootloader(platform, firmware_version, verbosity=1):
     compiler_version, script_version, tools_version, _ = load_manifest()
 
     temp_env = min_particle_env()
     add_build_tools(temp_env, tools_version)
-    add_to_path(temp_env, os.path.join(
-        PARTICLE_DEPS, "gcc-arm", compiler_version, "bin"))
+    add_to_path(
+        temp_env, os.path.join(PARTICLE_DEPS, "gcc-arm", compiler_version, "bin")
+    )
 
     device_os_path = os.path.join(PARTICLE_DEPS, "deviceOS", firmware_version)
     bootloader = os.path.join(device_os_path, "bootloader")
@@ -75,9 +94,14 @@ def build_bootloader(platform, firmware_version, verbosity=1):
     OLDPWD = os.path.abspath(os.curdir)
     try:
         os.chdir(bootloader)
-        subprocess.run(process, env=temp_env, shell=running_on_windows, check=True,
-                        stdout=subprocess.PIPE if verbosity == -1 else None,
-                        stderr=subprocess.PIPE if verbosity == -1 else None)
+        subprocess.run(
+            process,
+            env=temp_env,
+            shell=running_on_windows,
+            check=True,
+            stdout=subprocess.PIPE if verbosity == -1 else None,
+            stderr=subprocess.PIPE if verbosity == -1 else None,
+        )
     except subprocess.CalledProcessError as error:
         pass
     finally:
@@ -85,13 +109,20 @@ def build_bootloader(platform, firmware_version, verbosity=1):
 
     platform_id = platform_convert(platform, "name", "id")
 
-    target = os.path.join(device_os_path, "build", "target", "bootloader",
-            "platform-%s-m-lto" % platform_id, "bootloader.bin")
+    target = os.path.join(
+        device_os_path,
+        "build",
+        "target",
+        "bootloader",
+        "platform-%s-m-lto" % platform_id,
+        "bootloader.bin",
+    )
 
     if os.path.isfile(target):
         return target
     else:
         raise ProcessError("%s was not built!" % target)
+
 
 # Use the Makefile to build the specified target
 def build_project(project_path, command, help_only, verbosity, export=False):
@@ -108,9 +139,10 @@ def build_project(project_path, command, help_only, verbosity, export=False):
 
     # Command used to invoke the Workbench makefile
     process = [
-        "make", "-f", os.path.join(PARTICLE_DEPS,
-                                   "buildscripts", script_version, "Makefile"),
-        "PARTICLE_CLI_PATH=" + particle
+        "make",
+        "-f",
+        os.path.join(PARTICLE_DEPS, "buildscripts", script_version, "Makefile"),
+        "PARTICLE_CLI_PATH=" + particle,
     ]
 
     # Add [-s] flag to make to silence output
@@ -133,13 +165,17 @@ def build_project(project_path, command, help_only, verbosity, export=False):
         except (FileNotFoundError, KeyError) as error:
             if os.path.isfile(os.path.join(project_path, projectFiles["properties"])):
                 raise ProjectError(
-                    "Project not configured!\nUse: neopo configure <platform> <version> <project>") from error
+                    "Project not configured!\nUse: neopo configure <platform> <version> <project>"
+                ) from error
             else:
-                raise UserError("%s is not a Particle project!" % project_path) from error
+                raise UserError(
+                    "%s is not a Particle project!" % project_path
+                ) from error
 
         # Add compiler to path
-        add_to_path(temp_env, os.path.join(
-            PARTICLE_DEPS, "gcc-arm", compiler_version, "bin"))
+        add_to_path(
+            temp_env, os.path.join(PARTICLE_DEPS, "gcc-arm", compiler_version, "bin")
+        )
 
         # Set additional variables for make
         device_os_path = get_firmware_path(firmware_version)
@@ -157,11 +193,17 @@ def build_project(project_path, command, help_only, verbosity, export=False):
 
     # Run makefile with given verbosity
     try:
-        subprocess.run(process, env=temp_env, shell=running_on_windows, check=True,
-                        stdout=subprocess.PIPE if verbosity == -1 else None,
-                        stderr=subprocess.PIPE if verbosity == -1 else None)
+        subprocess.run(
+            process,
+            env=temp_env,
+            shell=running_on_windows,
+            check=True,
+            stdout=subprocess.PIPE if verbosity == -1 else None,
+            stderr=subprocess.PIPE if verbosity == -1 else None,
+        )
     except subprocess.CalledProcessError as error:
         raise ProcessError("\n*** %s FAILED ***\n" % command.upper()) from error
+
 
 # Parse the project path from the specified index and run a Makefile target
 def build_command(command, index, args, export=False):
@@ -193,9 +235,11 @@ def build_command(command, index, args, export=False):
     # Build the given project with a command and verbosity
     build_project(project, command, False, verbosity, export)
 
+
 # Print help information directly from Makefile
 def build_help():
     build_project(None, None, True, 0)
+
 
 # Wrapper for [run]
 def run_command(args, export=False):
@@ -205,22 +249,28 @@ def run_command(args, export=False):
         build_help()
         raise UserError("You must supply a Makefile target!") from error
 
+
 # Wrappers for commands that build
 def flash_command(args):
     build_command("flash-user", 2, args)
 
+
 def compile_command(args):
     build_command("compile-user", 2, args)
+
 
 def flash_all_command(args):
     build_command("flash-all", 2, args)
 
+
 def clean_command(args):
     build_command("clean-user", 2, args)
+
 
 # Wrapper for export
 def export_command(args):
     run_command(args, True)
+
 
 # Wrapper for flash-bootloader
 def flash_bootloader_command(args):
@@ -235,7 +285,7 @@ def flash_bootloader_command(args):
         verbosity = args[4]
     except IndexError:
         verbosity = None
-    verbosity_level=verbosity_dict[verbosity]
+    verbosity_level = verbosity_dict[verbosity]
 
     if not check_firmware_version(device_platform, firmware_version):
         raise ProjectError("Firmware related error!")

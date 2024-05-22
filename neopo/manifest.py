@@ -1,9 +1,10 @@
-import os
 import json
+import os
 
 # Local imports
 from .common import jsonFiles
 from .utility import handle_missing_file
+
 
 # Update the manifest JSON file
 def write_manifest(dep):
@@ -18,10 +19,12 @@ def write_manifest(dep):
         json.dump(manifest, file, indent=4)
         file.truncate()
 
+
 # Create the manifest file
 def create_manifest():
     if not os.path.isfile(jsonFiles["manifest"]):
         open(jsonFiles["manifest"], "w")
+
 
 def get_manifest_value(key):
     try:
@@ -33,6 +36,7 @@ def get_manifest_value(key):
             return data[key]
     except FileNotFoundError as error:
         handle_missing_file(error.filename)
+
 
 def get_cached_json(key):
     try:
@@ -47,6 +51,7 @@ def get_cached_json(key):
     except FileNotFoundError as error:
         handle_missing_file(error.filename)
 
+
 # Load settings from the dependency mainfest JSON file
 def load_manifest():
     with open(jsonFiles["manifest"], "r") as file:
@@ -58,5 +63,5 @@ def load_manifest():
             data["gcc-arm"],
             data["buildscripts"],
             data["buildtools"],
-            data["deviceOS"]
+            data["deviceOS"],
         )

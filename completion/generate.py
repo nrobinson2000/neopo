@@ -1,6 +1,7 @@
 from neopo.command import commands, iterable_commands, legacy_commands
 
-print(r'''# neopo(1) completion
+print(
+    r"""# neopo(1) completion
 # depends on jq(1)
 
 _find_toolchains() {
@@ -141,4 +142,6 @@ _neopo() {
         COMPREPLY=($(compgen -W "$_iterable" -- "$cur"));;
     esac
 } &&
-complete -F _neopo neopo''' % (" ".join(commands.keys()), " ".join(iterable_commands.keys())))
+complete -F _neopo neopo"""
+    % (" ".join(commands.keys()), " ".join(iterable_commands.keys()))
+)

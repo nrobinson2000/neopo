@@ -195,6 +195,7 @@ for gen 2 devices. Only available on Linux and macOS at this time.\n""",
     "upgrade": ["Print information about upgrading neopo. (Deprecated)"],
 }
 
+
 # Print description, usage, commands, and options for a command
 def get_help(command):
     try:

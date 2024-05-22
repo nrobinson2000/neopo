@@ -1,26 +1,26 @@
-from .particle import particle_env
-from .common import ProcessError, DependencyError, particle_cli, running_on_windows
-
-import subprocess
-import time
-import re
-from platform import system
-from glob import glob
+import array
+import fcntl
 
 # set_baudrate Based on
 # https://github.com/pyserial/pyserial/blob/master/serial/serialposix.py
-
 # imports for set_baudrate
 import os
-import fcntl
+import re
+import subprocess
 import termios
-import array
+import time
+from glob import glob
+from platform import system
+
+from .common import DependencyError, ProcessError, particle_cli, running_on_windows
+from .particle import particle_env
 
 # constants for set_baudrate
 TCGETS2 = 0x802C542A
 TCSETS2 = 0x402C542B
 BAUDRATE_OFFSET = 9
 BOTHER = 0o010000
+
 
 # Needed on Linux since stty does not support arbitrary baudrates there
 def set_baudrate(port, baudrate):
@@ -30,7 +30,7 @@ def set_baudrate(port, baudrate):
         raise RuntimeError(f"Could not open port {port}")
 
     # right size is 44 on x86_64, allow for some growth
-    buf = array.array('i', [0] * 64)
+    buf = array.array("i", [0] * 64)
     try:
         # get serial_struct
         fcntl.ioctl(fd, TCGETS2, buf)
@@ -62,22 +62,30 @@ PLATFORM_SUPPORTED = RUNTIME_PLATFORM != "Windows"
 def throw_error_if_unsupported_platform():
     if not PLATFORM_SUPPORTED:
         raise DependencyError(
-            "ERROR: Unsupported Platform - legacy commands requires Linux or macOS to run")
+            "ERROR: Unsupported Platform - legacy commands requires Linux or macOS to run"
+        )
 
 
 def get_particle_serial_ports():
     if RUNTIME_PLATFORM == "Linux":
-        return glob('/dev/ttyACM*')
+        return glob("/dev/ttyACM*")
     elif RUNTIME_PLATFORM == "Darwin":
-        return glob('/dev/cu.usbmodem*')
+        return glob("/dev/cu.usbmodem*")
     else:
         # use particle serial list as fallback (though slower)
         # Find Particle deviceIDs connected via USB
         process = [particle_cli, "serial", "list"]
-        particle = subprocess.run(process, stdout=subprocess.PIPE, env=particle_env(),
-                                  shell=running_on_windows, check=True)
-        return [line.decode("utf-8").split()[-1]
-                for line in particle.stdout.splitlines()[1:]]
+        particle = subprocess.run(
+            process,
+            stdout=subprocess.PIPE,
+            env=particle_env(),
+            shell=running_on_windows,
+            check=True,
+        )
+        return [
+            line.decode("utf-8").split()[-1]
+            for line in particle.stdout.splitlines()[1:]
+        ]
 
 
 def get_dfu_device():
@@ -87,7 +95,7 @@ def get_dfu_device():
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         check=True,
-        env=particle_env()
+        env=particle_env(),
     )
     content = r.stdout.decode()
     group = re.search(USB_EXPRESSION, content)
@@ -100,8 +108,9 @@ def serial_open(device):
         set_baudrate(device, LISTENING_BAUD)
     else:
         process = [BAUD_TOOL, "-f", device, str(LISTENING_BAUD)]
-        subprocess.run(process, stdout=subprocess.PIPE,
-                       stderr=subprocess.PIPE, check=True)
+        subprocess.run(
+            process, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
+        )
 
 
 def dfu_open(device):
@@ -110,8 +119,9 @@ def dfu_open(device):
         set_baudrate(device, DFU_BAUD)
     else:
         process = [BAUD_TOOL, "-f", device, str(DFU_BAUD)]
-        subprocess.run(process, stdout=subprocess.PIPE,
-                       stderr=subprocess.PIPE, check=True)
+        subprocess.run(
+            process, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
+        )
 
 
 def serial_reset(port):
@@ -135,5 +145,5 @@ def dfu_close():
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         check=True,
-        env=particle_env()
+        env=particle_env(),
     )
