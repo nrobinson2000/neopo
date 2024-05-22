@@ -6,7 +6,6 @@ import subprocess
 
 # Local imports
 from .common import (
-    TRAVIS_YML,
     ProcessError,
     ProjectError,
     UserError,
@@ -49,33 +48,20 @@ def create_project(path, name, config_device=None, config_version=None):
     # If git is installed, initialize project as git repo
     if shutil.which("git"):
         subprocess.run(["git", "init", project_path], check=True)
-        # Add .travis.yml to project
-        write_file(TRAVIS_YML, os.path.join(project_path, ".travis.yml"), "w")
+
         # Add .gitignore to project
         write_file("target", os.path.join(project_path, ".gitignore"), "w")
 
     # Add buttons to README.md
-    travis_button = "[![](https://api.travis-ci.org/yourUser/yourRepo.svg?branch=master)](https://travis-ci.org/yourUser/yourRepo)"
     neopo_button = "[![](https://img.shields.io/badge/built_with-neopo-informational)](https://neopo.xyz)"
     readme_path = os.path.join(project_path, "README.md")
+
     with open(readme_path, "r") as file:
         readme = file.readlines()
         readme.insert(0, "\n")
         readme.insert(0, neopo_button + "\n")
-        readme.insert(0, travis_button + "\n")
     with open(readme_path, "w") as file:
         file.writelines(readme)
-
-    # Change name/src/name.ino to name/src/name.cpp
-    # Add #include "Particle.h"
-    include = '#include "Particle.h"\n\n'
-    src = os.path.join(project_path, "src", "%s.ino" % name)
-    dst = os.path.join(project_path, "src", "%s.cpp" % name)
-    shutil.move(src, dst)
-    with open(dst, "r") as original:
-        data = original.read()
-    with open(dst, "w") as modified:
-        modified.write(include + data + "\n")
 
     # Configure project with default or specified settings
     configure_project(project_path, config_device, config_version)
