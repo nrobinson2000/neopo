@@ -50,7 +50,7 @@ def set_baudrate(port, baudrate):
 
 DFU_BAUD = 14400
 LISTENING_BAUD = 28800
-USB_EXPRESSION = "(?<=\[).{4}:.{4}(?=\])"
+USB_EXPRESSION = r"(?<=\[).{4}:.{4}(?=\])"
 BAUD_TOOL = "stty"
 
 # currently only supporting macOS and linux, we use this one-time check

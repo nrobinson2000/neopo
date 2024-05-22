@@ -259,7 +259,7 @@ commands = {
 }
 
 # Evaluate command-line arguments and call necessary functions
-def main(args):
+def main(args=sys.argv):
     if len(args) == 1:
         print_help(None)
     elif args[1] in commands:
