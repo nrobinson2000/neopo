@@ -1,5 +1,5 @@
-# Experimental
 import concurrent.futures
+import gzip
 import hashlib
 import io
 import json
@@ -202,44 +202,38 @@ def get_deps():
     pathlib.Path(vscodeFiles["dir"]).mkdir(parents=True, exist_ok=True)
     manifest = get_file(extension, extensionFiles["manifest"])
 
-    # For arm, the particle executable is no longer provided in the VSIX
+    # The particle executable is no longer provided in the VSIX
     # But it is still hosted on binaries.particle.io
-    if platform.machine() in ("armv7l", "aarch64"):
-        # Get manifest file
-        particle_bin_manifest = get_file(
-            extension, "/".join([extensionFiles["bin"], "manifest.json"])
-        )
-        manifest_json = json.loads(particle_bin_manifest.decode())
 
-        # Swap out amd64 for arm
-        raw_url = manifest_json["builds"]["linux"]["amd64"]["url"]
-        arm_url = raw_url.replace("amd64", "arm")
+    os_platform = platform.system().lower()
+    plat_map = {"armv7l": "arm", "aarch64": "arm64", "x86_64": "x64"}
+    os_arch = plat_map[platform.machine()]
 
-        # Download arm binary
-        particle = download_url(arm_url)
-        write_executable(particle, particle_cli)
+    # Get manifest file
+    manifest_host = "binaries.particle.io"
+    manifest_url = f"https://{manifest_host}/particle-cli/manifest.json"
 
-    else:
-        # Attempt to pull particle-cli executable from VSIX
-        try:
-            os_platform = platform.system().lower()
-            os_arch = (
-                platform.machine().lower()
-                if running_on_windows
-                else "amd64"
-                if platform.machine() == "x86_64"
-                else "arm"
-            )
-            particle_bin = os.path.basename(particle_cli)
-            particle = get_file(
-                extension,
-                "/".join([extensionFiles["bin"], os_platform, os_arch, particle_bin]),
-            )
-            write_executable(particle, particle_cli)
-        except KeyError as error:
-            raise DependencyError(
-                "Failed to download particle executable from extension!"
-            ) from error
+    manifest_json = json.loads(download_url(manifest_url).decode())
+
+    binary_url = manifest_json["builds"][os_platform][os_arch]["url"]
+    binary_sha = manifest_json["builds"][os_platform][os_arch]["sha256"]
+
+    print("Downloading particle binary...")
+
+    # Download particle binary
+    particle_gz = download_url(binary_url)
+
+    # Check hash
+    assert (
+        hashlib.sha256(particle_gz).hexdigest() == binary_sha
+    ), "particle-cli sha256 mismatch!"
+
+    # Uncompress gzip
+    particle_file = gzip.open(io.BytesIO(particle_gz))
+    particle = particle_file.read()
+
+    # Install to correct location
+    write_executable(particle, particle_cli)
 
     # Create launch.json and settings.json project template files
     launch = get_file(extension, extensionFiles["launch"])
