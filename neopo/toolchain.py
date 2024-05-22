@@ -132,12 +132,17 @@ def versions_command(args):
         for entry in reversed(json.load(firmware_file)):
             version = entry["version"]
             official_versions.add(version)
-            devices = ", ".join(
-                [
-                    platform_convert(platform, "id", "name")
-                    for platform in get_supported_platforms(version)
-                ]
-            )
+
+            try:
+                devices = ", ".join(
+                    [
+                        platform_convert(platform, "id", "name")
+                        for platform in get_supported_platforms(version)
+                    ]
+                )
+            except TypeError:
+                continue
+
             print("   %s\t [ %s ]" % (version, devices))
 
     custom_versions = None
