@@ -206,7 +206,12 @@ def get_deps():
     # But it is still hosted on binaries.particle.io
 
     os_platform = platform.system().lower()
-    plat_map = {"armv7l": "arm", "aarch64": "arm64", "x86_64": "x64"}
+    plat_map = {
+        "armv7l": "arm",
+        "aarch64": "arm64",
+        "arm64": "arm64",
+        "x86_64": "x64",
+    }
     os_arch = plat_map[platform.machine()]
 
     # Get manifest file
