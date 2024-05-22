@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "neopo"
+version = "0.1.0"
+description = "Local Particle toolchain utility"
+authors = ["Nate Robinson <nrobinson2000@me.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.9"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.4.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+neopo = "neopo.command:main"
