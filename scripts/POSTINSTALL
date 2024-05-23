@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Exit if not running Manjaro/Arch
+# Exit if not running Arch
 if [[ ! -e /etc/pacman.conf ]]; then
     echo "Running post-install not required on this system..."
     echo "Exiting."
@@ -22,24 +22,11 @@ elif [[ "$ARCH" == "aarch64" ]]; then
     yay -S --needed openocd-git
 
     # Optional depends
-    sudo pacman -S --needed dfu-util nodejs-lts-erbium npm
+    sudo pacman -S --needed dfu-util
 fi
 
 # Install particle packages
 neopo install
-
-# Fix and install particle-cli
-if [[ "$ARCH" == "aarch64" ]]; then
-    export GODE_DEBUG=info  # This is optional
-    neopo particle # This will fail
-
-    # Replace node executable
-    PARTICLE_BASE="${NEOPO_LOCAL:+$HOME/.local/share/neopo/particle}"
-    PARTICLE_BASE="${NEOPO_PATH:+$NEOPO_PATH/particle}"
-    NODE_BINARY="$(find ${PARTICLE_BASE:-$HOME/.particle}/node-v*/bin/node)"
-    mv "$NODE_BINARY" "${NODE_BINARY}.old"
-    ln -s $(which node) "$NODE_BINARY"
-fi
 
 # Complete particle-cli install
 neopo particle

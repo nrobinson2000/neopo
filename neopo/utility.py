@@ -1,26 +1,34 @@
+import io
 import os
-import sys
+import pathlib
 import stat
 import subprocess
-import traceback
-
-import io
-import urllib.request
+import sys
 import tarfile
-import pathlib
+import traceback
+import urllib.request
 import xml.etree.ElementTree as ET
 
 # Local imports
-from .common import particle_cli, running_on_windows, ProcessError
-from .common import PARTICLE_DEPS, NEOPO_DEPS, CACHE_DIR, min_particle_env
-from .common import s3_bucket, s3_prefix
-
+from .common import (
+    CACHE_DIR,
+    NEOPO_DEPS,
+    PARTICLE_DEPS,
+    ProcessError,
+    min_particle_env,
+    particle_cli,
+    running_on_windows,
+    s3_bucket,
+    s3_prefix,
+)
 from .help_info import get_help
+
 
 # Write data to a file
 def write_file(content, path, mode):
     with open(path, mode) as file:
         file.write(content)
+
 
 # Write an executable dependency to a file
 def write_executable(content, path):
@@ -29,27 +37,36 @@ def write_executable(content, path):
         file_stat = os.stat(file.name)
         os.chmod(file.name, file_stat.st_mode | stat.S_IEXEC)
 
+
 # Ensure that the user is logged into particle-cli
 def check_login():
     process = [particle_cli, "whoami"]
     try:
-        subprocess.run(process, shell=running_on_windows, env=min_particle_env(),
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        subprocess.run(
+            process,
+            shell=running_on_windows,
+            env=min_particle_env(),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+        )
     except subprocess.CalledProcessError:
         return False
     return True
 
+
 def search(lib_query):
-    request = urllib.request.Request(
-        s3_bucket + s3_prefix + lib_query)
+    request = urllib.request.Request(s3_bucket + s3_prefix + lib_query)
     with urllib.request.urlopen(request) as response:
         content = response.read()
         return io.BytesIO(content)
 
+
 def get_keys(byte_file):
     tree = ET.parse(byte_file)
-    keys = [e.text for e in tree.iter() if e.tag.endswith('Key')]
+    keys = [e.text for e in tree.iter() if e.tag.endswith("Key")]
     return keys
+
 
 def get_library(name, version, keys):
     combo = "%s-%s" % (name, version)
@@ -57,6 +74,7 @@ def get_library(name, version, keys):
         if combo in key:
             return key
     return None
+
 
 def install_library(name, version, project_path):
     data = search(name)
@@ -67,6 +85,7 @@ def install_library(name, version, project_path):
     library_url = s3_bucket + lib
     print("Downloading library %s@%s..." % (name, version))
     download_library_archive(library_url, name, project_path)
+
 
 def download_library_archive(url, name, project_path):
     base = os.path.join(project_path, "lib")
@@ -82,9 +101,11 @@ def download_library_archive(url, name, project_path):
         tar.extractall(path)
     os.remove(archive)
 
+
 def download_library(library, project_path):
     name, version = library
     install_library(name, version, project_path)
+
 
 # Print help information about the program
 def print_help(args):
@@ -148,7 +169,9 @@ def print_logo():
   / / / /  __/ /_/ / /_/ / /_/ /    local Particle development.
  /_/ /_/\___/\____/ ____/\____/
                  /_/      .xyz      Copyright (c) 2021 Nathan Robinson
-    """)
+    """
+    )
+
 
 # Print traceback and message for unhandled exceptions
 def unexpected_error():
@@ -157,6 +180,7 @@ def unexpected_error():
     print("To report this error on GitHub, please open an issue:")
     print("https://github.com/nrobinson2000/neopo/issues")
     sys.exit(1)
+
 
 # Check if a missing file is managed by neopo
 def handle_missing_file(file):
